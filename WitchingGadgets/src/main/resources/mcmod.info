@@ -1,0 +1,16 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "It's a kind of magic",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["BluSunrize", "KryptonCaptain"],
+  "credits": "",
+  "logoFile": "assets/witchinggadgets/logo.png",
+  "screenshots": [],
+  "dependencies": ["Thaumcraft","gregtech","dreamcraft"]
+}
+]

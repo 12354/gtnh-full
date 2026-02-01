@@ -1,0 +1,16 @@
+{
+    "formatVersion": 1,
+    "name": "LWJGL3ify Early Classpath",
+    "uid": "me.eigenraven.lwjgl3ify.forgepatches",
+    "version": "${version}",
+    "order": 3,
+    "+jvmArgs": [
+        ${jvmArgs}
+    ],
+    "libraries": [
+        {
+            "name": "com.github.GTNewHorizons:lwjgl3ify:${version}:forgePatches",
+            "MMC-hint": "local"
+        }
+    ]
+}

@@ -1,0 +1,20 @@
+// Add any additional repositories for your dependencies here.
+
+repositories {
+    mavenLocal()
+    maven {
+        name = "gt"
+        url = "https://gregtech.mechaenetia.com/"
+    }
+    maven {
+        name = "GTNH Maven"
+        url = "https://nexus.gtnewhorizons.com/repository/public/"
+    }
+    maven {
+        name = "GTMEGA/FalsePattern Maven"
+        url = "https://mvn.falsepattern.com/releases/"
+    }
+    maven {
+        url 'https://jitpack.io'
+    }
+}

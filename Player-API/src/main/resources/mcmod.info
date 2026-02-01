@@ -1,0 +1,17 @@
+{
+	"modListVersion": 2,
+	"modList": [{
+		"modid": "${modId}",
+		"name": "${modName}",
+		"description": "Player API for Minecraft Forge",
+		"version": "${modVersion}",
+		"mcversion": "${minecraftVersion}",
+		"url": "https://web.archive.org/web/20170914045249/http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1277996-player-api",
+		"updateUrl": "",
+		"authorList": ["Divisor"],
+		"credits": "",
+		"logoFile": "",
+		"screenshots": [],
+		"parent": ""
+	}]
+}

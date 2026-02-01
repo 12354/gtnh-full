@@ -1,0 +1,16 @@
+{
+	"modListVersion": 2,
+	"modList": [{
+		"modid": "${modId}",
+		"name": "${modName}",
+		"description": "Adds extra things to improve SFM",
+		"version": "${modVersion}",
+		"mcversion": "${minecraftVersion}",
+		"url": "https://github.com/hilburn/StevesAddons",
+		"updateUrl": "http://minecraft.curseforge.com/mc-mods/226067-steves-addons",
+		"authors": ["hilburn"],
+		"credits": "Authored by hilburn, as an addon to VSWE's SFM",
+		"logoFile": "",
+		"screenshots": []
+	}]
+}

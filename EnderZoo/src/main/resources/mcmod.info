@@ -1,0 +1,21 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "More Mobs",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "https://www.enderio.com",
+  "updateUrl": "",
+  "authors": [
+    "crazypants"
+  ],
+  "credits": "By CrazyPants",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"",
+  "dependencies": [
+  ]
+}
+]

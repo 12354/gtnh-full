@@ -1,0 +1,14 @@
+[{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "Contextual server profiler",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "",
+  "updateUrl": "",
+  "authors": ["ProfMobius", "RoyCurtis"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}]

@@ -1,0 +1,12 @@
+import minetweaker.tasks.RegisterZenClassesTask
+
+def makeRegistryTask = tasks.register('makeRegistry', RegisterZenClassesTask) {
+    dependsOn("compileJava")
+    inputDir.set(file("build/classes/java/main/"))
+    outputDir.set(file("build/classes/java/main/"))
+    className.set("minetweaker.mc1710.MineTweakerRegistry")
+}
+
+tasks.named("classes").configure {
+    dependsOn(makeRegistryTask)
+}

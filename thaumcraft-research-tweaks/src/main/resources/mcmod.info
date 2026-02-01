@@ -1,0 +1,23 @@
+[
+  {
+    "modid": "${modId}",
+    "name": "${modName}",
+    "description": "Makes thaumcraft research table ui resizable, adjusts sorting and allows 10x at a time aspect combination",
+    "version": "${modVersion}",
+    "mcversion": "${minecraftVersion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [
+      "Telan",
+      "Think"
+    ],
+    "credits": "TimeConqueror, GTNH pack devs, Azanor",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": [
+      "Forgelin", 
+      "Thaumcraft", 
+      "SpongeMixins"
+    ]
+  }
+]

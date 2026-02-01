@@ -1,0 +1,17 @@
+{
+	"modListVersion": 2,
+	"modList": [{
+		"modid": "${modId}",
+		"name": "${modName}",
+		"description": "Search for a biome and get information about it.",
+		"version": "${modVersion}",
+		"mcversion": "${minecraftVersion}",
+		"url": "https://www.curseforge.com/minecraft/mc-mods/natures-compass",
+		"updateUrl": "",
+		"authorList": ["ChaosTheDude"],
+		"credits": "",
+		"logoFile": "",
+		"screenshots": [],
+		"parent": ""
+	}]
+}

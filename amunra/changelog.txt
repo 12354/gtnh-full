@@ -1,0 +1,236 @@
+=== 0.4.8 ===
+- improved shuttle positioning and dismounting
+- potentially fixed a crash with servers like Thermos or KCauldron
+- made the mehen belt slightly brighter
+- permissions for mothership landing and control are now separate
+
+=== 0.4.7 ===
+- minimal GC version is build 498
+- made the Artificial Gravity Generator work using the new events
+- made an animated texture for the AGG, added particles when it's on
+- made an animated texture for dark matter
+- the Artificial Gravity Disruptor now has to be enabled (rightclick), and will work from any point in the inventory
+
+=== 0.4.6 ===
+- allowed rockets to be started from motherships
+- fixed several issue with sky rendering (asteroid fields and rings should render properly now)
+- auto-set matchUsersByUUID to false on "offline" servers (Apparently Client and Server get some random UUIDs, which never match when offline)
+- tried updating the transit progress bar client-side
+- upgraded to GC 495
+- added a sanity check for mothershipProviderID, should prevent collisions
+
+=== 0.4.5 ===
+- improved the environmental boost of isotope generators, fixes #33
+- Upgraded to Galacticraft 1.7-3.0.12.488
+- Fixed a bug where mothership data sometimes wouldn't be send to clients
+- hopefully fixed the nullpointerexception in sky rendering
+
+=== 0.4.4 ===
+- adjusted permission levels of commands
+- added two craftable metal chests
+- potentially fixed a nullpointerexception with buildcraft facades
+
+== 0.4.3 ==
+- updated Galacticraft version to 476
+- added permission tab to settings gui: you can now allow everyone, no-one, everyone except blacklisted users, or only whitelisted users to enter the ship. The owner is always allowed.
+- config option "restrictMothershipToOwner" removed, it's no longer needed
+- new config option "matchUsersByUUID": If true, users will be identified by UUID, if false by username. You will probably only want the latter if you run an 'offline' server... (Default: true)
+- added ability to exit from shuttle selection: the shuttle will simply land back on where you started
+- added shuttle selection gui re-opening if the player is disconnected while in it
+- made the Artifical Gravity Generator apply it's values automatically, instead of having to click Apply
+- added an item which prevents you from being affected by an Artificial Gravity Generator
+- made mummy dust work as brown dye
+- added some of AugiteSoul's string changes
+
+== Version 0.4.2 ==
+- fixed inventory crash
+- added chat message for mothership console and settings
+
+== Version 0.4.1 ==
+- fixed mummy lag, improved drops
+- fixed shuttle dock rightclick crash
+- fixed thermal suit rendering (kinda...)
+- added ender pearls as pyramid loot
+
+== Version 0.4.0 ==
+- added a mummy boss to Horus, shuttle schematics now obtainable
+- nanotool is now craftable
+- artificial Gravity generator is now craftable
+- added dark matter to mehen belt
+- added nanite clusters as loot
+- fixed nanotool efficiency
+- added option to remove owner restriction of motherships
+- made the nanotool in wrench mode be compatible with EnderIO
+- bugfixes
+
+== Version 0.3.9 ==
+- added Nanotool: Sneak-Rightclick to change modes (no recipe yet)
+- tweaked fall damage in artificial gravity fields
+- added dark matter, red grass which can survive in vacuum, and some items
+- updated forge: Minimal version is now 10.13.4.1566
+- added check to premature MS registration: this seems to always be caused by a configuration error, so the error message will now suggest changing the config
+- ore blocks which are being mined now properly show the cracks
+- fixed a crash with stairs
+
+== Version 0.3.8 ==
+- Moved mothership data synchronisation to onConnectionReceived. Fixes #19
+
+== Version 0.3.7 ==
+- added fog to sky rendering
+- added gravity generator (not craftable yet)
+- Clean up mothership data and unregister motherships on disconnect. Potentially fixes #8
+- Added mehen asteroid belt. It's mostly like the vanilla asteroid belt now, except sentrys
+- Heavily nerfed sentrys
+- rayguns will now retain enchantments and names on reloading
+- enchanting a raygun with efficiency will reduce it's power consumption
+- rayguns are craftable with any battery
+- cryo guns do double damage against blazes, freeze water into ice and lava into obsidian
+- blasters melt ice and snow, evaporate water, and set blocks on fire (note: sentrys use blasters, too)
+
+== Version 0.3.6 ==
+- Added new creatures: Sentry, Gastropod Villagers, Pincer Bug
+- Pincer Bugs spawn on Maahes
+- Added Asteroid Sky rendering (thanks to Byomakuta)
+- Added default config values for other addon compatibility.
+- Added doubleslabs, aka, slabs can be "stacked" now
+- Upgraded to GalactiCraft 1.7-3.0.12.465
+- Random fixes
+
+== Version 0.3.5 ==
+- fixed mothership settings rightclick crash
+- potentially fixed rightclick crash in hydroponics unit
+- added a limit to mothership name lengths
+
+== Version 0.3.4 ==
+- added readme, added some other stuff which might be necessary
+- made motherships actually respect maxMothershipTier
+- added config options for MS speed and fuel factors
+- added a new alien villager (does not spawn naturally yet)
+- added hydroponics unit
+
+== Version 0.3.3 ==
+- Shuttles can be crafted with extra fuel tanks instead of chests. Each tank increases the fuel capacity by 50%
+- Added Shuttle Docks: in a sense, a vertical version of the rocket launch pad for shuttle rockets. The dock can be placed into a wall, shuttles can be deployed from and withdrawn into item form, and can be entered through the GUI. On Motherships and space stations, Shuttles will attempt to dock at the first available dock.
+- figured out how to do item renderers, fixed jet items
+- tweaked shuttle rocket mesh so that it fits into a 3x3 area
+- fixed travel to and from space stations using shuttles
+
+== Version 0.3.2 ==
+- added block scale: displays masses of blocks, might help in mothership building
+- added gradle stuff
+- refactored rayguns a little
+- added nuclear battery: slowly auto-recharges, can also be used in rayguns
+- added max speed to motherships: maybe travel times will be better now...
+- tweaked the mothership basis structure
+
+== Version 0.3.1 ==
+- added a workbench
+- fixed engine wrenching 
+- made engines indestructible while in transit
+- fixed creation of motherships around far away bodies
+- hopefully fixed the energy connection bug
+
+== Version 0.3.0
+- reworked engines: 
+-- old: use the speed of the slowest valid engine and check if the total thrust is larger than the ship's mass
+-- new: the thrust is now an actual force value in Newtons. The total thrust force and the mass of the ship are then used to calculate the acceleration of the ship, and from this the speed and the travel time. 
+-- The fuel usage is still a fixed value, the engine must have enough fuel to burn the entire duration of the transit
+
+== Version 0.2.11 ==
+- rebalanced/fixed transit between solar systems. other solar systems are now way closer, and mothership engines consume more fuel per AU. Sol and Ra are now about 13 AU apart.
+- fixed charging of ion engines per cable
+- added the ability to configure rings for planets
+- improved mothership engine base blocks rendering
+
+== Version 0.2.10 ==
+- potentially fixed a bug with mothership engines
+- added german and russian lang files
+- added polish translation, thanks to vos6434
+- added ion thrusters
+
+== Version 0.2.9 ==
+- added schematic ID verification: AmunRa will now crash if the configured IDs for the Shuttle schematics are already in use by another mod. 
+- gave the radioisotope generators 3 outputs
+- added thermoregulation suit (goes into the thermal padding slots)
+- added a 'multiscanner': will output the gravity, thermal level, solar level and atmospheric composition of your current planet
+- entities which are in the way of an active mothership engine now get damaged
+- mothership engines no longer work if obstructed (aka, have blocks blocking the output)
+
+== Version 0.2.8 ==
+- added default mothership structure
+- made radioisotope generators temperature dependent
+- disabling the create mothership button until the server responds
+- added autoselection after MS creation
+- improved the mothership selection GUI, added display of fuel reqs, among others.
+- slightly adjusted the engines, now each base block gives +100 AU/h to the speed
+- engines display their speed in the GUI
+
+== Version 0.2.7 ==
+- added credits.txt
+- fixed a potential issue with sounds in singleplayer
+- fixed dimension registering in client on mothership data update
+
+== Version 0.2.6 ==
+- Added mothership settings block: Allows renaming and icon changing
+
+== Version 0.2.5 ==
+- workaround against huge moons in GalaxySpace orbits
+- potentially fixed respawn point on motherships
+- /mothership_move command: a cheat to move the mothership in constant time without needing fuel. You need to be on a mothership and use it like "/mothership_move overworld"
+- /find_celestial_body command: will search registered celestial bodies by the localized name and return the internal name (for configs, or /mothership_move). Output is in the format: "<localized name> : <body name>"
+- fixed mothership creation in true multiplayer
+
+== Version 0.2.4 ==
+- Removed a dependency on LWJGL on the server side
+- prevented non-shuttles from launching on motherships
+- made shuttles stop the launch on a mothership in transit
+- potentially fixed a crash in SkyProviderMothership
+
+== Version 0.2.3 ==
+- added renderer for mothership boosters
+- fixed the issue where rightclick on a far away engine base block would not open the gui
+- tweaked the fuel requirements so that the amunra system is reachable
+- sleeping in a cryochamber should make MS arrive instantly
+- shuttle selection map should auto zoom on the planet you started from
+- fixed issue where a shuttle would enter a planet above it's exit height
+- removed accidental javax dependency
+
+== Version 0.2.2 ==
+- Fixed rendering of non-square celestial bodies in the dynamic sky
+- Some dynamic sky tweaks
+- Motherships now change solar multiplier, thermal level and day length according to parent
+- fixed an issue when falling off a Mothership
+- fixed carrying over the landing pads when using a no-inventory shuttle
+
+== Version 0.2.1 ==
+- better MS engine GUI
+- fixed some MP bugs, potentially fixed the sound crash, too
+- do not recalc the MS on every single gui opening
+
+== Version 0.2.0 ==
+- added: Shuttle Rocket. Can only travel between a body and it's satellites, required to build Motherships
+- added: Motherships. These are basically space stations which can change orbits
+
+== Version 0.1.0 ==
+- fixed a crash on anubis
+
+== Version 0.0.5 ==
+- added nuclear radioisotope generators
+
+== Version 0.0.4 ==
+- added Seth, an icy moon with an ocean below the ice 
+- added small volcano worldgen
+- added more ores
+- added oregen to all of the celestial bodies
+
+== Version 0.0.3 ==
+- began work on the pyramid, it generates with some rooms on Horus now. No boss yet.
+- added some stairs and slabs
+- added some missing translations
+
+== Version 0.0.2 == 
+- added changelog
+- added NEI support for my circuit fabricator recipes 
+- added an overlay for other bodies' phase
+- added grass and trees to Maahes 
+- adding multitexture ores

@@ -1,0 +1,11 @@
+tile.translocator|0.name=아이템 전위장치
+tile.translocator|1.name=액체 전위장치
+tile.craftingGrid.name=크래프팅 그리드
+item.translocator:diamondNugget.name=다이아몬드 조각
+
+translocator.regulate=제한
+translocator.filter=필터
+translocator.update.display=GT 펌프 커버 장착됨: 유속
+translocator.update.display.dupe=GT 펌프 커버 중복
+
+key.craftingGrid=크래프팅 그리드

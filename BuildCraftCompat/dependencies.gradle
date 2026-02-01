@@ -1,0 +1,61 @@
+// Add your dependencies here
+
+dependencies {
+    api("com.github.GTNewHorizons:BuildCraft:7.1.44:dev")
+    api("com.github.GTNewHorizons:CodeChickenCore:1.4.3:dev")
+    implementation("curse.maven:cofh-lib-220333:2388748")
+
+    compileOnly("com.github.GTNewHorizons:ProjectRed:4.11.5-GTNH:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:waila:1.8.12:api") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:ForgeMultipart:1.6.7:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.7.64-GTNH:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:ForestryMC:4.10.14:api") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:EnderIO:2.9.18:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:CraftTweaker:3.4.2:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:ZenScript:1.0.0-GTNH") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:QmunityLib:0.3.0:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-660-GTNH:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:OpenComputers:1.11.16-GTNH:dev") {
+        transitive = false
+    }
+    compileOnly("curse.maven:minefactory-reloaded-66672:2366150") {
+        transitive = false
+    }
+    //compileOnly("curse.maven:applemilktea2-229325:2341197") {
+    //    transitive = false
+    //}
+    compileOnly(files("dependencies/AppleMilkTea2-1.7.10_2.9n.jar"))
+    compileOnly("curse.maven:mekanism-268560:2475797") {
+        transitive = false
+    }
+    compileOnly("curse.maven:factorization-unofficial-392300:2990432") {
+        transitive = false
+    }
+    compileOnly("curse.maven:blue-power-223099:2251307") {
+        transitive = false
+    }
+    compileOnly(rfg.deobf('maven.modrinth:redlogic:59.1.13'))
+    compileOnly(rfg.deobf('maven.modrinth:immibis-microblocks:59.1.2'))
+    compileOnly(rfg.deobf('maven.modrinth:immibis-core:59.1.4'))
+
+}

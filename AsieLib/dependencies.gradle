@@ -1,0 +1,33 @@
+// Add your dependencies here
+
+dependencies {
+    compileOnly("com.github.GTNewHorizons:EnderIO:2.10.8:api") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-754-GTNH:api") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:ProjectRed:4.12.6-GTNH:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:BuildCraft:7.1.48:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:OpenComputers:1.12.8-GTNH:api") {
+        transitive = false
+    }
+    compileOnly("curse.maven:cofh-lib-220333:2388748") {
+        transitive = false
+    }
+    compileOnly("curse.maven:mekanism-268560:2475797") {
+        transitive = false
+    }
+    compileOnly("curse.maven:eirairc-68420:2281173") {
+        transitive = false
+    }
+    compileOnly("net.industrial-craft:industrialcraft-2:2.2.828-experimental:dev") {
+        transitive = false
+    }
+
+    compileOnly files("dependencies/redlogic-59.1.13.jar")
+}

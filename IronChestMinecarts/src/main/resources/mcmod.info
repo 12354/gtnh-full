@@ -1,0 +1,21 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "Minecarts for all the chests added by Iron Chests!",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": [
+    "ganymedes01"
+  ],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"",
+  "dependencies": [
+  ]
+}
+]

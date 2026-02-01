@@ -1,0 +1,21 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "bdew.net",
+  "updateUrl": "",
+  "authorList": [
+    "bdew"
+  ],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"",
+  "dependencies": [
+  ]
+}
+]

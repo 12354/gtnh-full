@@ -1,0 +1,23 @@
+// Add any additional repositories for your dependencies here
+
+repositories {
+    maven {
+        name = "GTNH Maven"
+        url = "http://jenkins.usrv.eu:8081/nexus/content/groups/public/"
+    }
+    maven {
+        name = "mightypirates"
+        url = "https://maven.cil.li/"
+        metadataSources {
+            mavenPom()
+            artifact()
+        }
+    }
+    maven {
+        url "https://cursemaven.com"
+    }
+    ivy {
+        name 'asie dependency mirror'
+        artifactPattern "http://asie.pl/javadeps/[module]-[revision](-[classifier]).[ext]"
+    }
+}

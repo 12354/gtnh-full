@@ -1,0 +1,6 @@
+repositories {
+    maven {
+        name 'K-4U Maven'
+        url 'https://maven.k-4u.nl/'
+    }
+}

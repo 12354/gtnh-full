@@ -1,0 +1,60 @@
+package com.dreammaster.modhazardousitems;
+
+import java.util.Map;
+import java.util.function.Function;
+
+import javax.annotation.Nullable;
+
+import net.minecraft.util.DamageSource;
+
+import com.dreammaster.modhazardousitems.cause.HazardCause;
+import com.dreammaster.modhazardousitems.cause.HazardCause.Type;
+import com.dreammaster.modhazardousitems.cause.InventoryItemHazardCause;
+import com.google.common.collect.ImmutableMap;
+
+import gregtech.api.damagesources.GTDamageSources;
+
+public class HazardDamageSources {
+
+    public static final ImmutableMap<String, DamageSource> DAMAGE_SOURCES = ImmutableMap.<String, DamageSource>builder()
+            .put("inFire", DamageSource.inFire).put("onFire", DamageSource.onFire).put("lava", DamageSource.lava)
+            .put("inWall", DamageSource.inWall).put("drown", DamageSource.drown).put("starve", DamageSource.starve)
+            .put("cactus", DamageSource.cactus).put("fall", DamageSource.fall)
+            .put("outOfWorld", DamageSource.outOfWorld).put("generic", DamageSource.generic)
+            .put("magic", DamageSource.magic).put("wither", DamageSource.wither).put("anvil", DamageSource.anvil)
+            .put("fallingBlock", DamageSource.fallingBlock).build();
+
+    public static final Map<String, Function<HazardCause, DamageSource>> EXTRA_SOURCE_FACTORIES = ImmutableMap
+            .<String, Function<HazardCause, DamageSource>>builder().put("gregtech:hot", cause -> {
+                if (cause.getType() == Type.INVENTORY) {
+                    return new GTDamageSources.DamageSourceHotItem(((InventoryItemHazardCause) cause).getStack());
+                } else {
+                    return GTDamageSources.getHeatDamage();
+                }
+            }).build();
+
+    public static boolean isValid(String damageSourceId) {
+        return getDamageSourceFactory(damageSourceId) != null;
+    }
+
+    @Nullable
+    public static Function<HazardCause, DamageSource> getDamageSourceFactory(String damageSourceId) {
+        for (Map.Entry<String, Function<HazardCause, DamageSource>> entry : EXTRA_SOURCE_FACTORIES.entrySet()) {
+            if (entry.getKey().equals(damageSourceId)) {
+                return entry.getValue();
+            }
+        }
+
+        DamageSource damageSource = DAMAGE_SOURCES.get(damageSourceId);
+        return damageSource != null ? cause -> damageSource : null;
+    }
+
+    public static Function<HazardCause, DamageSource> getDamageSourceFactoryOrFail(String damageSourceId) {
+        Function<HazardCause, DamageSource> sourceFactory = getDamageSourceFactory(damageSourceId);
+        if (sourceFactory == null) {
+            throw new IllegalArgumentException(String.format("Unknown damage source id: %s", damageSourceId));
+        }
+
+        return sourceFactory;
+    }
+}

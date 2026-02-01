@@ -1,0 +1,29 @@
+import java.io.File
+
+plugins {
+    id("java")
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+        vendor.set(JvmVendorSpec.AZUL)
+    }
+}
+
+//Make sure JAVA_HOME is set as an environment variable
+ext.javaToolsJar = files(
+    javaToolchains.compilerFor(java.toolchain).map { tc ->
+        new File(tc.executablePath.asFile.parentFile.parentFile, "lib/tools.jar")
+    })
+
+
+repositories {
+	mavenCentral();
+}
+
+dependencies {
+	gradleApi()
+	implementation 'org.ow2.asm:asm-debug-all:5.0.3'
+	implementation files(javaToolsJar)
+}

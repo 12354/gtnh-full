@@ -1,0 +1,70 @@
+[
+{
+  "modid": "${modId}|Core",
+  "name": "${modName} Core",
+  "description":"Redstone. The way it was meant to be.\n\nSupporters:\nJacob M",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "http://projectredwiki.com",
+  "authors": [ "MrTJP", "ChickenBones"],
+  "credits": "Eloraam, GitHub contributors",
+  "logoFile": "",
+  "screenshots": []
+},
+{
+  "modid": "${modId}|Compatibility",
+  "name": "${modName} Compatibility",
+  "parent":"${modId}|Core",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}"
+},
+{
+  "modid": "${modId}|Fabrication",
+  "name": "${modName} Fabrication",
+  "parent":"${modId}|Core",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}"
+},
+{
+  "modid": "${modId}|Transmission",
+  "name": "${modName} Transmission",
+  "parent":"${modId}|Core",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}"
+},
+{
+  "modid": "${modId}|Integration",
+  "name": "${modName} Integration",
+  "parent":"${modId}|Core",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}"
+},
+{
+  "modid": "${modId}|Illumination",
+  "name": "${modName} Illumination",
+  "parent":"${modId}|Core",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}"
+},
+{
+  "modid": "${modId}|Expansion",
+  "name": "${modName} Expansion",
+  "parent":"${modId}|Core",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}"
+},
+{
+  "modid": "${modId}|Transportation",
+  "name": "${modName} Transportation",
+  "parent":"${modId}|Core",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}"
+},
+{
+  "modid": "${modId}|Exploration",
+  "name": "${modName} Exploration",
+  "parent":"${modId}|Core",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}"
+}
+]

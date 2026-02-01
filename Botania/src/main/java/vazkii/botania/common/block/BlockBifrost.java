@@ -1,0 +1,117 @@
+/**
+ * This class was created by <Vazkii>. It's distributed as
+ * part of the Botania Mod. Get the Source Code in github:
+ * https://github.com/Vazkii/Botania
+ * 
+ * Botania is Open Source and distributed under the
+ * Botania License: http://botaniamod.net/license.php
+ * 
+ * File Created @ [Jun 20, 2014, 8:23:17 PM (GMT)]
+ */
+package vazkii.botania.common.block;
+
+import java.util.Random;
+
+import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
+import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
+import net.minecraftforge.client.event.TextureStitchEvent;
+import net.minecraftforge.common.MinecraftForge;
+import vazkii.botania.api.lexicon.ILexiconable;
+import vazkii.botania.api.lexicon.LexiconEntry;
+import vazkii.botania.client.render.block.InterpolatedIcon;
+import vazkii.botania.common.block.tile.TileBifrost;
+import vazkii.botania.common.item.ModItems;
+import vazkii.botania.common.lexicon.LexiconData;
+import vazkii.botania.common.lib.LibBlockNames;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+public class BlockBifrost extends BlockModContainer<TileBifrost> implements ILexiconable {
+
+	public BlockBifrost() {
+		super(Material.glass);
+		setBlockName(LibBlockNames.BIFROST);
+		setLightOpacity(0);
+		setLightLevel(1F);
+		setBlockUnbreakable();
+		setStepSound(soundTypeGlass);
+		MinecraftForge.EVENT_BUS.register(new EventHandler());
+	}
+
+	@Override
+	public boolean registerInCreative() {
+		return false;
+	}
+
+	@Override
+	public boolean isOpaqueCube() {
+		return false;
+	}
+
+	@Override
+	public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z) {
+		return new ItemStack(ModItems.rainbowRod);
+	}
+
+	public boolean shouldSideBeRendered1(IBlockAccess worldIn, int x, int y, int z, int side) {
+		Block block = worldIn.getBlock(x, y, z);
+
+		return block == this ? false : super.shouldSideBeRendered(worldIn, x, y, z, side);
+	}
+
+	@Override
+	public boolean shouldSideBeRendered(IBlockAccess worldIn, int x, int y, int z, int side) {
+		return shouldSideBeRendered1(worldIn, x, y, z, 1 - side);
+	}
+
+	@Override
+	public int getRenderBlockPass() {
+		return 1;
+	}
+
+	@Override
+	public int quantityDropped(int meta, int fortune, Random random) {
+		return 0;
+	}
+
+	@SideOnly(Side.CLIENT)
+	public void loadTextures(TextureStitchEvent.Pre event) {
+		if(event.map.getTextureType() == 0) {
+			TextureAtlasSprite icon = new InterpolatedIcon("botania:bifrost");
+			if(event.map.setTextureEntry("botania:bifrost", icon))
+				blockIcon = icon;
+		}
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void registerBlockIcons(IIconRegister register) {
+		// NO-OP
+	}
+
+	@Override
+	public TileBifrost createNewTileEntity(World world, int meta) {
+		return new TileBifrost();
+	}
+
+	@Override
+	public LexiconEntry getEntry(World world, int x, int y, int z, EntityPlayer player, ItemStack lexicon) {
+		return LexiconData.rainbowRod;
+	}
+
+	public class EventHandler {
+		@SubscribeEvent
+		@SideOnly(Side.CLIENT)
+		public void loadTexturesWrapper(TextureStitchEvent.Pre event) {
+			BlockBifrost.this.loadTextures(event);
+		}
+	}
+}

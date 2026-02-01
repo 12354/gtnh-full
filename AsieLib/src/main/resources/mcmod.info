@@ -1,0 +1,17 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "Utilities for asie's mods",
+  "version": "${modVersion}",
+  "credits": "",
+  "logoFile": "",
+  "mcversion": "${minecraftVersion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": [ "asiekierka", "Vexatos" ],
+  "parent":"",
+  "screenshots": [],
+  "dependencies": []
+}
+]

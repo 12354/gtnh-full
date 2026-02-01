@@ -1,0 +1,84 @@
+package com.github.bartimaeusnek.cropspp.crops.BoP;
+
+import net.minecraft.item.ItemStack;
+
+import com.github.bartimaeusnek.cropspp.ConfigValues;
+import com.github.bartimaeusnek.cropspp.abstracts.BasicBerryCrop;
+
+import ic2.api.crops.ICropTile;
+
+public class BoPBerryCrop extends BasicBerryCrop {
+
+    public BoPBerryCrop() {
+        super();
+    }
+
+    @Override
+    public String name() {
+        return "Berry";
+    }
+
+    @Override
+    public int tier() {
+        return 2;
+    }
+
+    @Override
+    public int stat(int n) {
+        return switch (n) {
+            case 0 -> 0; // not chemical
+            case 1 -> 4; // very edible
+            case 2 -> 0; // no defensive properties
+            case 3 -> 4; // quite colorful
+            case 4 -> 0; // not particularly weed-like
+            default -> 0;
+        };
+    }
+
+    @Override
+    public boolean canGrow(ICropTile crop) {
+        return crop.getSize() < this.maxSize();
+    }
+
+    @Override
+    public boolean canBeHarvested(ICropTile crop) {
+        return crop.getSize() >= this.maxSize();
+    }
+
+    @Override
+    public int growthDuration(ICropTile crop) {
+        if (ConfigValues.debug) return 1;
+        return crop.getSize() == 2 ? 200 : 700;
+    }
+
+    @Override
+    public byte getSizeAfterHarvest(ICropTile crop) {
+        // return to partially grown state when harvested
+        return 2;
+    }
+
+    @Override
+    public int maxSize() {
+        return 3;
+    }
+
+    @Override
+    public ItemStack getGain(ICropTile crop) {
+        return new ItemStack(biomesoplenty.api.content.BOPCItems.food, 3, 0);
+    }
+
+    @Override
+    public String[] attributes() {
+        return new String[] { "Berry", "Food", "Red", "Ingredient" };
+    }
+
+    @Override
+    public String discoveredBy() {
+        return "bartimaeusnek";
+    }
+
+    @Override
+    public ItemStack getDisplayItem() {
+        return new ItemStack(biomesoplenty.api.content.BOPCItems.food, 3, 0);
+    }
+}

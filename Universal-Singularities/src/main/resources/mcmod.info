@@ -1,0 +1,13 @@
+[{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "A Mod that Adds an Unending Amount of Singularities!",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "https://minecraft.curseforge.com/projects/universal-singularities",
+  "updateUrl": "",
+  "authorList": ["Wealthyturtle, WanionCane"],
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}]

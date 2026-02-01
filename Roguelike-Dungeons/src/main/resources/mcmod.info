@@ -1,0 +1,11 @@
+[
+	{
+		"modid" : "${modId}",
+		"name" : "${modName}",
+		"description" : "Adds randomized dungeons to the world",
+		"version" : "${modVersion}",
+		"url" : "github.com/Greymerk/minecraft-roguelike",
+		"authorList" : ["Greymerk"],
+		"mcversion" : "${minecraftVersion}"
+	}
+]

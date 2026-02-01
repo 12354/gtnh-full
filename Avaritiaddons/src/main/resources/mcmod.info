@@ -1,0 +1,16 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "A Mod that tries to expand the meaning of Infinity!",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "http://minecraft.curseforge.com/projects/avaritiaddons",
+  "updateUrl": "",
+  "authorList": ["WanionCane"],
+  "credits": "SpitefulFox, TTFTCUTS",
+  "logoFile": "AvaritiaddonsLogo.png",
+  "screenshots": [],
+  "dependencies": []
+}
+]

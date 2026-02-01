@@ -1,0 +1,189 @@
+package witchinggadgets.client;
+
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
+import net.minecraftforge.client.MinecraftForgeClient;
+import net.minecraftforge.client.model.IModelCustom;
+import net.minecraftforge.common.MinecraftForge;
+
+import org.lwjgl.input.Keyboard;
+
+import baubles.api.BaublesApi;
+import baubles.api.expanded.BaubleExpandedSlots;
+import cpw.mods.fml.client.FMLClientHandler;
+import cpw.mods.fml.client.registry.ClientRegistry;
+import cpw.mods.fml.client.registry.RenderingRegistry;
+import cpw.mods.fml.common.FMLCommonHandler;
+import thaumcraft.client.fx.ParticleEngine;
+import thaumcraft.client.fx.particles.FXEssentiaTrail;
+import thaumcraft.client.fx.particles.FXWisp;
+import witchinggadgets.WitchingGadgets;
+import witchinggadgets.client.fx.EntityFXSweat;
+import witchinggadgets.client.gui.GuiBag;
+import witchinggadgets.client.gui.GuiCloakBag;
+import witchinggadgets.client.gui.GuiCuttingTable;
+import witchinggadgets.client.gui.GuiLabelLibrary;
+import witchinggadgets.client.gui.GuiPrimordialGlove;
+import witchinggadgets.client.gui.GuiSpinningWheel;
+import witchinggadgets.client.gui.GuiVoidBag;
+import witchinggadgets.client.render.BlockRenderMetalDevice;
+import witchinggadgets.client.render.BlockRenderRoseVine;
+import witchinggadgets.client.render.BlockRenderStoneDevice;
+import witchinggadgets.client.render.BlockRenderWoodenDevice;
+import witchinggadgets.client.render.EntityRenderReforming;
+import witchinggadgets.client.render.ItemRenderCapsule;
+import witchinggadgets.client.render.ItemRenderMagicalBaubles;
+import witchinggadgets.client.render.ItemRenderMaterial;
+import witchinggadgets.client.render.ItemRenderPrimordialGauntlet;
+import witchinggadgets.client.render.ItemRenderScanCamera;
+import witchinggadgets.client.render.ItemRenderWallMirror;
+import witchinggadgets.client.render.TileRenderCobbleGen;
+import witchinggadgets.client.render.TileRenderCuttingTable;
+import witchinggadgets.client.render.TileRenderEssentiaPump;
+import witchinggadgets.client.render.TileRenderIceGen;
+import witchinggadgets.client.render.TileRenderLabelLibrary;
+import witchinggadgets.client.render.TileRenderSaunaStove;
+import witchinggadgets.client.render.TileRenderSnowGen;
+import witchinggadgets.client.render.TileRenderSpinningWheel;
+import witchinggadgets.client.render.TileRenderTerraformFocus;
+import witchinggadgets.client.render.TileRenderTerraformer;
+import witchinggadgets.client.render.TileRenderWallMirror;
+import witchinggadgets.common.CommonProxy;
+import witchinggadgets.common.WGConfig;
+import witchinggadgets.common.WGContent;
+import witchinggadgets.common.blocks.tiles.TileEntityCobbleGen;
+import witchinggadgets.common.blocks.tiles.TileEntityCuttingTable;
+import witchinggadgets.common.blocks.tiles.TileEntityEssentiaPump;
+import witchinggadgets.common.blocks.tiles.TileEntityIceGen;
+import witchinggadgets.common.blocks.tiles.TileEntityLabelLibrary;
+import witchinggadgets.common.blocks.tiles.TileEntitySaunaStove;
+import witchinggadgets.common.blocks.tiles.TileEntitySnowGen;
+import witchinggadgets.common.blocks.tiles.TileEntitySpinningWheel;
+import witchinggadgets.common.blocks.tiles.TileEntityTerraformFocus;
+import witchinggadgets.common.blocks.tiles.TileEntityTerraformer;
+import witchinggadgets.common.blocks.tiles.TileEntityWallMirror;
+import witchinggadgets.common.items.EntityItemReforming;
+import witchinggadgets.common.pouch.GuiPatchedFocusPouch;
+import witchinggadgets.common.util.WGKeyHandler;
+
+public class ClientProxy extends CommonProxy {
+
+    public static IModelCustom eliteArmorModel;
+    public static IModelCustom cameraModel;
+    public static IModelCustom gauntletModel;
+    public static IModelCustom gemModel;
+    public static IModelCustom terraformerModel;
+
+    public void registerRenders() {
+        RenderingRegistry.registerBlockHandler(new BlockRenderRoseVine());
+        RenderingRegistry.registerBlockHandler(new BlockRenderWoodenDevice());
+        RenderingRegistry.registerBlockHandler(new BlockRenderStoneDevice());
+        RenderingRegistry.registerBlockHandler(new BlockRenderMetalDevice());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityWallMirror.class, new TileRenderWallMirror());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntitySpinningWheel.class, new TileRenderSpinningWheel());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntitySnowGen.class, new TileRenderSnowGen());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityIceGen.class, new TileRenderIceGen());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityCobbleGen.class, new TileRenderCobbleGen());
+
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityCuttingTable.class, new TileRenderCuttingTable());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityLabelLibrary.class, new TileRenderLabelLibrary());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntitySaunaStove.class, new TileRenderSaunaStove());
+
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityEssentiaPump.class, new TileRenderEssentiaPump());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityTerraformer.class, new TileRenderTerraformer());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityTerraformFocus.class, new TileRenderTerraformFocus());
+        eliteArmorModel = ClientUtilities.bindModel("witchinggadgets", "models/EliteRunicArmor.obj");
+        cameraModel = ClientUtilities.bindModel("witchinggadgets", "models/ScanCamera.obj");
+        gauntletModel = ClientUtilities.bindModel("witchinggadgets", "models/gauntlet.obj");
+        gemModel = ClientUtilities.bindModel("witchinggadgets", "models/gems.obj");
+        terraformerModel = ClientUtilities.bindModel("witchinggadgets", "models/terraformer.obj");
+
+        MinecraftForgeClient
+                .registerItemRenderer(Item.getItemFromBlock(WGContent.BlockWallMirror), new ItemRenderWallMirror());
+        MinecraftForgeClient.registerItemRenderer(WGContent.ItemMaterial, new ItemRenderMaterial());
+        MinecraftForgeClient.registerItemRenderer(WGContent.ItemScanCamera, new ItemRenderScanCamera());
+        MinecraftForgeClient.registerItemRenderer(WGContent.ItemPrimordialGlove, new ItemRenderPrimordialGauntlet());
+        // MinecraftForgeClient.registerItemRenderer(WGContent.ItemInfusedGem, new ItemRenderInfusedGem());
+        MinecraftForgeClient.registerItemRenderer(WGContent.ItemMagicalBaubles, new ItemRenderMagicalBaubles());
+        MinecraftForgeClient.registerItemRenderer(WGContent.ItemCapsule, new ItemRenderCapsule());
+
+        RenderingRegistry.registerEntityRenderingHandler(EntityItemReforming.class, new EntityRenderReforming());
+    }
+
+    public void registerHandlers() {
+        MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
+        FMLCommonHandler.instance().bus().register(new WGKeyHandler());
+        FMLCommonHandler.instance().bus().register(new ClientTickHandler());
+        ClientRegistry.registerKeyBinding(
+                WGKeyHandler.activateKey = new KeyBinding(
+                        "wg.config.activateKey",
+                        Keyboard.KEY_NONE,
+                        WitchingGadgets.MODNAME));
+        if (WGConfig.enableSearch) {
+            ThaumonomiconIndexSearcher.init();
+        }
+    }
+
+    @Override
+    public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
+        TileEntity tile = world.getTileEntity(x, y, z);
+
+        return switch (ID) {
+            case 0 -> new GuiSpinningWheel(player.inventory, (TileEntitySpinningWheel) tile);
+            case 3 -> new GuiBag(player.inventory, world);
+            case 4, 5 -> {
+                String baubleSlot = ID == 4 ? BaubleExpandedSlots.capeType : BaubleExpandedSlots.beltType;
+                yield new GuiCloakBag(
+                        player.inventory,
+                        world,
+                        BaublesApi.getBaubles(player)
+                                .getStackInSlot(BaubleExpandedSlots.getIndexOfTypeInRegisteredTypes(baubleSlot)));
+            }
+            case 6 -> new GuiPatchedFocusPouch(player.inventory, world, x, y, z);
+            case 7 -> new GuiPrimordialGlove(player.inventory, world, x, y, z);
+            case 8 -> new GuiLabelLibrary(player.inventory, (TileEntityLabelLibrary) tile);
+            case 9 -> new GuiCuttingTable(player.inventory, (TileEntityCuttingTable) tile);
+            case 11 -> new GuiVoidBag(player.inventory, world);
+            default -> null;
+        };
+    }
+
+    @Override
+    public void createEssentiaTrailFx(World worldObj, int x, int y, int z, int tx, int ty, int tz, int count,
+            int colour, float scale) {
+        FXEssentiaTrail fx = new FXEssentiaTrail(
+                worldObj,
+                x + 0.5D,
+                y + 1,
+                z + 0.5D,
+                tx + 0.5D,
+                ty + 0.5D,
+                tz + 0.5D,
+                count,
+                colour,
+                scale);
+        ParticleEngine.instance.addEffect(worldObj, fx);
+    }
+
+    @Override
+    public void createTargetedWispFx(World worldObj, double x, double y, double z, double tx, double ty, double tz,
+            int colour, float scale, float gravity, boolean tinkle, boolean noClip) {
+        FXWisp fx = new FXWisp(worldObj, x, y, z, tx, ty, tz, scale, 0);
+        fx.setAlphaF(1);
+        fx.tinkle = tinkle;
+        fx.noClip = noClip;
+        fx.setRBGColorF((colour >> 16 & 255) / 255f, (colour >> 8 & 255) / 255f, (colour & 255) / 255f);
+        fx.setGravity(0);
+        ParticleEngine.instance.addEffect(worldObj, fx);
+    }
+
+    @Override
+    public void createSweatFx(EntityPlayer player) {
+        EntityFXSweat fx = new EntityFXSweat(player);
+        FMLClientHandler.instance().getClient().effectRenderer.addEffect(fx);
+    }
+
+}

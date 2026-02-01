@@ -1,0 +1,16 @@
+[{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "BetterCrashes makes Minecraft return you to the main menu when it crashes.",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "https://github.com/GTNewHorizons/BetterCrashes",
+  "updateUrl": "",
+  "authorList": [
+    "vfyjxf"
+  ],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}]

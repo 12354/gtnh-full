@@ -1,0 +1,25 @@
+New Texture Needed:
+- Tainted Planks
+- Tainted Stone
+- Tainted Stone Bricks
+- "Living Pickaxe" (Gross tainted fleshy thing used as a pickaxe)
+- "Living Shovel" (Gross tainted wormy thing that eats dirt as a shovel)
+- "Living Sword" (Gross spiny fleshy thing used as a sword)
+- "Living Axe" (Gross toothed fleshy thing used as an axe)
+
+Could Use Replacing:
+
+- Rapier of the Strix
+- All Botania flowers
+- Imprinting Crystals
+- Greed Shard
+- Gluttony Shard
+- Axe of the Skulltaker
+- Spork of Doom
+
+Textures + Models Wanted:
+- "Wrath Demon" (Angry red demon with claws n stuff)
+- Incubus (Demon dude wearing lingerie. Standard biped model skin.)
+- "Gluttony Demon" (Faaaaaaaaaaaaaat)
+- "Greed Demon" (Sorta fat. Greedy merchant looking?)
+- "Pride Demon" (Regal. Kinda short.)

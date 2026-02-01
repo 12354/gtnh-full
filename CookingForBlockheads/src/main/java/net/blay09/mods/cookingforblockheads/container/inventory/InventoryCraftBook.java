@@ -1,0 +1,194 @@
+package net.blay09.mods.cookingforblockheads.container.inventory;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import net.blay09.mods.cookingforblockheads.api.kitchen.IKitchenItemProvider;
+import net.blay09.mods.cookingforblockheads.container.ContainerRecipeBook;
+import net.blay09.mods.cookingforblockheads.registry.CookingRegistry;
+import net.blay09.mods.cookingforblockheads.registry.food.FoodIngredient;
+import net.blay09.mods.cookingforblockheads.registry.food.FoodRecipe;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.stats.AchievementList;
+import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
+
+import cpw.mods.fml.common.FMLCommonHandler;
+
+public class InventoryCraftBook extends InventoryCrafting {
+
+    private final ContainerRecipeBook containerRecipeBook;
+    private final int[] sourceInventories = new int[9];
+    private final int[] sourceInventorySlots = new int[9];
+    private final List<IKitchenItemProvider> sourceProviders = new ArrayList<>();
+    private IRecipe currentRecipe;
+
+    private List<IInventory> inventories;
+    private List<IKitchenItemProvider> itemProviders;
+
+    public InventoryCraftBook(ContainerRecipeBook container) {
+        super(container, 3, 3);
+        this.containerRecipeBook = container;
+    }
+
+    public IRecipe prepareRecipe(EntityPlayer player, FoodRecipe recipe) {
+        List<FoodIngredient> ingredients = recipe.getCraftMatrix();
+        int[][] usedStackSize = new int[inventories.size()][];
+        for (int i = 0; i < usedStackSize.length; i++) {
+            usedStackSize[i] = new int[inventories.get(i).getSizeInventory()];
+        }
+        for (int i = 0; i < getSizeInventory(); i++) {
+            setInventorySlotContents(i, null);
+            sourceInventories[i] = -1;
+            sourceInventorySlots[i] = -1;
+        }
+        ingredientLoop: for (int i = 0; i < ingredients.size(); i++) {
+            int origX = i % recipe.getRecipeWidth();
+            int origY = i / recipe.getRecipeWidth();
+            int targetIdx = origY * 3 + origX;
+
+            if (ingredients.get(i) != null) {
+                sourceProviders.clear();
+                for (IKitchenItemProvider itemProvider : itemProviders) {
+                    itemProvider.clearCraftingBuffer();
+                    for (ItemStack providedStack : itemProvider.getProvidedItemStacks()) {
+                        if (ingredients.get(i).isValidItem(providedStack)) {
+                            ItemStack itemStack = providedStack.copy();
+                            if (itemProvider.addToCraftingBuffer(itemStack)) {
+                                sourceProviders.add(itemProvider);
+                                setInventorySlotContents(targetIdx, itemStack);
+                                continue ingredientLoop;
+                            }
+                        }
+                    }
+                }
+                for (int j = 0; j < inventories.size(); j++) {
+                    for (int k = 0; k < inventories.get(j).getSizeInventory(); k++) {
+                        ItemStack itemStack = inventories.get(j).getStackInSlot(k);
+                        if (itemStack != null && ingredients.get(i).isValidItem(itemStack)
+                                && itemStack.stackSize - usedStackSize[j][k] > 0) {
+                            usedStackSize[j][k]++;
+                            setInventorySlotContents(targetIdx, itemStack);
+                            sourceInventories[targetIdx] = j;
+                            sourceInventorySlots[targetIdx] = k;
+                            continue ingredientLoop;
+                        }
+                    }
+                }
+            }
+        }
+
+        currentRecipe = CookingRegistry.findMatchingFoodRecipe(this, player.worldObj);
+        if (currentRecipe != null && currentRecipe.getRecipeOutput() != recipe.getOutputItem()) {
+            currentRecipe = null;
+        }
+
+        return currentRecipe;
+    }
+
+    public ItemStack craft(EntityPlayer player, FoodRecipe recipe) {
+        prepareRecipe(player, recipe);
+        if (currentRecipe == null) {
+            // Recipe was not found. This is probably caused by missing tool.
+            // In case the tool has just been depleted after initial recipe selection, update tooltip.
+            containerRecipeBook.markSelectionDirty();
+            return null;
+        }
+        if (currentRecipe.matches(this, player.worldObj)) {
+            ItemStack craftingResult = currentRecipe.getCraftingResult(this);
+            if (craftingResult != null) {
+                // Fire FML Events
+                FMLCommonHandler.instance().firePlayerCraftingEvent(player, craftingResult, this);
+                craftingResult.onCrafting(player.worldObj, player, 1);
+                // Handle Vanilla Achievements
+                if (craftingResult.getItem() == Items.bread) {
+                    player.addStat(AchievementList.makeBread, 1);
+                } else if (craftingResult.getItem() == Items.cake) {
+                    player.addStat(AchievementList.bakeCake, 1);
+                }
+                // Kill ingredients
+                for (int i = 0; i < getSizeInventory(); i++) {
+                    ItemStack itemStack = getStackInSlot(i);
+                    if (itemStack != null) {
+                        decrStackSize(i, 1);
+                        if (itemStack.getItem().hasContainerItem(itemStack) && sourceInventories[i] != -1) {
+                            // Fire PlayerDestroyItem event
+                            ItemStack containerItem = itemStack.getItem().getContainerItem(itemStack);
+                            if (containerItem != null && containerItem.isItemStackDamageable()
+                                    && itemStack.getItemDamage() > itemStack.getMaxDamage()) {
+                                MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(player, containerItem));
+                                continue;
+                            }
+                            // Put container item back into crafting grid or drop it
+                            if (!itemStack.getItem().doesContainerItemLeaveCraftingGrid(itemStack)
+                                    || !player.inventory.addItemStackToInventory(containerItem)) {
+                                if (getStackInSlot(i) == null) {
+                                    setInventorySlotContents(i, containerItem);
+                                } else {
+                                    player.dropPlayerItemWithRandomChoice(containerItem, false);
+                                }
+                            }
+                        }
+
+                        if (sourceInventories[i] != -1 && sourceInventorySlots[i] != -1) {
+                            inventories.get(sourceInventories[i])
+                                    .setInventorySlotContents(sourceInventorySlots[i], this.getStackInSlot(i));
+                        }
+                    }
+                }
+                for (IKitchenItemProvider itemProvider : sourceProviders) {
+                    itemProvider.craftingComplete();
+                }
+            }
+            return craftingResult;
+        }
+        return null;
+    }
+
+    public boolean canMouseItemHold(EntityPlayer player, FoodRecipe recipe) {
+        ItemStack mouseItem = player.inventory.getItemStack();
+        if (mouseItem == null) {
+            return true;
+        }
+        IRecipe craftingRecipe = CookingRegistry.findMatchingFoodRecipe(this, player.worldObj);
+        if (craftingRecipe == null) {
+            return false;
+        }
+        ItemStack craftingResult = craftingRecipe.getCraftingResult(this);
+        if (!craftingResult.isItemEqual(mouseItem)) {
+            return false;
+        }
+        if (mouseItem.stackSize + craftingResult.stackSize > mouseItem.getMaxStackSize()) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean matches(World worldObj) {
+        return currentRecipe != null && currentRecipe.matches(this, worldObj);
+    }
+
+    /**
+     * SERVER ONLY
+     * 
+     * @param inventories
+     */
+    public void setInventories(List<IInventory> inventories) {
+        this.inventories = inventories;
+    }
+
+    /**
+     * SERVER ONLY
+     * 
+     * @param itemProviders
+     */
+    public void setItemProviders(List<IKitchenItemProvider> itemProviders) {
+        this.itemProviders = itemProviders;
+    }
+}

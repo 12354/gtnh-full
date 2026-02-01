@@ -1,0 +1,16 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "Minetweaker Addon for GregTech 5.",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "http://forum.industrial-craft.net/index.php?page=Thread&threadID=11353",
+  "updateUrl": "",
+  "authorList": ["DreamMasterXXL", "Techlone"],
+  "credits": "Stan Hebben, Blood Asp, bculkin2442",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

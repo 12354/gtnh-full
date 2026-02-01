@@ -1,0 +1,109 @@
+package thaumicenergistics.common.integration;
+
+import java.util.List;
+
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
+
+import cpw.mods.fml.common.Optional;
+import cpw.mods.fml.common.event.FMLInterModComms;
+import mcp.mobius.waila.api.IWailaConfigHandler;
+import mcp.mobius.waila.api.IWailaDataAccessor;
+import mcp.mobius.waila.api.IWailaDataProvider;
+import mcp.mobius.waila.api.IWailaRegistrar;
+import thaumicenergistics.common.blocks.AbstractBlockProviderBase;
+import thaumicenergistics.common.blocks.BlockArcaneAssembler;
+import thaumicenergistics.common.tiles.TileEssentiaVibrationChamber;
+
+/**
+ * What Am I Looking At integration.
+ *
+ * @author Nividica
+ *
+ */
+public class ModuleWaila implements IWailaDataProvider {
+
+    /**
+     * Singleton
+     */
+    public static ModuleWaila INSTANCE;
+
+    /**
+     * Attempts to integrate with Waila
+     */
+    private ModuleWaila() {}
+
+    @Optional.Method(modid = "Waila")
+    static void init() {
+        // Set the singleton
+        ModuleWaila.INSTANCE = new ModuleWaila();
+
+        // Register with Waila
+        FMLInterModComms.sendMessage("Waila", "register", ModuleWaila.class.getCanonicalName() + ".callbackRegister");
+    }
+
+    /**
+     * Called by Waila to register our hooks.
+     *
+     * @param registrar
+     */
+    @SuppressWarnings("unused")
+    public static void callbackRegister(final IWailaRegistrar registrar) {
+        // Register the providers
+        registrar.registerBodyProvider(ModuleWaila.INSTANCE, AbstractBlockProviderBase.class);
+
+        // Register the assembler
+        registrar.registerBodyProvider(ModuleWaila.INSTANCE, BlockArcaneAssembler.class);
+
+        // Register the vibration chamber
+        registrar.registerBodyProvider(ModuleWaila.INSTANCE, TileEssentiaVibrationChamber.class);
+    }
+
+    @Override
+    public NBTTagCompound getNBTData(final EntityPlayerMP player, final TileEntity tileEntity,
+            final NBTTagCompound data, final World world, final int x, final int y, final int z) {
+        // Ignored
+        return data;
+    }
+
+    /**
+     * Changes the body of the Waila message.
+     */
+    @Override
+    public List<String> getWailaBody(final ItemStack itemStack, final List<String> tooltip,
+            final IWailaDataAccessor accessor, final IWailaConfigHandler config) {
+        // Get the tile entity
+        TileEntity tileEntity = accessor.getTileEntity();
+
+        // Does the tile implement the tooltip method?
+        if (tileEntity instanceof IWailaSource) {
+            // Add the info
+            ((IWailaSource) tileEntity).addWailaInformation(tooltip);
+        }
+
+        return tooltip;
+    }
+
+    @Override
+    public List<String> getWailaHead(final ItemStack itemStack, final List<String> currenttip,
+            final IWailaDataAccessor accessor, final IWailaConfigHandler config) {
+        // Ignored
+        return currenttip;
+    }
+
+    @Override
+    public ItemStack getWailaStack(final IWailaDataAccessor accessor, final IWailaConfigHandler config) {
+        // Ignored
+        return null;
+    }
+
+    @Override
+    public List<String> getWailaTail(final ItemStack itemStack, final List<String> currenttip,
+            final IWailaDataAccessor accessor, final IWailaConfigHandler config) {
+        // Ignored
+        return currenttip;
+    }
+}

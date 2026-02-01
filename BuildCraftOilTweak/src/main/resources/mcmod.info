@@ -1,0 +1,17 @@
+{
+	"modListVersion": 2,
+	"modList": [{
+		"modid": "${modId}",
+		"name": "${modName}",
+		"description": "A small tweak mod making BuildCraft's and other mods' oil a little bit more dangerous.",
+		"version": "${modVersion}",
+		"mcversion": "${minecraftVersion}",
+		"url": "",
+		"updateUrl": "",
+		"authorList": ["Vexatos"],
+		"credits": "",
+		"logoFile": "",
+		"screenshots": [],
+		"parent": ""
+	}]
+}

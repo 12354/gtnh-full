@@ -1,0 +1,14 @@
+[
+  {
+    "modid": "${modId}",
+    "name": "${modName}",
+    "description": "Rebalances and adds new features to Tinkers Construct",
+    "version": "${modVersion}",
+    "mcversion": "${minecraftVersion}",
+    "url": "http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/2176855",
+    "authorList": [
+      "boni",
+      "iguana_man"
+    ]
+  }
+]

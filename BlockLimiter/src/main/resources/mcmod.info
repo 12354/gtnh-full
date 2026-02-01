@@ -1,0 +1,18 @@
+{
+  "modListVersion": 2,
+  "modList": [{
+    "modid": "${modId}",
+    "name": "${modName}",
+    "description": "Define which Blocks can be placed or not, depending on the dimension",
+    "version": "${modVersion}",
+    "mcversion": "${minecraftVersion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [
+      "Namikon"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": []
+  }]
+}

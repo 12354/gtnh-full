@@ -1,0 +1,17 @@
+[
+    {
+        "modid": "${modId}",
+        "name": "${modName}",
+        "description": "A Hodgepodge of patches",
+        "version": "${modVersion}",
+        "mcversion": "${minecraftVersion}",
+        "url": "",
+        "updateUrl": "",
+        "authorList": ["mitchej123", "GTNewHorizons Team"],
+        "license": "LGPL v3",
+        "credits": "bartimaeusnek for ModMixins",
+        "logoFile": "",
+        "screenshots": [],
+        "dependencies": []
+    }
+]

@@ -1,0 +1,16 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "A small mod to automatically select the default world generator for single player",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "https://github.com/GTNewHorizons/DefaultWorldGenerator",
+  "updateUrl": "",
+  "authorList": ["FireBall1725"],
+  "credits": "Special thanks to amadornes for reflection help",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

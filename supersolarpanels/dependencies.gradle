@@ -1,0 +1,7 @@
+// Add your dependencies here
+
+dependencies {
+    api("net.industrial-craft:industrialcraft-2:2.2.828-experimental:dev")
+    implementation(deobfCurse('advsolar-362768:2885953'))
+}
+

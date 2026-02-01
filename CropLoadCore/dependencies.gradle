@@ -1,0 +1,12 @@
+// Add your dependencies here
+
+dependencies {
+    compileOnly('com.github.GTNewHorizons:Natura:2.8.9:dev') {transitive=false}
+    compileOnly('com.github.GTNewHorizons:TinkersConstruct:1.14.6-GTNH:dev') {transitive=false}
+    compileOnly('com.github.GTNewHorizons:ThaumicBases:1.9.2:dev') {transitive=false}
+    compileOnly('thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev') {transitive=false}
+    compileOnly("net.industrial-craft:industrialcraft-2:2.2.828-experimental:dev")
+
+    compileOnly(deobfCurse('witchery-69673:2234410'))
+    compileOnly(rfg.deobf("curse.maven:biomes-o-plenty-220318:2499612"))
+}

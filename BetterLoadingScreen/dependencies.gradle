@@ -1,0 +1,5 @@
+// Add your dependencies here
+
+dependencies {
+    compileOnly('com.mumfrey:liteloader:1.7.10_04:mcpnames')
+}

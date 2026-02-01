@@ -1,0 +1,17 @@
+{
+	"modListVersion": 2,
+	"modList": [{
+		"modid": "${modId}",
+		"name": "${modName}",
+		"description": "An improvement to the Achievementscreen",
+		"version": "${modVersion}",
+		"mcversion": "${minecraftVersion}",
+		"url": "https://github.com/way2muchnoise/BetterAchievements",
+		"updateUrl": "",
+		"authorList": ["way2muchnoise"],
+		"credits": "Authored by way2muchnoise",
+		"logoFile": "",
+		"screenshots": [],
+		"parent": ""
+	}]
+}

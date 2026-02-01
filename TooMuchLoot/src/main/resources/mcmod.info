@@ -1,0 +1,13 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "Making dungeon loot rare again...",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "authors": [ "dmillerw", "Namikon" ],
+  "dependencies": [
+     "mod_MinecraftForge"
+  ]
+}
+]

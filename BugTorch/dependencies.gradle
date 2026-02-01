@@ -1,0 +1,28 @@
+// Adapted from https://github.com/FalsePattern/ExampleMod1.7.10/blob/e85da4bd22966b5ba49614c3dbd0bfa206722f4e/build.gradle#L980-L988
+
+def deobfCurse(String mavenDep) {
+    def repoURL = "https://cursemaven.com/"
+    String[] parts = ("curse.maven:" + mavenDep).split(":")
+    parts[0] = parts[0].replace('.', '/')
+    def jarURL = repoURL + parts[0] + "/" + parts[1] + "/" + parts[2] + "/" + parts[1] + "-" + parts[2] + ".jar"
+    return deobf(jarURL)
+}
+
+dependencies {
+    runtimeOnly("com.github.GTNewHorizons:Baubles:1.0.4:dev")
+
+    implementation("thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev")
+    implementation("com.github.GTNewHorizons:TX-Loader:1.7.1:dev")
+    implementation deobfCurse("witchery-69673:2234410")
+    implementation deobfCurse("village-names-259230:5591137")
+
+    compileOnly deobfCurse("gilded-games-util-228114:2273362")
+    compileOnly deobfCurse("aether-ii-223796:2273367")
+
+    compileOnly deobfCurse("extra-utilities-225561:2264383")
+    compileOnly deobfCurse("cofh-core-69162:2388750")
+    compileOnly deobfCurse("ganys-surface-222303:2284819")
+    compileOnly deobfCurse("pams-temperate-plants-221916:2206430")
+    compileOnly deobfCurse("llibrary-243298:2319767")
+    compileOnly deobfCurse("mrcrayfish-furniture-mod-55438:2221679")
+}

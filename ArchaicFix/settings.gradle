@@ -1,0 +1,41 @@
+pluginManagement {
+    repositories {
+        maven {
+            // RetroFuturaGradle
+            name "GTNH Maven"
+            url "https://nexus.gtnewhorizons.com/repository/public/"
+            mavenContent {
+                includeGroup("com.gtnewhorizons")
+                includeGroupByRegex("com\\.gtnewhorizons\\..+")
+            }
+        }
+        gradlePluginPortal()
+        mavenCentral()
+        mavenLocal()
+    }
+
+    /*
+    // MappingGenerator start
+    resolutionStrategy {
+        eachPlugin {
+            if(requested.id.toString() == "io.github.legacymoddingmc.mappinggenerator")
+                useModule("com.github.legacymoddingmc:mappinggenerator:" + requested.version)
+        }
+    }
+    repositories {
+        maven{
+            url = "https://jitpack.io"
+        }
+    }
+    // MappingGenerator end
+
+     */
+}
+
+plugins {
+    id 'com.gtnewhorizons.gtnhsettingsconvention' version '2.0.7'
+}
+
+
+
+rootProject.name = 'ArchaicFix'

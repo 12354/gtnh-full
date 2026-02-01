@@ -1,0 +1,49 @@
+/**
+ * This class was created by <Vazkii>. It's distributed as
+ * part of the Botania Mod. Get the Source Code in github:
+ * https://github.com/Vazkii/Botania
+ * 
+ * Botania is Open Source and distributed under the
+ * Botania License: http://botaniamod.net/license.php
+ * 
+ * File Created @ [Sep 24, 2014, 3:49:21 PM (GMT)]
+ */
+package vazkii.botania.client.gui.lexicon.button;
+
+import java.util.Arrays;
+import java.util.List;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
+
+import org.lwjgl.opengl.GL11;
+
+import vazkii.botania.client.core.helper.RenderHelper;
+import vazkii.botania.client.gui.lexicon.GuiLexicon;
+
+public class GuiButtonShare extends GuiButtonLexicon {
+
+	public GuiButtonShare(int id, int xPos, int yPos) {
+		super(id, xPos, yPos, 10, 12, "");
+	}
+
+	@Override
+	public void drawButton(Minecraft mc, int mouseX, int mouseY) {
+		field_146123_n = mouseX >= xPosition && mouseY >= yPosition && mouseX < xPosition + width && mouseY < yPosition + height;
+		int k = getHoverState(field_146123_n);
+
+		mc.renderEngine.bindTexture(GuiLexicon.texture);
+		GL11.glColor4f(1F, 1F, 1F, 1F);
+		drawTexturedModalRect(xPosition, yPosition, k == 2 ? 10 : 0 , 200, 10, 12);
+
+		List<String> tooltip = getTooltip();
+		int tooltipY = (tooltip.size() - 1) * 10;
+		if(k == 2)
+			RenderHelper.renderTooltip(mouseX, mouseY + tooltipY, tooltip);
+	}
+
+	public List<String> getTooltip() {
+		return Arrays.asList(EnumChatFormatting.AQUA + StatCollector.translateToLocal("botaniamisc.clickToShare"));
+	}
+}

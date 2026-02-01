@@ -1,0 +1,86 @@
+/**
+ * This class was created by <Vazkii>. It's distributed as
+ * part of the Botania Mod. Get the Source Code in github:
+ * https://github.com/Vazkii/Botania
+ * 
+ * Botania is Open Source and distributed under the
+ * Botania License: http://botaniamod.net/license.php
+ * 
+ * File Created @ [Sep 1, 2015, 6:35:06 PM (GMT)]
+ */
+package vazkii.botania.common.block.decor;
+
+import java.util.List;
+
+import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
+import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.IIcon;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.world.World;
+import vazkii.botania.client.core.helper.IconHelper;
+import vazkii.botania.common.block.BlockMod;
+import vazkii.botania.common.item.block.ItemCubeWithMetadataAndName;
+import vazkii.botania.common.lib.LibBlockNames;
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+public class BlockPavement extends BlockMod {
+
+	public static final int TYPES = 6;
+	IIcon[] icons;
+
+	public BlockPavement() {
+		super(Material.rock);
+		setHardness(2.0F);
+		setResistance(10.0F);
+		setStepSound(soundTypeStone);
+		setBlockName(LibBlockNames.PAVEMENT);
+	}
+
+	@Override
+	protected boolean shouldRegisterInNameSet() {
+		return false;
+	}
+
+	@Override
+	public int damageDropped(int meta) {
+		return meta;
+	}
+
+	@Override
+	public Block setBlockName(String name) {
+		GameRegistry.registerBlock(this, ItemCubeWithMetadataAndName.class, name);
+		return super.setBlockName(name);
+	}
+
+	@Override
+	public void getSubBlocks(Item item, CreativeTabs tab, List<ItemStack> list) {
+		for(int i = 0; i < TYPES; i++)
+			list.add(new ItemStack(item, 1, i));
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void registerBlockIcons(IIconRegister register) {
+		icons = new IIcon[TYPES];
+		for(int i = 0; i < TYPES; i++)
+			icons[i] = IconHelper.forBlock(register, this, i);
+	}
+
+	@Override
+	public IIcon getIcon(int side, int meta) {
+		return icons[Math.min(TYPES - 1, meta)];
+	}
+
+	@Override
+	public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z) {
+		int meta = world.getBlockMetadata(x, y, z);
+		return new ItemStack(this, 1, meta);
+	}
+
+}

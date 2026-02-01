@@ -1,0 +1,17 @@
+{
+	"modListVersion": 2,
+	"modList": [{
+		"modid": "${modId}",
+		"name": "${modName}",
+		"description": "Adds slopes and a variety of vanilla-inspired blocks that support covers, side covers, overlays, dyes and chiseled patterns.",
+		"version": "${modVersion}",
+		"mcversion": "${minecraftVersion}",
+		"url": "https://www.carpentersblocks.com/",
+		"updateUrl": "",
+		"authorList": ["Mineshopper"],
+		"credits": "",
+		"logoFile": "",
+		"screenshots": [],
+		"parent": ""
+	}]
+}

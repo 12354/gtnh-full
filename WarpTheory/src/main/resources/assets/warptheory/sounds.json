@@ -1,0 +1,22 @@
+{
+  "fakewither": {
+    "category": "hostile",
+    "sounds": [
+      "WitherSpawn"
+    ]
+  },
+
+  "discordping": {
+    "category": "player",
+    "sounds": [
+      "discord/DiscordPing"
+    ]
+  },
+
+  "discordvoicechanneljoin": {
+    "category": "player",
+    "sounds": [
+      "discord/DiscordVoiceChannelJoin"
+    ]
+  }
+}

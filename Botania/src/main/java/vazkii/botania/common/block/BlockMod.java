@@ -1,0 +1,70 @@
+/**
+ * This class was created by <Vazkii>. It's distributed as
+ * part of the Botania Mod. Get the Source Code in github:
+ * https://github.com/Vazkii/Botania
+ * 
+ * Botania is Open Source and distributed under the
+ * Botania License: http://botaniamod.net/license.php
+ * 
+ * File Created @ [Jan 14, 2014, 5:31:15 PM (GMT)]
+ */
+package vazkii.botania.common.block;
+
+import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
+import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.entity.EnumCreatureType;
+import net.minecraft.world.IBlockAccess;
+import vazkii.botania.api.recipe.IElvenItem;
+import vazkii.botania.client.core.helper.IconHelper;
+import vazkii.botania.common.core.BotaniaCreativeTab;
+import vazkii.botania.common.core.handler.ConfigHandler;
+import vazkii.botania.common.item.block.ItemBlockElven;
+import vazkii.botania.common.item.block.ItemCubeMod;
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+public class BlockMod extends Block {
+
+	public int originalLight;
+
+	public BlockMod(Material material) {
+		super(material);
+		if(registerInCreative())
+			setCreativeTab(BotaniaCreativeTab.INSTANCE);
+	}
+
+	@Override
+	public Block setBlockName(String name) {
+		if(shouldRegisterInNameSet())
+			GameRegistry.registerBlock(this, this instanceof IElvenItem ? ItemBlockElven.class : ItemCubeMod.class, name);
+		return super.setBlockName(name);
+	}
+
+	protected boolean shouldRegisterInNameSet() {
+		return true;
+	}
+
+	@Override
+	public Block setLightLevel(float value) {
+		originalLight = (int) (value * 15);
+		return super.setLightLevel(value);
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void registerBlockIcons(IIconRegister register) {
+		blockIcon = IconHelper.forBlock(register, this);
+	}
+
+	boolean registerInCreative() {
+		return true;
+	}
+
+	@Override
+	public boolean canCreatureSpawn(EnumCreatureType type, IBlockAccess world, int x, int y, int z) {
+		return !ConfigHandler.noMobSpawnOnBlocks;
+	}
+
+}

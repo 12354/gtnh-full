@@ -1,0 +1,136 @@
+package lumien.randomthings.Items;
+
+import java.util.List;
+
+import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.FakePlayer;
+
+import lumien.randomthings.Library.GuiIds;
+import lumien.randomthings.Library.Interfaces.IItemWithProperties;
+import lumien.randomthings.Library.InventoryUtils;
+import lumien.randomthings.Library.Inventorys.InventoryEnderLetter;
+import lumien.randomthings.Library.RandomThingsNBTKeys;
+import lumien.randomthings.RandomThings;
+
+public class ItemEnderLetter extends ItemBase implements IItemWithProperties {
+
+    public ItemEnderLetter() {
+        super("enderLetter");
+        this.setMaxStackSize(1);
+        this.setHasSubtypes(true);
+    }
+
+    @Override
+    public boolean hasEffect(ItemStack par1ItemStack, int pass) {
+        return par1ItemStack.getItemDamage() == 1;
+    }
+
+    @Override
+    public void addInformation(ItemStack par1ItemStack, EntityPlayer par2EntityPlayer, List par3List, boolean par4) {
+        if (par1ItemStack.stackTagCompound != null) {
+            String receiver = par1ItemStack.stackTagCompound.getString(RandomThingsNBTKeys.RECEIVER);
+            String sender = par1ItemStack.stackTagCompound.getString(RandomThingsNBTKeys.SENDER);
+            if (receiver.isEmpty()) {
+                par3List.add(I18n.format("text.enderLetter.noReceiver"));
+            } else {
+                par3List.add(I18n.format("text.enderLetter.receiver", receiver));
+            }
+            if (!sender.isEmpty()) {
+                par3List.add(I18n.format("text.enderLetter.sender", sender));
+            }
+        } else {
+            par3List.add(I18n.format("text.enderLetter.noReceiver"));
+        }
+    }
+
+    public static IInventory getLetterInventory(EntityPlayer player) {
+        ItemStack enderLetter;
+        IInventory letterInventory = null;
+        enderLetter = player.getCurrentEquippedItem();
+
+        if (enderLetter != null && enderLetter.getItem() instanceof ItemEnderLetter) {
+            letterInventory = new InventoryEnderLetter(player, enderLetter);
+        }
+
+        return letterInventory;
+    }
+
+    public static IInventory getLetterInventory(EntityPlayer player, ItemStack letter) {
+        ItemStack enderLetter;
+        IInventory letterInventory = null;
+        enderLetter = letter;
+
+        if (enderLetter != null && enderLetter.getItem() instanceof ItemEnderLetter) {
+            letterInventory = new InventoryEnderLetter(player, enderLetter);
+        }
+
+        return letterInventory;
+    }
+
+    @Override
+    public ItemStack onItemRightClick(ItemStack par1ItemStack, World worldObj, EntityPlayer playerEntity) {
+        if (par1ItemStack.stackTagCompound == null) {
+            par1ItemStack.stackTagCompound = new NBTTagCompound();
+        }
+
+        if (playerEntity.isSneaking() && par1ItemStack.getItemDamage() == 0 && !(playerEntity instanceof FakePlayer)) {
+            if (!worldObj.isRemote) {
+                sendLetter(par1ItemStack, playerEntity);
+            }
+        } else {
+            if (!worldObj.isRemote) {
+                playerEntity.openGui(
+                        RandomThings.instance,
+                        GuiIds.ENDER_LETTER,
+                        worldObj,
+                        (int) playerEntity.posX,
+                        (int) playerEntity.posY,
+                        (int) playerEntity.posZ);
+            }
+        }
+
+        return par1ItemStack;
+    }
+
+    private void sendLetter(ItemStack letter, EntityPlayer sender) {
+        String receiver = letter.stackTagCompound.getString(RandomThingsNBTKeys.RECEIVER);
+        if (receiver.trim().isEmpty()) {
+            ChatComponentTranslation invalidReceiverMessage = new ChatComponentTranslation(
+                    "text.enderLetter.invalidreceiver");
+            invalidReceiverMessage.getChatStyle().setColor(EnumChatFormatting.RED);
+            sender.addChatMessage(invalidReceiverMessage);
+        } else {
+            IInventory inventory = ItemEnderLetter.getLetterInventory(sender);
+            inventory.openInventory();
+            if (InventoryUtils.isInventoryEmpty(inventory)) {
+                ChatComponentTranslation emptyLetterMessage = new ChatComponentTranslation("text.enderLetter.empty");
+                emptyLetterMessage.getChatStyle().setColor(EnumChatFormatting.RED);
+                sender.addChatMessage(emptyLetterMessage);
+                return;
+            }
+            letter.stackTagCompound.setString(RandomThingsNBTKeys.SENDER, sender.getCommandSenderName());
+
+            sender.worldObj.playSoundAtEntity(sender, "mob.endermen.portal", 0.1F, 2F);
+            sender.inventory.setInventorySlotContents(sender.inventory.currentItem, null);
+            sender.inventory.markDirty();
+            sender.inventoryContainer.detectAndSendChanges();
+
+            ItemStack receivedLetter = letter.copy();
+            receivedLetter.setItemDamage(1);
+
+            RandomThings.instance.letterHandler.addLetter(receivedLetter);
+        }
+    }
+
+    @Override
+    public boolean isValidAttribute(ItemStack is, String attributeName, int attributeType) {
+        return attributeName.equals(RandomThingsNBTKeys.RECEIVER) && attributeType == 1;
+    }
+}

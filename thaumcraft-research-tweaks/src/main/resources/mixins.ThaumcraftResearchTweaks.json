@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.7.11",
+  "package": "elan.tweaks.thaumcraft.research.frontend.integration.table.mixin",
+  "refmap": "mixins.ThaumcraftResearchTweaks.refmap.json",
+  "target": "@env(DEFAULT)",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "TableBlockMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

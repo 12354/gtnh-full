@@ -1,0 +1,19 @@
+[
+  {
+    "modid": "${modId}",
+    "name": "${modName}",
+    "description": "Adds ability to modify TC wand recipes",
+    "version": "${modVersion}",
+    "mcversion": "${minecraftVersion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [
+      "Zoko061602",
+      "Time_Conqueror"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]

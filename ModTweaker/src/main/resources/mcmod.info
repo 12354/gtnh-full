@@ -1,0 +1,16 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "ModTweaker is an addon for MineTweaker 3.",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Jaredlll08"],
+  "credits": "joshie and Spitefulfox for writing ModTweaker, yulife for documentation.",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

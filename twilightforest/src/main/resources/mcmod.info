@@ -1,0 +1,18 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "An enchanted forest dimension.",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "http://www.minecraftforum.net/topic/561673-",
+  "updateUrl": "",
+  "authors": [
+    "Benimatic (Ben Mazur)"
+  ],
+  "credits": "By Benimatic",
+  "logoFile": "assets/twilightforest/textures/twilightforest_logo.png",
+  "screenshots": [],
+  "dependencies": []
+}
+]

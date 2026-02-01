@@ -1,0 +1,24 @@
+[
+  {
+    "modid": "${modId}",
+    "name": "${modName}",
+    "description": "Ever thought about combining magic and electricity?",
+    "version": "${modVersion}",
+    "mcversion": "${minecraftVersion}",
+    "url": "http://www.minecraftforum.net/topic/2196652-",
+    "updateUrl": "",
+    "authorList": [
+      "fewizz",
+      "TheSilentium",
+      "The GTNH Team",
+      "bartimaeusnek"
+    ],
+    "credits": "Azanor, Tombenpotter, TehNut, the IC2 guys and the forge guys! | LogicFalls for the awesome Big Essentia Gen Textures!",
+    "logoFile": "logo.png",
+    "screenshots": [],
+    "dependencies": [
+      "Thaumcraft 4",
+      "IC2"
+    ]
+  }
+]

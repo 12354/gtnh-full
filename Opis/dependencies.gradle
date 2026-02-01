@@ -1,0 +1,8 @@
+// Add your dependencies here
+
+dependencies {
+    shadowCompile 'io.netty-opis:Netty-opis:4.0.23'
+    shadowCompile 'org.apache.commons:commons-math3:3.2'
+    shadowCompile 'org.jfree:jfreechart:1.0.17'
+    shadowCompile 'com.miglayout:miglayout-swing:4.2'
+}

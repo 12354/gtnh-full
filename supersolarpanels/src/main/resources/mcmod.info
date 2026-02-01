@@ -1,0 +1,15 @@
+[
+{
+  "modid": "${modId}",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "name": "${modName}",
+  "url": "http://forum.industrial-craft.net/index.php?page=Thread&threadID=3291",
+  "updateUrl": "",
+  "authorList": ["SeNtiMeL, Icedfire"],
+  "credits": "Created by SeNtiMeL, based on original mod of Icedfire. Textures by Krezzard. Thanks mak326428 for help with develop. Mod by bartimaeusnek.",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

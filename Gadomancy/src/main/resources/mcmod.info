@@ -1,0 +1,16 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "An addon for Thaumcraft.",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["makeo", "HellFirePvP"],
+  "credits": "To HellFirePvP and makeo for making this mod",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": ["Thaumcraft"]
+}
+]

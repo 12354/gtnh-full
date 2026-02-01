@@ -1,0 +1,15 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "description": "Hardcore Ender Expansion offers unique, new content across the End. The dragon became a truly challenging boss with a great reward, but the adventure doesn't end there.\n\nThe End is no longer just an island. Go investigate unique ores, battle new mobs, travel to new biomes, the death awaits you!\n\nFind me on Twitter: https://twitter.com/chylexmc\n\nDownload music:  https://hee-music.chylex.com",
+  "logoFile": "hee_logo.png",
+  "url": "https://hee.chylex.com",
+  "updateUrl": "",
+  "authorList": [ "Programmed by chylex | https://hee.chylex.com/authors" ],
+  "parent": "",
+  "screenshots": []
+}
+]

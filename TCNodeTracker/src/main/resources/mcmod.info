@@ -1,0 +1,16 @@
+{
+	"modListVersion": 2,
+	"modList": [{
+		"modid": "${modId}",
+		"name": "${modName}",
+		"description": "Tracks scanned nodes for Thaumcraft",
+		"version": "${modVersion}",
+		"mcversion": "${minecraftVersion}",
+		"url": "https://github.com/Dyonovan/TCNodeTracker",
+		"updateUrl": "",
+		"authorList": ["Dyonovan"],
+		"credits": "Azanor for Thaumcraft. Dominance28 for textures.",
+		"logoFile": "assets/tcnodetracker/textures/gui/arrow.png",
+		"screenshots": []
+	}]
+}

@@ -1,0 +1,17 @@
+{
+	"modListVersion": 2,
+	"modList": [{
+		"modid": "${modId}",
+		"name": "${modName}",
+		"description": "A way for modpacks to ship a default key configuration without having to include an options.txt file.",
+		"version": "${modVersion}",
+		"mcversion": "${minecraftVersion}",
+		"url": "https://www.curseforge.com/minecraft/mc-mods/default-options",
+		"updateUrl": "",
+		"authorList": ["BlayTheNinth"],
+		"credits": "BlayTheNinth",
+		"logoFile": "",
+		"screenshots": [],
+		"parent": ""
+	}]
+}

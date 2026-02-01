@@ -1,0 +1,16 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "A mod to see how hard people are willing to grind.",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["SpitefulFox", "TTFTCUTS"],
+  "credits": "Vazkii, Greg, brandon3055, vswe, Algorithm",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

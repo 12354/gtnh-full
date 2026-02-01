@@ -1,0 +1,51 @@
+// Add your dependencies here
+
+dependencies {
+    compileOnly("curse.maven:chickenchunks-229316:2233250")
+    compileOnly("mrtjp:MrTJPCore:1.7.10-1.1.0.33:dev") {
+        transitive = false
+    }
+    compileOnly "thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev"
+    compileOnly('com.github.GTNewHorizons:TC4Tweaks:1.4.26:dev') {
+        transitive = false
+    }
+    compileOnly "curse.maven:chunkpregen-267193:3756388"
+    compileOnly('com.github.GTNewHorizons:NotEnoughItems:2.7.64-GTNH:dev')
+    compileOnly("com.gregoriust.gregtech:gregtech_1.7.10:6.15.01:dev") {
+        transitive = false
+    }
+    compileOnly('curse.maven:cofh-core-69162:2388751')
+    compileOnly("curse.maven:thermalfoundation-222880:2388753")
+    compileOnly("curse.maven:thermalexpansion-69163:2388759")
+    compileOnly("curse.maven:matteroverdrive-229694:2331162")
+    compileOnly("curse.maven:projecte-226410:2340786")
+    compileOnly('com.github.GTNewHorizons:Botania:1.12.16-GTNH:dev') {
+        transitive = false
+    }
+    compileOnly("org.projectlombok:lombok:1.18.22") {
+        transitive = false
+    }
+    annotationProcessor("org.projectlombok:lombok:1.18.22")
+
+    String curseMaven = "https://cursemaven.com/" //Use https://cursemaven.com/ if this is down
+    compileOnly(deobfMaven(curseMaven, "curse.maven:mekanism-268560:2475797"))
+    compileOnly(deobfMaven(curseMaven, "curse.maven:extrautils-225561:2264383"))
+    compileOnly(deobfMaven(curseMaven, "curse.maven:dynamiclights-227874:2337326"))
+    compileOnly(deobfMaven(curseMaven, "curse.maven:divinerpg-363543:2918948"))
+    compileOnly(deobfMaven(curseMaven, "curse.maven:journeymap-32274:2367915"))
+    compileOnly(deobfMaven(curseMaven, "curse.maven:ars-magica-2-67313:2280862"))
+    compileOnly(deobfMaven(curseMaven, "curse.maven:waystones-245755:2559125"))
+    runtimeOnly(deobf("https://github.com/makamys/CoreTweaks/releases/download/0.3.3.2/CoreTweaks-1.7.10-0.3.3.2+nomixin.jar"))
+
+    if(!Boolean.valueOf(project.properties["archaicFix.noRuntimeExtras"] ?: "false")) {
+        runtimeOnly(deobfMaven(curseMaven, "curse.maven:xaerosminimap-263420:3876755"))
+    }
+
+    compileOnly files("deps/Food Plus Mod 1.7.10-deobf.jar")
+    compileOnly(deobfMaven(curseMaven, "curse.maven:dragonapi-235591:3574508"))
+    compileOnly(deobfMaven(curseMaven, "curse.maven:applied-energistics-2-223794:2296430"))
+
+    // Provides deobf support like in FG2
+    runtimeOnlyNonPublishable('com.github.GTNewHorizons:CodeChickenLib:1.3.0:dev')
+    runtimeOnlyNonPublishable('com.github.GTNewHorizons:CodeChickenCore:1.4.3:dev')
+}

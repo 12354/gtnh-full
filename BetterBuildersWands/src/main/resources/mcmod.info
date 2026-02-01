@@ -1,0 +1,15 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "Wands that allow placing of multiple blocks at a time",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Portablejim"],
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

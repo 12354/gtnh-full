@@ -1,0 +1,19 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "Greatly expands upon the functionality of Waila by providing many new forms of information along with bridging support between Waila and many other popular minecraft mods.",
+  "version": "${modVersion}",
+  "credits": "Maintained by Darkhax.",
+  "logoFile": "",
+  "mcversion": "${minecraftVersion}",
+  "url": "http://www.darkhax.net/wawla.html",
+  "updateUrl": "",
+  "authors": ["Darkhax"],
+  "parent": "",
+  "screenshots": [],
+  "dependencies": [
+     "mod_MinecraftForge"
+  ]
+}
+]

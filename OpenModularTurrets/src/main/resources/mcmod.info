@@ -1,0 +1,24 @@
+[
+    {
+        "modid": "${modId}",
+        "name": "${modName}",
+        "description": "All a man needs are meat ingots, and big ass-turrets. Adds a heap of new turrets and upgrades!",
+        "version": "${modVersion}",
+        "mcversion": "${minecraftVersion}",
+        "credits": "Poenjabiesous",
+        "logoFile": "/mods/thermalexpansion/textures/logo.png",
+        "url": "",
+        "updateUrl": "",
+        "authors": [
+            "Poenjabiesous", "UntouchedWagons", "Keridos"
+        ],
+        "parent":"",
+        "screenshots": [],
+        "requiredMods": [
+            "MinecraftForge,ThermalExpansion"
+        ],
+        "dependencies": [
+            "MinecraftForge,ThermalExpansion"
+        ]
+    }
+]

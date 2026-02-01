@@ -1,0 +1,17 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "The book of books.",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "logoFile": "",
+  "url": "https://github.com/GTNewHorizons/AkashicTome",
+  "updateUrl": "",
+  "authorList": ["Vazkii"],
+  "credits": "",
+  "parent": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

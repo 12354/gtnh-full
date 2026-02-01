@@ -1,0 +1,21 @@
+{
+  "modListVersion": 2,
+  "modList": [
+    {
+      "modid": "${modId}",
+      "name": "${modName}",
+      "description": "Personal, customizable dimensions for players",
+      "version": "${modVersion}",
+      "mcversion": "${minecraftVersion}",
+      "url": "https://github.com/GTNewHorizons/PersonalSpace",
+      "updateUrl": "",
+      "authorList": [
+        "eigenraven"
+      ],
+      "credits": "",
+      "logoFile": "",
+      "screenshots": [],
+      "parent": ""
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+[{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "Nutrition is a highly configurable mod to enable the creation of health systems in Minecraft.",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "https://github.com/GTNewHorizons/Nutrition",
+  "updateUrl": "",
+  "authorList": ["serenibyss", "Wes Cook"],
+  "credits": "Wes Cook for the original mod",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}]

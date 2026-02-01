@@ -1,0 +1,16 @@
+{
+  "modListVersion": 2,
+  "modList": [{
+    "modid": "${modId}",
+    "name": "${modName}",
+    "description": "cpw",
+    "version": "${modVersion}",
+    "mcversion": "${minecraftVersion}",
+    "url": "https://github.com/GTNewHorizons/Super-TiC",
+    "updateUrl": "",
+    "authorList": [ "Zokonius" ],
+    "credits": "bartimaeusnek, GTNH",
+    "logoFile": "",
+    "screenshots": []
+  }]
+}

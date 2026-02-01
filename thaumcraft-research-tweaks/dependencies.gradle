@@ -1,0 +1,14 @@
+// Add your dependencies here
+
+dependencies {
+    api 'com.github.GTNewHorizons:Forgelin:2.0.1-GTNH'
+
+    // Thaumcraft
+    implementation 'thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev'
+    runtimeOnlyNonPublishable 'com.github.GTNewHorizons:Baubles-Expanded:2.1.7-GTNH:dev'
+
+    // Testing
+    testImplementation platform('org.junit:junit-bom:5.9.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+}

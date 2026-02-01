@@ -1,0 +1,498 @@
+######## 1.0.2h ########
+-added config option to disable flight.
+-removed some log spam.
+-fixed issue which makes it impossible to charge new bows after crafting.
+-fixed config option to disable arrow explosion damage.
+
+######## 1.0.2g ########
+-fixed server crash.
+
+######## 1.0.2f ########
+-fixed shield sound effect being too loud.
+-fixed rare edge case where reflection by another mod causes certain tiles to crash servers. 
+-merged pull to add lots of config options for all the things! https://github.com/brandon3055/Draconic-Evolution/pull/332
+
+######## 1.0.2e ########
+-damage that bypasses armor now deals double damage and increased entropy to the shield.
+-fake players should now be able to mine draconium ore, infused obsidian and both draconium blocks.
+-fixed crash involving the bedrock sword compatibility code.
+-attempted to fix a rendering bug with the energy transceivers (may or may not be fixed now).
+-hopefully fixed issue with Armourers-Workshop not being able to make the draconic armor invisible.
+-fixed flight sometimes not being disabled when draconic chestplate is removed.
+
+######## 1.0.2d ########
+-added config option to disable all log output
+-stopped potential console spam from chaos guardian.
+-fixed draconic armor flight speed boost not being removed when the armor is removed.
+-reduced potential FPS hit from the HUD. (may also fix some other random issues)
+
+######## 1.0.2c ########
+-fixed shovels unable to harvest some blocks in AOE mode (Any block that requires a shovel but can not be harvested by hand)
+-added config blacklist for the Item Dislocator.
+-fixed armor still draining power when another mod cancels a damage event.
+-removed some debug code that got left in last update.
+
+######## 1.0.2b ########
+-fixed not being able to close the flow gate gui's by pressing the inventory key.
+-fixed inability to pick up arrows fired by the bows.
+-fixed conflict with the travellers gloves from Tinkers Construct (And other mods that do something similar)
+-fixed broken shield texture (That did not show in the dev environment so i kinda missed it until now)
+-hopefully fixed particles in chaos chamber not despawning on Cauldron servers...
+-fixed Item Dislocator range issues.
+
+######## 1.0.2a ########
+-updated manual-zh_CN.json (Thankyou https://github.com/sfmiyuki for that)
+-draconic sword and staff of power now have an unlimited hit rate. (that was supposed to be a thing from the beginning)
+-increased the energy cost of the shields last stand ability from 5M RF to 10M RF.
+-added support for Avaritia's "Sword of the Cosmos" It will now deal a significant amount of damage to the draconic shield. As it should. 
+-Note to devs. Please try to avoid bypassing the vanilla damage system. If you want your extremely expensive op weapon to deal a lot of damage then just make it deal a lot of damage. 
+-fixed WAILA localization for the energy core.
+
+######## 1.0.2 ########
+-fixed HUD not working with Dual Hotbars installed.   
+-draconic magnet now also accelerates the collection of XP orbs.
+-added computer support to particle generator (Added by https://github.com/wlhlm)
+-fixed player getting kicked from server when changing tool modes.
+-fixed Wyvern sword, Draconic sword and Draconic hoe RF capacity upgrade not working.
+-fixed FPS lag when you combine a custom spawner with rednet cable.
+-fixed "fake" mobs spawning at 0, 0, 0 when using the custom spawner. This was actually a bug i caught from vanilla! 
+
+######## 1.0.2-Snapshot 12 (RC2) ########
+-fixed issue with the different tier Item Dislocators stacking ant reverting to ether the Wyvern or Draconic tier.
+
+######## 1.0.2-Snapshot 11 (RC1) ########
+-the upgrade modifier can now hold any item FOR DISPLAY PURPOSES ONLY (this was requested by a user)
+-added inertia cancellation to the draconic chestplate.
+-change: an active dragon heart will now immediately drop as an item if a player comes into contact with it.
+-rewrote the bows from the ground up. 
+-the capacitors can now be upgraded.
+-improved ComputerCraft/Open Computers documentation.
+-fixed info tablet image sizes and moved images to github.
+-added shiny things for contributors! 
+-added Item Dislocators! Because someone felt modded minecraft needed more magnets... 
+
+######## 1.0.2-Snapshot 10-beta2 ########
+-fixed client unable to connect to a server while wearing draconic armor.
+
+######## 1.0.2-Snapshot 10-beta ########
+-fixed hover text for stats in the reactor gui showing when the stats page is closed.
+-beacons can now pass through energy core.
+-fixed bug in old 2D armor models.
+-fixed Draconic helm night vision checking light value at your feet resulting wierd behavior like activating when walking on soul sand.
+-fixed rounding issue with energy core display so it will show decimals like 23.5M / 1.64B instead of just 23M / 1B.
+-fixed a dupe bug in the tool inventory gui
+-chaos guardian will nolonger attack creative players unless they do something to piss him off.
+-added a better config gui for the HUD (Still accessible via the tool config gui)
+-completely re-wrote the armor and added a shield mechanic instead of the old "Just block ALL the damage" mechanic.
+-added an upgrade system for the tools and armor.  
+-change: If you logout while flying you will be flying when you login again.
+-added tool config profiles.
+-fixed chaos guardian crystals in unloaded chunks showing as alive then they are not.
+-updated documentation.
+
+######## 1.0.2-Snapshot 9 ########
+-added config option to adjust the distance between chaos islands.
+-fixed infused obsidian and draconium blocks wither resistance.
+-nurfed crasy op weapons effectiveness against the chaos guardian a little. 
+-hopefully fixed the chaos guardian crystal syncing issue (cant reproduce this so not sure if its actually fixed)
+-fixed the damage bonus on draconic weapons (+X% mob health) now works on dragons including the chaos guardian.
+-addressed the issue of certain mod items being able to move the chaos crystal...
+-added some missing localization.
+-disabled enchant effect on armor.
+-fixed issue with particle gen view distance.
+-added config option to reanable the original 3D armor models by Skeletonpunk.
+-field drain rate (now called field input rate) in the reactor gui makes more sense now.
+-added hover text to values in the reactor stats page.
+-fixed some bugs in the reactor code.
+-fixed a minor bug in the custom spwner blacklist.
+-fixed flux gate allowing more then the specified RF/t to pass under certain conditions when used with Cryo-Ducts
+-fixed rendering bug with the portal.
+-fixed pickaxe AOE mode creating ghost blocks when blocks with a higher hardness then the block you are mining are within the AOE.
+-made a change that will hopefully fix the issue with the energy core HUD display not updating properly.
+-fixed dragging the scroll bare in the Info Tablet not working properly on some pages. 
+-added support for language localization to the information tablet.
+-updated Documentation
+
+######## 1.0.2-Snapshot 8-bugfix ########
+-fixed crash in information tablet.
+-removed console spam from entities spawned by the stabilized spawner. 
+-increased energy infuser buffer and transfer rate to 10m.
+-updated chaos island documentation.
+-added documentation for chaos shard and chaotic core.
+
+######## 1.0.2-Snapshot 7-bugfix ########
+-fixed some missing texture errors.
+
+######## 1.0.2-Snapshot 6 ########
+-added new textures and models for ALL THE THINGS! Thanks to @Sn0wShepherd
+-added config option to disable custom tool models.
+-removed some debug code.
+-fixed guardian teleport attack teleporting the ender crystals.
+-added contributors page to the information tablet. 
+-added autoscaling to the Information Tablet GUI.
+
+######## 1.0.2-Snapshot 5 ########
+-fixed accidentally implemented a class from Computer Craft... oops.  
+-added some finishing touches to the chaos islands. 
+
+######## 1.0.2-Snapshot 4 ########
+-crystal binder now only rotates blocks when set to the mode change function.
+-added config option to switch back to the old 2D armor model.
+-infused obsidian recipe now makes 4 infused obsidian as opposed to 1.
+-fixed crash when right clicking energy core.
+-rewrote chaos island and chaos guardian.
+-added CC and OC support to reactor, flow gates and energy core.
+-re implemented the ability to disable item lore.
+-fixed conflict with draconic helm and tcon cleaver mining fatigue.
+-added draconium and awakened draconium nuggets.
+-added Chaos Crystal.
+-added Chaos Shard and Chaos Fragments.
+-semi finished draconic reactor (May tweak the balance a little)
+-added config option to speed up the resurrection ritual. 
+-disabled console spam for invalid item lore.
+-dragon and guardian death sound is nolonger server wide.
+
+######## 1.0.2-Snapshot 3 ########
+-fixed server crash
+
+######## 1.0.2-Snapshot 2 ########
+-fixed energy core crash when placed.
+
+######## 1.0.2-Snapshot 1 ########
+-stabilized spawner's will now keep their original mob type when created.  
+-mobs spawned by stabilized spawner are now allowed to despawn after 30 seconds.
+-increased the length and render distance of the particle generator beam.
+-shortened the teleport sound.
+-added Draconium Infused Obsidian.
+-added Draconic Portal.
+-removed old debug code from bow.
+-fixed energy crystal name localisation in hud.
+-crystal binder can now rotate blocks.
+-fixed weapon aoe not using power.
+-fixed rendering error caused by the energy infuser.
+-fixed draconium dust not smeltable in TE redstone furnace. 
+-fixed game freezing for a few seconds on startup.
+-energy core now stores its energy value as a long (fixes potential issues)
+-added draconium and awakened draconium blocks to the ore dictionary.
+-added new armor model by @Skele_P.
+-implemented ore dictionary in recipes.
+-added Flow Gates.
+-added Draconic Reactor (WIP)
+-spawner blacklist config now actually works on the spawner as well as opposed to just preventing the soul drops.
+-fixed energy relay recipe.
+-fixed minor rendering bug in energy infuser GUI.
+
+######## 1.0.1-Bugfix-c ########
+-fixed crash when arrow from DE bow hits RFTools force field.
+
+######## 1.0.1-Bugfix-b ########
+-fixed a problem in the config gui that came from a change in bugfix a.
+
+######## 1.0.1-Bugfix-a ########
+-fixed heart dupe bug.
+-AOE Mining tools now add xp from blocks directly to the player.
+-tweaked some code in the config gui to try to fix an illusive cauldron related bug.
+
+######## 1.0.1 ########
+-fixed advanced dislocator index out of bounds exceptions once and for all.
+-added option to adjust vertical acceleration on chestplate.
+-added option to only increase vertical acceleration while sprinting (using sprint key) 
+
+######## 1.0.1-Snapshot 11 (RC 6)########
+-fixed item dupe with draconic chest.
+-temp fix to reduce network lag from energy nodes (Transfer code needs a complete re write)
+-increased resistance for mob grinder.
+-fixed gui's not closing when the block they are attached to is destroyed.
+
+######## 1.0.1-Snapshot 10 (RC 5)########
+-fixed mob grinder creating a tone of network traffic.
+-fixed tools not dropping xp on aoe mode.
+-added config option to make items dropped by tools in aoe mode despawn after 5 seconds if not collected.
+-xp dropped by the mob grinder will now despawn after 30 seconds to reduce lag.
+-fixed crash with veinminer.
+-tweaked armor jumping mechanic.
+-increased flight up/down speed (speed boost applied by leggings).
+-increased resistance of draconium.
+-fixed shovel not working on some blocks such as cursed earth.
+-fixed tools no mining some blocks such as bedrock when in creative mode.
+-can now use backspace to go to the previous page in the information tablet.
+-increased render distance of persistent items and active dragon heart.
+-reduced explosion power required to activate the dragon heart.
+-stabilized spawner now shows its tier as part of its renderer.
+-added thaumcraft support to the draconic helm. (goggles of revealing)
+-fixed charged draconium blocks not extracting from energy infuser.
+
+######## 1.0.1-Snapshot 9 (RC 4)########
+-stopped draconic chest eating up a tone of tick time.
+-prevented dragon travelling through portals.
+-you now make draconium ingots by smelting draconium dust directly.
+-draconium blend is now depreciated and will be removed completely in 1.0.2.
+-fixed server crash related to the wireless energy transceiver.
+-draconium and awakened draconium blocks are now immune to the wither.
+-added more documentation to the information tablet.
+-you can now scroll faster in the info tablet gui by holding shift.
+-changed the default texture for draconium ore to the overworld texture.
+-increased draconic chest energy usage to 1000RF/t
+
+######## 1.0.1-Snapshot 8 (RC 3)########
+-fixed manual crashing due to ingredients with wiled card damage values.  
+-removed some debug code from the crystal binder.
+-fixed dislocator client crash when binding.
+
+######## 1.0.1-Snapshot 7 (RC 2)########
+-hotfix for server crash in RC 1 related to changing tool modes.
+
+######## 1.0.1-Snapshot 6 (RC 1)########
+-fixed teleporting mobs with a dislocator on a server crashing the client. 
+-added support for other mods to add recipes to the draconium chest.
+-fixed arrows bouncing off of dragons... oops.
+-non fuel items such as empty buckets can now be extracted from the generator.
+-fixed charging exploit with draconium blocks.
+-added block break event to aoe mining tools.
+-added comparator output to the energy pylon. 
+-changed. Pylons can now be placed up to 16 blocks above and bellow the core.
+-option to set where the dragon egg will spawn.
+-added option to disable dragon block destruction.
+-added a beam option for the particle gen.
+-added the ability to copy settings from one particle gen to another.
+-added base safe AOE mode.
+-added Crtl + right click to change dig depth.
+-added Ctrl + Shift + right click to change attack aoe.
+-fixed dragon health bar glitchiness.
+-fixed advanced dislocator crash related to moving destinations in the gui.
+-fixed crash when trying to teleport to a dimension that has been removed.
+-fixed staff breaking liquid.
+-fixed tool config gui not accepting enchant type "all".
+-added night vision lock option to draconic helm.
+-added draconium ore, draconium dust, draconium ingot and awakened draconium ingot to the ore dictionary.
+-added ore generation to mod dimensions (configurable)
+-re-added right click information to stabilized mob spawner and energy core.
+-fixed minor syncing issue with the dislocator stand.
+-fixed a little bugines when crafting with the draconic chest.
+-mobs spawned from the stabilized spawner are now only persistent if the spawner has the "ignore players" upgrade.
+-fixed weapon attack damage tool tips.
+-buffed sword and staff attack damage.
+-fixed some enchants not working properly with the swords and staff.
+-fixed dig depth on staff breaking blocks behind player.
+-bows no longer need a single arrow when enchanted with infinity.
+-fixed tools not using energy in 1x1 mode.
+-adjusted mining tool power usage.
+-added option to lock the last 5 slots in the draconic chest.
+-energy core tiers now range from 1 to 7 instead of 0 to 6.
+-reduced the mining level of the stabilized spawner to 1 (iron)
+-added config to disable any blocks or items in the mod
+-removed old config to disable distortion flame and sun dial 
+-added config option to limit player speed
+-added Wireless Energy Transceiver
+-added Advanced Wireless Energy Transceiver
+
+######## 1.0.1-Snapshot(5) ########
+-fixed tesseracts not accepting energy from pylons.
+-updated RF API.
+-fixed energy pylons not remembering which core they are connected to.
+-fixed spawner not working with hostile mobs when chunk loaded.
+-added recipes for energy relays and transceivers.
+-added tool tip to charging draconium blocks.
+
+######## 1.0.1-Snapshot(4) ########
+-reduced default particle view range to 64 blocks.
+-fixed up and down arrows in advanced dislocator GUI.
+-fixed chaos guardian not spawning a portal on servers.
+-re added the ability to change mining aoe of the tools with shift right click.
+-fixed item config gui crash (needs server testing to confirm).
+-optimized draconium chest packet handling.
+-added config option to disable ore generation.
+-blocked cheaty method of killing the dragon on servers by going out of its update range.
+-added config option to disable the HUD info.
+-added Energy Relay [WIP]
+-added Advanced Energy Relay [WIP]
+-added Energy Transceiver [WIP]
+-added Advanced Energy Transceiver [WIP]
+-added Crystal Wrench [WIP]
+-added version checker.
+-fixed fake air blocks messing with energy core.
+  
+######## 1.0.1-Snapshot(3) ########
+
+-fixed spawner display mob shaking when disabled.
+-removed energy cost for Draconic Chest flight.
+-added tool config gui.
+-safety flame can now be extinguished without breaking the block it is placed on.
+-removed a few leftover debug lines.
+-fixed teleporting between dimensions breaking NEI.
+-added tool hud display.
+-implemented hud display in all configurable tools.
+-implemented hud display in energy core & stabilized spawner.
+-added option to rearrange locations in advanced dislocator.
+-fixed galacticraft mob soul crash.
+-fixed disenchanter book crash.
+-fixed network channel name too long.
+-fixed chaos island server crash.
+
+######## 1.0.0-BugFix(e) ########
+
+-fixed crash when opening manual if the distortion flame or sun dial are disabled.
+
+######## 1.0.0-BugFix(d) ########
+
+-fixed null pointer related to the dislocator stand renderer
+-fixed null pointer when trying to use a dislocator stand that has an un-set dislocator
+
+######## 1.0.0-BugFix(c) ########
+
+-fixed possible null pointer in event handler.
+
+######## 1.0.0-BugFix(b) ########
+
+-fixed generator and grinder not respecting fuel container items.
+-fixed crash when shooting Hardcore Ender Expansions dragon.
+-fixed dislocators using fuel/durability when on a stand.
+-fixed dragon heart not dropping from Hardcore Ender Expansions dragon.
+-switched mob grinder to a fake player.
+
+######## 1.0.0-BugFix(a) ########
+
+BUGFIX
+-Fixed silk touch on tools crashing server.
+-Fixed minor packet error.
+
+######## 1.0.0 ######## 
+
+-Added Dislocator Stand.
+-Re wrote the advanced charm of dislocation.
+     >Re designed gui.
+     >Can now teleport other players if they give consent (by sneaking)
+     >Can now scroll through the destinations by holding shift and scrolling.
+     >Now stores 100 destinations.
+-Switched to the new IMessage network system (Fixes minor memory leak)
+-Hid items that should not be shown in nei.
+-Added Draconic Chest.
+-Draconium ore now drops 4 - 12 dust when harvested with fortune 3 as opposed to 2 - 8.
+-Re wrote a lot of the damage and effect code for armor.
+-Armor now uses RF.
+-Re wrote most item information code.
+-Added lore to language localization.
+-Added config option to disable item lore.
+-Tools are now enchantable.
+-Fixed knockback not working.
+-Fixed staff not mining some blocks at correct speed.
+-Fixed some rendering bugginess with the particle gen.
+-Removed 0.9.3-beta update fix.
+-Grinder now kills in a 9x9x9 area 4 blocks bellow and 4 blocks above the grinder.
+-You can now shift right click the grinder to display the kill area.
+-Reduced energy usage of the tools from 450RF to 80RF per block.
+-Reduced energy usage of the swords from 1000RF per hit to 250RF.
+-Increased charge rates 5x.
+-Added Awakened Draconium.
+-Added Awakened Draconium Block.
+-Added Wyvern Core (Crafting component)
+-Added Awakened Core (Crafting component)
+-Removed Draconic Compound.
+-Removed Infused Compound.
+-Added Wyvern Energy Core (Crafting component)
+-Added Draconic Energy Core (Crafting component)
+-Added Wyvern Flux Capacitor.
+-Added Draconic Flux Capacitor.
+-Added Ritual of Draconic Awakening.
+-Changed a lot of crafting recipes.
+-Changed the energy core and energy pylon (block) texture.
+-Improved bow VOF manipulation.
+-Added Achievements.
+-Changed stabilized spawner upgrade requirements.
+-Dislocators can now also teleport player mounts.
+-Increased Energy pylon max transfer to 2,147,483,647 RF/t
+-Energy core now changes colour to red as it fills.
+-Draconic Helm prevents mining slowdown under water.
+-Draconic Chest stops mining slowdown when flying.
+-If an Energy Pylon is within range of multiple cores the core it is connected to can be toggled.
+-Tools and armor now retain their energy when upgraded to draconic
+-Added a recipe to create dirt from sand rotten flesh and plant matter
+
+######## 0.9.5-beta ######## 
+
+Added safety matches.
+Recipe Handler now uses the ore dictionary.
+Added charged versions of all the tools to the creative menu.
+Added Ender Comets.
+Added Chaos Islands (WIP)
+Added Chaos Guardian (OP Enderdragon)
+Adjusted the ender arrow range.
+Added Admin spawn egg (a spawn egg that can be set to any custom entity)
+Ender arrow damage is now based on the distance travelled (100 blocks is fatal without fall protection of some sort)
+Draconic helm clears negative potion effects.
+Added Draconic Evolution info guide (An in game information gui similar to those used by other mods)
+Added Diss-Enchanter.
+Added Pigmen Blood Rage.
+Moved camouflage slot in advanced player detector gui.
+Advanced player detector now shows that block it is camouflaged as in its mouse over text (e.g. WAILA)
+Placed items are now solid.
+All mobs killed by the mob grinder now drop loot and player only loot.
+
+######## 0.9.4-beta ######## 
+
+Fixed Armor Crash
+All tool and armor item entities are now Persistent and can not be killed except if they fall out of the world
+All items in the game can be placed in the world using the �Place Item� key (default P)
+Added ender arrow
+Improved Draconic Helm night vision effect (effect now stops immediately when you enter a lit area)
+Fixed Mob grinder crash
+Update Fix is now disabled by default
+Fixed Buggy gui�s for grinder and generator
+
+######## 0.9.32-beta (Bug Fix) ######## 
+
+Updated Cofh energy API
+
+######## 0.9.31-beta (Bug Fix) ######## 
+
+Fixed Crash when killing mobs by hand
+
+######## 0.9.3-beta######## 
+
+Added Energy Core Multiblock Structure
+Added Energy Core
+Added Energy Pylon
+Updated Naming system (READ THE RELEASE NOTES!)
+Added Draconium Block
+
+######## 0.9.2-beta ######## 
+
+Implemented cofh energy API
+Added Energy Infuser
+All tools now require RF
+Added Draconic armor
+Added Wyvern armor
+Added Stabilized mob spawner
+Added Mob Soul
+Mob Grinder can run on RF
+
+######## 0.9.1-beta ######## 
+
+Distortion Flame is only collectable via Draconic pick or staff
+Added config option to disable the Distortion Flame
+Added Player Detector and Advanced Player Detector
+Fixed Advanced charm of dislocation server crash
+Draconium ore can no longer be destroyed by the Enderdragon
+Weapons now work on the Enderdragon
+Fixed Draconic Hoe use animation
+Draconic Hoe now checks �isReplacable�
+Reduced the teleport sound effect volume
+Fixed Mining AOE bugginess
+Added AOE to the Draconic Axe
+Charm of Dislocation no longer works on boss mobs
+Added config option to disable block damage the Draconic Bows explosive mode
+
+######## 0.9.0-beta ######## 
+
+First Public release
+Changed name from Tolkien Addon to Draconic Evolution
+Added config file and option to disable the sun dial
+Started the process of updating textures and texture names
+Renamed the Translocator to Charm of Dislocation
+Added the Enhanced Charm of Dislocation
+Added the Mob Grinder
+Added the Potentiometer
+Added the Rain sensor
+Optimized the leave code used by the Draconic axe to reduce lag
+Renamed the Xray Block to Distortion flame
+The Distortion flame can be collected using Wyvern Draconic or other pick with a mining level of 4

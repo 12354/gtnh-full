@@ -1,0 +1,16 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "Multiblocks with ease",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["glee8e"],
+  "credits": "Technus, for the original implementation of this mod as part of TecTech",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

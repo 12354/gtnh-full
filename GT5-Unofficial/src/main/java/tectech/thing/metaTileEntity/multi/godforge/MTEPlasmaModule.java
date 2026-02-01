@@ -1,0 +1,194 @@
+package tectech.thing.metaTileEntity.multi.godforge;
+
+import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
+import static gregtech.api.util.GTRecipeConstants.FOG_PLASMA_MULTISTEP;
+import static gregtech.api.util.GTRecipeConstants.FOG_PLASMA_TIER;
+import static gregtech.common.misc.WirelessNetworkManager.addEUToGlobalEnergyMap;
+import static gregtech.common.misc.WirelessNetworkManager.getUserEU;
+import static net.minecraft.util.EnumChatFormatting.GREEN;
+import static net.minecraft.util.EnumChatFormatting.RED;
+import static net.minecraft.util.EnumChatFormatting.RESET;
+import static net.minecraft.util.EnumChatFormatting.YELLOW;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
+
+import org.jetbrains.annotations.NotNull;
+
+import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.logic.ProcessingLogic;
+import gregtech.api.recipe.RecipeMap;
+import gregtech.api.recipe.check.CheckRecipeResult;
+import gregtech.api.recipe.check.CheckRecipeResultRegistry;
+import gregtech.api.recipe.check.SimpleCheckRecipeResult;
+import gregtech.api.util.GTRecipe;
+import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.api.util.OverclockCalculator;
+import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
+import gregtech.common.gui.modularui.multiblock.godforge.MTEPlasmaModuleGui;
+import tectech.recipe.TecTechRecipeMaps;
+
+public class MTEPlasmaModule extends MTEBaseModule {
+
+    private long EUt = 0;
+    private int currentParallel = 0;
+    private int inputMaxParallel = 0;
+
+    public MTEPlasmaModule(int aID, String aName, String aNameRegional) {
+        super(aID, aName, aNameRegional);
+    }
+
+    public MTEPlasmaModule(String aName) {
+        super(aName);
+    }
+
+    @Override
+    public IMetaTileEntity newMetaEntity(IGregTechTileEntity aTileEntity) {
+        return new MTEPlasmaModule(mName);
+    }
+
+    long wirelessEUt = 0;
+
+    @Override
+    protected ProcessingLogic createProcessingLogic() {
+        return new ProcessingLogic() {
+
+            @NotNull
+            @Override
+            protected CheckRecipeResult validateRecipe(@NotNull GTRecipe recipe) {
+                wirelessEUt = (long) recipe.mEUt * getActualParallel();
+                if (getUserEU(userUUID).compareTo(BigInteger.valueOf(wirelessEUt * recipe.mDuration)) < 0) {
+                    return CheckRecipeResultRegistry.insufficientPower(wirelessEUt * recipe.mDuration);
+                }
+                if (recipe.getMetadataOrDefault(FOG_PLASMA_TIER, 0) > getPlasmaTier()
+                    || (recipe.getMetadataOrDefault(FOG_PLASMA_MULTISTEP, false) && !isMultiStepPlasmaCapable)) {
+                    return SimpleCheckRecipeResult.ofFailure("missing_upgrades");
+                }
+                return CheckRecipeResultRegistry.SUCCESSFUL;
+            }
+
+            @NotNull
+            @Override
+            protected CheckRecipeResult onRecipeStart(@NotNull GTRecipe recipe) {
+                wirelessEUt = (long) recipe.mEUt * maxParallel;
+                BigInteger powerForRecipe = BigInteger.valueOf(calculatedEut)
+                    .multiply(BigInteger.valueOf(duration));
+                if (!addEUToGlobalEnergyMap(userUUID, powerForRecipe.negate())) {
+                    return CheckRecipeResultRegistry.insufficientPower(wirelessEUt * recipe.mDuration);
+                }
+                addToPowerTally(powerForRecipe);
+                addToRecipeTally(calculatedParallels);
+                currentParallel = calculatedParallels;
+                EUt = calculatedEut;
+                overwriteCalculatedEut(0);
+                return CheckRecipeResultRegistry.SUCCESSFUL;
+            }
+
+            @NotNull
+            @Override
+            protected OverclockCalculator createOverclockCalculator(@NotNull GTRecipe recipe) {
+                return super.createOverclockCalculator(recipe).setEUt(getSafeProcessingVoltage())
+                    .setDurationDecreasePerOC(getOverclockTimeFactor());
+            }
+        };
+    }
+
+    @Override
+    protected void setProcessingLogicPower(ProcessingLogic logic) {
+        logic.setAvailableVoltage(Long.MAX_VALUE);
+        logic.setAvailableAmperage(Integer.MAX_VALUE);
+        logic.setAmperageOC(false);
+        logic.setUnlimitedTierSkips();
+        logic.setMaxParallel(getActualParallel());
+        logic.setSpeedBonus(getSpeedBonus());
+        logic.setEuModifier(getEnergyDiscount());
+    }
+
+    public int getInputMaxParallel() {
+        return inputMaxParallel;
+    }
+
+    public void setInputMaxParallel(int val) {
+        inputMaxParallel = val;
+    }
+
+    @Override
+    protected @NotNull MTEMultiBlockBaseGui<?> getGui() {
+        return new MTEPlasmaModuleGui(this);
+    }
+
+    @Override
+    public RecipeMap<?> getRecipeMap() {
+        return TecTechRecipeMaps.godforgePlasmaRecipes;
+    }
+
+    @Override
+    public String[] getInfoData() {
+        ArrayList<String> str = new ArrayList<>();
+        str.add(
+            StatCollector.translateToLocalFormatted(
+                "GT5U.infodata.progress",
+                GREEN + formatNumber(mProgresstime / 20) + RESET,
+                YELLOW + formatNumber(mMaxProgresstime / 20) + RESET));
+        str.add(
+            StatCollector.translateToLocalFormatted(
+                "tt.infodata.multi.currently_using",
+                RED + (getBaseMetaTileEntity().isActive() ? formatNumber(EUt) : "0") + RESET));
+        str.add(
+            YELLOW + StatCollector.translateToLocalFormatted(
+                "tt.infodata.multi.max_parallel",
+                RESET + formatNumber(getActualParallel())));
+        str.add(
+            YELLOW + StatCollector.translateToLocalFormatted(
+                "GT5U.infodata.parallel.current",
+                RESET + (getBaseMetaTileEntity().isActive() ? formatNumber(currentParallel) : "0")));
+        str.add(
+            YELLOW + StatCollector.translateToLocalFormatted(
+                "tt.infodata.multi.multiplier.recipe_time",
+                RESET + formatNumber(getSpeedBonus())));
+        str.add(
+            YELLOW + StatCollector.translateToLocalFormatted(
+                "tt.infodata.multi.multiplier.energy",
+                RESET + formatNumber(getEnergyDiscount())));
+        str.add(
+            YELLOW + StatCollector.translateToLocalFormatted(
+                "tt.infodata.multi.divisor.recipe_time.non_perfect_oc",
+                RESET + formatNumber(getOverclockTimeFactor())));
+        return str.toArray(new String[0]);
+    }
+
+    @Override
+    public MultiblockTooltipBuilder createTooltip() {
+        final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
+        tt.addMachineType("Plasma Fabricator")
+            .addInfo("This is a module of the Godforge")
+            .addInfo("Must be part of a Godforge to function")
+            .addInfo("Used for extreme temperature matter ionization")
+            .addSeparator(EnumChatFormatting.AQUA, 74)
+            .addInfo("The third module of the Godforge, this module infuses materials with extreme amounts")
+            .addInfo("of heat, ionizing and turning them into plasma directly. Not all plasmas can be produced")
+            .addInfo("right away, some of them require certain upgrades to be unlocked")
+            .addInfo("This module is specialized towards energy and overclock efficiency")
+            .beginStructureBlock(7, 7, 13, false)
+            .addStructureInfo(
+                EnumChatFormatting.GOLD + "20"
+                    + EnumChatFormatting.GRAY
+                    + " Singularity Reinforced Stellar Shielding Casing")
+            .addStructureInfo(
+                EnumChatFormatting.GOLD + "20"
+                    + EnumChatFormatting.GRAY
+                    + " Boundless Gravitationally Severed Structure Casing")
+            .addStructureInfo(
+                EnumChatFormatting.GOLD + "5" + EnumChatFormatting.GRAY + " Harmonic Phonon Transmission Conduit")
+            .addStructureInfo(
+                EnumChatFormatting.GOLD + "5" + EnumChatFormatting.GRAY + " Celestial Matter Guidance Casing")
+            .addStructureInfo(EnumChatFormatting.GOLD + "1" + EnumChatFormatting.GRAY + " Stellar Energy Siphon Casing")
+            .toolTipFinisher(EnumChatFormatting.AQUA, 74);
+        return tt;
+    }
+
+}

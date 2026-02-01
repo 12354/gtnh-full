@@ -1,0 +1,17 @@
+{
+  "modListVersion": 2,
+  "modList": [{
+    "modid": "${modId}",
+    "name": "${modName}",
+    "description": "Now where did I put that EV mixer...",
+    "version": "${modVersion}",
+    "mcversion": "${minecraftVersion}",
+    "url": "https://github.com/GTNewHorizons/FindIt",
+    "updateUrl": "",
+    "authorList": ["mitchej123"],
+    "credits": "Heavily inspired from Buuz135/findme",
+    "logoFile": "",
+    "screenshots": [],
+    "parent": ""
+  }]
+}

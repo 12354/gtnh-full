@@ -1,0 +1,16 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "An add-on for Thaumcraft 4, adding a variety of content.",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "https://github.com/KryptonCaptain/Thaumic_Exploration",
+  "updateUrl": "",
+  "authors": ["Flaxbeard", "GTNH Team", "KryptonCaptain"],
+  "credits": "Special thanks to ThaumLite, SoundLogic, and the guys at #minecraftforge IRC",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": ["Thaumcraft"]
+}
+]

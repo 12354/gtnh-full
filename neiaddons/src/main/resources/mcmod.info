@@ -1,0 +1,181 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "bdew.net/neiaddons",
+  "updateUrl": "",
+  "authorList": [
+    "bdew"
+  ],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"",
+  "dependencies": [
+  ]
+},
+{
+  "modid": "${modId}|Botany",
+  "name": "${modName}: Botany",
+  "description": "",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "http://bdew.net/neiaddons/",
+  "updateUrl": "",
+  "authorList": [
+    "bdew"
+  ],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"NEIAddons",
+  "dependencies": [
+  	"NEIAddons"
+  ]
+},
+{
+  "modid": "${modId}|Forestry",
+  "name": "${modName}: Forestry",
+  "description": "",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "http://bdew.net/neiaddons/",
+  "updateUrl": "",
+  "authorList": [
+    "bdew"
+  ],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"NEIAddons",
+  "dependencies": [
+  	"NEIAddons"
+  ]
+},
+{
+  "modid": "${modId}|CraftingTables",
+  "name": "${modName}: Crafting Tables",
+  "description": "",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "http://bdew.net/neiaddons/",
+  "updateUrl": "",
+  "authorList": [
+    "bdew"
+  ],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"NEIAddons",
+  "dependencies": [
+  	"NEIAddons"
+  ]
+},
+{
+  "modid": "${modId}|Developer",
+  "name": "${modName}: Developer Tools",
+  "description": "",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "http://bdew.net/neiaddons/",
+  "updateUrl": "",
+  "authorList": [
+    "bdew"
+  ],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"NEIAddons",
+  "dependencies": [
+  	"NEIAddons"
+  ]
+},
+{
+  "modid": "${modId}|AppEng",
+  "name": "${modName}: Applied Energistics 2",
+  "description": "",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "http://bdew.net/neiaddons/",
+  "updateUrl": "",
+  "authorList": [
+    "bdew"
+  ],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"NEIAddons",
+  "dependencies": [
+  	"NEIAddons"
+  ]
+},
+{
+  "modid": "${modId}|ExtraBees",
+  "name": "${modName}: Extra Bees",
+  "description": "",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "http://bdew.net/neiaddons/",
+  "updateUrl": "",
+  "authorList": [
+    "bdew"
+  ],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"NEIAddons",
+  "dependencies": [
+  	"NEIAddons"
+  ]
+},
+{
+  "modid": "${modId}|MiscPeripherals",
+  "name": "${modName}: Misc Peripherals",
+  "description": "",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "http://bdew.net/neiaddons/",
+  "updateUrl": "",
+  "authorList": [
+    "bdew"
+  ],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"NEIAddons",
+  "dependencies": [
+  	"NEIAddons"
+  ]
+},
+{
+  "modid": "${modId}|ExNihilo",
+  "name": "${modName}: Ex Nihilo",
+  "description": "",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "http://bdew.net/neiaddons/",
+  "updateUrl": "",
+  "authorList": [
+    "bdew"
+  ],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"NEIAddons",
+  "dependencies": [
+  	"NEIAddons"
+  ]
+}
+]

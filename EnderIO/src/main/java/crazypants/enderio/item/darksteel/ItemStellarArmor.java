@@ -1,0 +1,91 @@
+package crazypants.enderio.item.darksteel;
+
+import java.util.Iterator;
+import java.util.List;
+
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.util.EnumHelper;
+
+import cpw.mods.fml.common.Optional;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import crazypants.enderio.item.darksteel.IDarkSteelItem.IStellarItem;
+import crazypants.enderio.item.darksteel.upgrade.EnergyUpgrade;
+import crazypants.enderio.item.darksteel.upgrade.IDarkSteelUpgrade;
+import gregtech.api.hazards.Hazard;
+import gregtech.api.hazards.IHazardProtector;
+
+@Optional.InterfaceList({ @Optional.Interface(iface = "gregtech.api.hazards.IHazardProtector", modid = "gregtech_nh") })
+public class ItemStellarArmor extends ItemDarkSteelArmor implements IStellarItem, IHazardProtector {
+
+    public static final ArmorMaterial MATERIAL = EnumHelper
+            .addArmorMaterial("stellarAlloy", 75, new int[] { 8, 14, 18, 7 }, 25);
+
+    public ItemStellarArmor(int armorType) {
+        super(MATERIAL, "stellar", armorType);
+    }
+
+    public static ItemStellarArmor create(int armorType) {
+        ItemStellarArmor res = new ItemStellarArmor(armorType);
+        res.init();
+        return res;
+    }
+
+    public static ItemStellarArmor forArmorType(int armorType) {
+        switch (armorType) {
+            case 0:
+                return DarkSteelItems.itemStellarHelmet;
+            case 1:
+                return DarkSteelItems.itemStellarChestplate;
+            case 2:
+                return DarkSteelItems.itemStellarLeggings;
+            case 3:
+                return DarkSteelItems.itemStellarBoots;
+        }
+        return null;
+    }
+
+    public static int getPoweredProtectionIncrease(int armorType) {
+        switch (armorType) {
+            case 0:
+                return 2;
+            case 1:
+                return 1;
+            case 2:
+                return 4;
+            case 3:
+                return 3;
+        }
+        return 0;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void getSubItems(Item item, CreativeTabs par2CreativeTabs, List<ItemStack> par3List) {
+        ItemStack is = new ItemStack(this);
+        par3List.add(is);
+
+        is = new ItemStack(this);
+        EnergyUpgrade.EMPOWERED_FIVE.writeToItem(is);
+        EnergyUpgrade.setPowerFull(is);
+
+        Iterator<IDarkSteelUpgrade> iter = DarkSteelRecipeManager.instance.recipeIterator();
+        while (iter.hasNext()) {
+            IDarkSteelUpgrade upgrade = iter.next();
+            if (!(upgrade instanceof EnergyUpgrade) && upgrade.canAddToItem(is)) {
+                upgrade.writeToItem(is);
+            }
+        }
+
+        par3List.add(is);
+    }
+
+    /// GT5 Hazmat protection
+    @Optional.Method(modid = "gregtech_nh")
+    @Override
+    public boolean protectsAgainst(ItemStack itemStack, Hazard hazard) {
+        return true;
+    }
+}

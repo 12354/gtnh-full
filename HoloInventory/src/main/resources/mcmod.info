@@ -1,0 +1,16 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "Holographic inventory screens!",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "url": "https://github.com/GTNewHorizons/HoloInventory",
+  "updateUrl": "",
+  "authors": ["Dries007"],
+  "credits": "Morton for textures, http://www.reddit.com/r/Minecraft/comments/1prvo4 for idea",
+  "logoFile": "HoloInventory.png",
+  "screenshots": [],
+  "dependencies": []
+}
+]

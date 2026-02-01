@@ -1,0 +1,18 @@
+{
+	"modListVersion": 2,
+	"modList": [{
+		"modid": "${modId}",
+		"name": "${modName}",
+		"description": "Define blocks/events where friendly/neutral mobs shall become angry",
+		"version": "${modVersion}",
+		"mcversion": "${minecraftVersion}",
+		"url": "https://github.com/GTNewHorizons/AngerMod",
+		"updateUrl": "",
+		"authorList": [
+			"Namikon"
+		],
+		"credits": "",
+		"logoFile": "assets/angermod/angermod.png",
+		"screenshots": []
+	}]
+}

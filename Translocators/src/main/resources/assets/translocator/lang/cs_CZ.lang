@@ -1,0 +1,11 @@
+tile.translocator|0.name=Přemisťovač předmětů
+tile.translocator|1.name=Přemisťovač tekutin
+tile.craftingGrid.name=Výrobní rámeček
+item.translocator:diamondNugget.name=Diamantová hrudka
+
+translocator.regulate=Relugovat
+translocator.filter=Filtr
+translocator.update.display=Nainstalováno GT čerpadlo: Rychlost toku
+translocator.update.display.dupe=GT čerpadlo Duplikovat
+
+key.craftingGrid=Výrobní rámeček

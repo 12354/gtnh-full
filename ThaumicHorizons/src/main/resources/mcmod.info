@@ -1,0 +1,17 @@
+[
+{
+  "modid": "${modId}",
+  "name": "${modName}",
+  "description": "Pushing the boundaries of magic",
+  "version": "${modVersion}",
+  "mcversion": "${minecraftVersion}",
+  "logoFile": "logo.png",
+  "url": "",
+  "updateUrl": "",
+  "authors": ["Kentington"],
+  "credits": "",
+  "parent": "",
+  "screenshots": [],
+  "dependencies": ["Thaumcraft","Baubles"]
+}
+]

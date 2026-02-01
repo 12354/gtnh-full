@@ -1,0 +1,17 @@
+// NOTE: Using explicit tags now instead of master-SNAPSHOT. (READ: Don't use master-SNAPSHOT anymore!!!)
+// That means if you are depending on a change in a dependency, you need to tag the dependency
+// and update the pinned tag here.  This _should_ allow for more reproducible historical builds, while
+// also being more explicit about what is depended on.
+
+dependencies {
+    api('com.github.GTNewHorizons:Steve-s-Factory-Manager:1.3.4-GTNH:dev')
+
+    api('curse.maven:cofh-core-69162:2388751')
+
+    compileOnly('com.github.GTNewHorizons:NotEnoughItems:2.8.0-GTNH:dev')
+    compileOnly('com.github.GTNewHorizons:waila:1.9.0:dev')
+    compileOnly('com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-700-GTNH:dev') {transitive = false}
+    compileOnly('com.github.GTNewHorizons:ExtraCells2:2.5.35:dev') {transitive = false}
+
+    compileOnly('curse.maven:minefactory-reloaded-66672:2366150')
+}

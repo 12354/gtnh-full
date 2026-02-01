@@ -1,0 +1,19 @@
+[{
+	"modid": "${modId}",
+	"name": "${modName}",
+	"description": "Display extra information on top of your ingame screen.",
+	"version": "${modVersion}",
+	"mcversion": "${minecraftVersion}",
+	"authorList": ["Lunatrius"],
+	"credits": "DaftPVF, bspkrs",
+	"dependants": [  ],
+	"dependencies": [ "LunatriusCore@[1.1.4,)" ],
+	"parent": "",
+	"requiredMods": [ "LunatriusCore@[1.1.4,)" ],
+	"logoFile": "",
+	"screenshots": [  ],
+	"updateUrl": "",
+	"url": "",
+	"useDependencyInformation": true
+}]
+

@@ -1,0 +1,74 @@
+// ------------------------------------------------------------------------------------------------
+//
+// SG Craft - Power unit gui screen
+//
+// ------------------------------------------------------------------------------------------------
+
+package gcewing.sg.guis.screens;
+
+import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_ONE;
+import static org.lwjgl.opengl.GL11.glBlendFunc;
+import static org.lwjgl.opengl.GL11.glEnable;
+
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.StatCollector;
+import net.minecraft.world.World;
+
+import org.joml.Vector3i;
+
+import gcewing.sg.SGCraft;
+import gcewing.sg.guis.containers.PowerContainer;
+import gcewing.sg.tileentities.PowerTE;
+
+public class PowerScreen extends Screen {
+
+    public final static int guiWidth = 128;
+    public final static int guiHeight = 64;
+
+    PowerTE te;
+
+    public static PowerScreen create(EntityPlayer player, World world, Vector3i pos) {
+        PowerContainer container = PowerContainer.create(player, world, pos);
+        if (container != null) return new PowerScreen(container);
+        else return null;
+    }
+
+    public PowerScreen(PowerContainer container) {
+        super(container, guiWidth, guiHeight);
+        this.te = container.te;
+    }
+
+    @Override
+    public boolean doesGuiPauseGame() {
+        return false;
+    }
+
+    protected void drawBackgroundLayer() {
+        bindTexture(SGCraft.mod.resourceLocation("textures/gui/power_gui.png"), 128, 64);
+        drawTexturedRect(0, 0, guiWidth, guiHeight, 0, 0);
+        int cx = xSize / 2;
+        // textColor = 0x004c66;
+        drawCenteredString(te.getScreenTitle(), cx, 8);
+        String unitName = te.getUnitName();
+        String unitFormat = unitName
+                .replace(net.minecraft.util.EnumChatFormatting.getTextWithoutFormattingCodes(unitName), "");
+        drawRightAlignedString(unitName, 72, 28);
+        drawRightAlignedString(unitFormat + String.format("%.0f", te.energyBuffer), 121, 28);
+
+        String maxValue = String.format("%.0f", te.energyMax);
+        drawRightAlignedString(
+                StatCollector.translateToLocalFormatted("gui.gcewing_sg:ic2PowerUnit.max", maxValue),
+                121,
+                42);
+        drawPowerGauge();
+    }
+
+    void drawPowerGauge() {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE);
+        setColor(1, 0, 0);
+        drawRect(19, 27, 25 * te.energyBuffer / te.energyMax, 10);
+    }
+
+}

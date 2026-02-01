@@ -1,0 +1,5 @@
+// Add your dependencies here
+
+dependencies {
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:waila:1.9.15:dev")
+}

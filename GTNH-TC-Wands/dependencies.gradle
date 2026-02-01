@@ -1,0 +1,30 @@
+// Add your dependencies here
+
+dependencies {
+    api('com.github.GTNewHorizons:GT5-Unofficial:5.09.51.382:dev')
+    api('com.github.GTNewHorizons:twilightforest:2.7.8:dev')
+
+    api('thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev')
+    compileOnly('org.jetbrains:annotations:23.0.0')
+
+    runtimeOnly('com.github.GTNewHorizons:TCNEIAdditions:1.5.0:dev')
+    runtimeOnly('curse.maven:thaumcraft-nei-plugin-225095:2241913')
+
+//    devOnlyNonPublishable('com.github.GTNewHorizons:ForbiddenMagic:0.8.0-GTNH:dev')
+//    devOnlyNonPublishable('com.github.GTNewHorizons:ThaumicTinkerer:2.11.15:dev')
+//    devOnlyNonPublishable('com.github.GTNewHorizons:BloodArsenal:1.4.6:dev')
+//    devOnlyNonPublishable('com.github.GTNewHorizons:Tainted-Magic:7.6.19-GTNH:dev')
+//    devOnlyNonPublishable('com.github.GTNewHorizons:ThaumicBases:1.8.11:dev')
+//    devOnlyNonPublishable('com.github.GTNewHorizons:Thaumic_Exploration:1.4.2-GTNH:dev')
+
+    // Replace Baubles
+    project.getConfigurations()
+            .configureEach(c -> {
+                final DependencySubstitutions ds = c.getResolutionStrategy()
+                        .getDependencySubstitution()
+                ds.substitute(ds.module("com.github.GTNewHorizons:Baubles"))
+                        .using(ds.module("com.github.GTNewHorizons:Baubles-Expanded:2.1.9-GTNH"))
+                        .withClassifier("dev")
+                        .because("Baubles-Expanded replaces Baubles")
+            })
+}

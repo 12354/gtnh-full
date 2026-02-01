@@ -1,0 +1,211 @@
+itemGroup.storageDrawers=Storage Drawers
+itemGroup.storageDrawersSorting=Storage Drawers - Triage
+
+storageDrawers.container.drawers=Tiroirs
+storageDrawers.container.compDrawers=Tiroirs de compactage
+storageDrawers.container.upgrades=Amélioration
+storageDrawers.container.controller=Contrôleur de tiroirs
+storageDrawers.container.unboundSlave=Esclave non liée
+
+storagedrawers.msg.maxUpgrades=Ce tiroir ne peuvent pas accepter davantage d'améliorations.
+
+# Items
+item.storagedrawers.upgradeTemplate.name=Modèle d'amélioration
+item.storagedrawers.upgrade.iron.name=Amélioration stockage (II)
+item.storagedrawers.upgrade.gold.name=Amélioration stockage (III)
+item.storagedrawers.upgrade.obsidian.name=Amélioration stockage (IV)
+item.storagedrawers.upgrade.diamond.name=Amélioration stockage (V)
+item.storagedrawers.upgrade.emerald.name=Amélioration stockage (VI)
+item.storagedrawers.upgradeStatus.level1.name=Amélioration statut (I)
+item.storagedrawers.upgradeStatus.level1.description=Montre si le stockage est plein
+item.storagedrawers.upgradeStatus.level2.name=Amélioration statut (II)
+item.storagedrawers.upgradeStatus.level2.description=Montre le niveau de remplissage
+item.storagedrawers.upgradeLock.name=Amélioration verrou
+item.storagedrawers.upgradeLock.description=Conserve les éléments associés lorsqu'il est vide
+item.storagedrawers.upgradeVoid.name=Amélioration cavité
+item.storagedrawers.upgradeVoid.description=Détruit les objets en excès
+item.storagedrawers.upgradeSorting.name=Amélioration triage
+item.storagedrawers.upgradeSorting.description=Pour Refined Relocation
+item.storagedrawers.shroudKey.name=Clé de dissimulation
+item.storagedrawers.shroudKey.description=Montrer ou cacher les étiquettes d'objet
+
+# Blocks
+tile.fullDrawers1.oak.name=Tiroir de chêne
+tile.fullDrawers1.spruce.name=Tiroir de sapin
+tile.fullDrawers1.birch.name=Tiroir de bouleau
+tile.fullDrawers1.jungle.name=Tiroir d'acajou
+tile.fullDrawers1.acacia.name=Tiroir d'acacia
+tile.fullDrawers1.big_oak.name=Tiroir de chêne noir
+
+tile.fullDrawers2.oak.name=Tiroirs de chêne 1x2
+tile.fullDrawers2.spruce.name=Tiroirs de sapin 1x2
+tile.fullDrawers2.birch.name=Tiroirs de bouleau 1x2
+tile.fullDrawers2.jungle.name=Tiroirs d'acajou 1x2
+tile.fullDrawers2.acacia.name=Tiroirs d'acacia 1x2
+tile.fullDrawers2.big_oak.name=Tiroirs de chêne noir 1x2
+
+tile.fullDrawers4.oak.name=Tiroirs de chêne 2x2
+tile.fullDrawers4.spruce.name=Tiroirs de sapin 2x2
+tile.fullDrawers4.birch.name=Tiroirs de bouleau 2x2
+tile.fullDrawers4.jungle.name=Tiroirs d'acajou 2x2
+tile.fullDrawers4.acacia.name=Tiroirs d'acacia 2x2
+tile.fullDrawers4.big_oak.name=Tiroirs de chêne noir 2x2
+
+tile.halfDrawers2.oak.name=Tiroirs compacts de chêne 1x2
+tile.halfDrawers2.spruce.name=Tiroirs compacts de sapin 1x2
+tile.halfDrawers2.birch.name=Tiroirs compacts de bouleau 1x2
+tile.halfDrawers2.jungle.name=Tiroirs compacts d'acajou 1x2
+tile.halfDrawers2.acacia.name=Tiroirs compacts d'acacia 1x2
+tile.halfDrawers2.big_oak.name=Tiroirs compacts de chêne noir 1x2
+
+tile.halfDrawers4.oak.name=Tiroirs compacts de chêne 2x2
+tile.halfDrawers4.spruce.name=Tiroirs compacts de sapin 2x2
+tile.halfDrawers4.birch.name=Tiroirs compacts de bouleau 2x2
+tile.halfDrawers4.jungle.name=Tiroirs compacts d'acajou 2x2
+tile.halfDrawers4.acacia.name=Tiroirs compacts d'acacia 2x2
+tile.halfDrawers4.big_oak.name=Tiroirs compacts de chêne noir 2x2
+
+tile.compDrawers.name=Tiroir de compactage
+tile.drawerController.name=Contrôleur de tiroirs
+tile.controllerSlave.name=Esclave du contrôleur
+
+tile.trim.oak.name=Rebord en chêne
+tile.trim.spruce.name=Rebord en sapin
+tile.trim.birch.name=Rebord en bouleau
+tile.trim.jungle.name=Rebord en acajou
+tile.trim.acacia.name=Rebord en acacia
+tile.trim.big_oak.name=Rebord en chêne noir
+
+storageDrawers.drawers.description=Contient %d piles par tiroir
+storageDrawers.upgrade.description=Augmente le stockage de %d fois la valeur de base
+storageDrawers.controller.description=Interagit avec une banque de tiroirs
+storageDrawers.controllerSlave.description=Jonction supplémentaire pour les contrôleurs
+
+# Integration
+storageDrawers.waila.empty=Vide
+storageDrawers.waila.level=Niveau d'amélioration : %s
+storageDrawers.waila.drawer=Tiroir #%s: %s
+storageDrawers.waila.locked=Verrouillé
+storageDrawers.waila.void=Cavité
+storageDrawers.waila.sorting=Triage
+
+# Configuration
+storageDrawers.config.title=Configuration des tiroirs de stockage
+
+storageDrawers.config.general=Options générales
+storageDrawers.config.general.tooltip=Ceci et cela.
+
+storageDrawers.config.blocks=Options de blocs
+storageDrawers.config.blocks.tooltip=Configure les blocs de stockage individuel.
+
+storageDrawers.config.blocks.fullDrawers1=Tiroirs 1x1
+storageDrawers.config.blocks.fullDrawers2=Tiroirs 1x2
+storageDrawers.config.blocks.fullDrawers4=Tiroirs 2x2
+storageDrawers.config.blocks.halfDrawers2=Tiroirs compacts 1x2
+storageDrawers.config.blocks.halfDrawers4=Tiroirs compacts 2x2
+storageDrawers.config.blocks.compDrawers=Compactage du tiroir
+storageDrawers.config.blocks.controller=Contrôleur de tiroirs
+storageDrawers.config.blocks.trim=Rebord
+storageDrawers.config.blocks.controllerSlave=Esclave du contrôleur
+
+storageDrawers.config.upgrades=Options d'amélioration
+storageDrawers.config.upgrades.tooltip=Configure les améliorations de stockage induviduel.
+
+storageDrawers.config.upgrades.level2Mult=Multiplieur de stockage (II)
+storageDrawers.config.upgrades.level3Mult=Multiplieur de stockage (III)
+storageDrawers.config.upgrades.level4Mult=Multiplieur de stockage (IV)
+storageDrawers.config.upgrades.level5Mult=Multiplieur de stockage (V)
+storageDrawers.config.upgrades.level6Mult=Multiplieur de stockage (VI)
+
+storageDrawers.config.prop.itemRenderType=Type de rendu des éléments
+storageDrawers.config.prop.itemRenderType.tooltip=Rendu des éléments en 3D ou pas.
+storageDrawers.config.prop.enableIndicatorUpgrades=Active les améliorations d'indicateur
+storageDrawers.config.prop.enableStorageUpgrades=Active les améliorations de stockage
+storageDrawers.config.prop.enableLockUpgrades=Active l'amélioration verrou
+storageDrawers.config.prop.enableShroudUpgrades=Active le camouflage d'objet
+storageDrawers.config.prop.enableVoidUpgrades=Active l'amélioration cavité
+storageDrawers.config.prop.enableSortingUpgrades=Autoriser l'amélioration triage
+storageDrawers.config.prop.enableSortingUpgrades.tooltip=Refined Relocation doit être charger.
+storageDrawers.config.prop.renderStorageUpgrades=Rendu des améliorations de stockage
+storageDrawers.config.prop.creativeTabVanillaWoods=Tableau en créatif de bois Vanilla
+storageDrawers.config.prop.creativeTabVanillaWoods.tooltip=Active tous les style de bois dans le tableau en mode créatif.
+storageDrawers.config.prop.enabled=Activé
+storageDrawers.config.prop.enabled.tooltip=Active les blocs en jeu.
+storageDrawers.config.prop.baseStorage=Stockage de base
+storageDrawers.config.prop.baseStorage.tooltip=Nombre de pile contenu par tiroir.
+storageDrawers.config.prop.recipeOutput=Sortie de recette
+storageDrawers.config.prop.recipeOutput.tooltip=Nombre d'éléments d'une seule fabrication.
+storageDrawers.config.prop.enableSidedInput=Active l'entrée par les cotés
+storageDrawers.config.prop.enableSidedInput.tooltip=D'autres blocs peuvent insérer des éléments dans les tiroirs.
+storageDrawers.config.prop.enableSidedOutput=Active la sortie par les cotés
+storageDrawers.config.prop.enableSidedOutput.tooltip=D'autres blocs peuvent extraire des éléments dans les tiroirs.
+storageDrawers.config.prop.enableItemConversion=Active la conversion d'élément
+storageDrawers.config.prop.enableItemConversion.tooltip=Les tirroirs convertissent automatiquement les élément compatible de ore dictionary.
+storageDrawers.config.prop.invertShift=Inverser le Maj
+storageDrawers.config.prop.invertShift.tooltip=Interverti le clique et le Maj+clique.
+storageDrawers.config.prop.enableDebugLogging=Active le journal de débeugue
+storageDrawers.config.prop.enableDebugLogging.tooltip=Ajoute des information suplémentaires dans le journal.
+
+storageDrawers.config.addons=Addons
+
+storageDrawers.config.addons.showNEI=Montrer les blocs dans NEI
+storageDrawers.config.addons.showCreative=Montrer les blocs dans le tableau en mode créatif
+storageDrawers.config.addons.separateTabs=Séparer les tableaux du mode créatif
+storageDrawers.config.addons.tooltip=Chaque pack utilise son propre tableau au lieu d'utiliser celui de Storage Drawers.
+
+storageDrawers.config.integration=Intégration
+storageDrawers.config.integration.tooltip=Configure l'intégration avec d'autres mods.
+
+storageDrawers.config.integration.enableAE2=Active l'intégration de Applied Energistics 2
+storageDrawers.config.integration.enableWaila=Active l'intégration de WAILA
+storageDrawers.config.integration.enableThaumcraft=Active l'intégration de Thaumcraft
+storageDrawers.config.integration.enableMineTweaker=Active l'intégration de MineTweaker
+storageDrawers.config.integration.enableRefinedRelocation=Active l'intégration de Refined RelocationstorageDrawers.container.framingTable=Framing Table
+item.storagedrawers.upgradeCreative.store.name=Creative Storage Upgrade
+item.storagedrawers.upgradeCreative.store.description=Near-infinite storage
+item.storagedrawers.upgradeCreative.vend.name=Creative Vending Upgrade
+item.storagedrawers.upgradeCreative.vend.description=Unlimited item withdrawal
+item.storagedrawers.upgradeRedstone.combined.name=Redstone Upgrade
+item.storagedrawers.upgradeRedstone.combined.description=Emits signal for total storage.
+item.storagedrawers.upgradeRedstone.max.name=Redstone Max Upgrade
+item.storagedrawers.upgradeRedstone.max.description=Emits signal for most full slot.
+item.storagedrawers.upgradeRedstone.min.name=Redstone Min Upgrade
+item.storagedrawers.upgradeRedstone.min.description=Emits signal for least full slot.
+item.storagedrawers.upgradeDowngrade.name=Storage Downgrade
+item.storagedrawers.upgradeDowngrade.description=Sets the base storage capacity to 1 stack.
+item.storagedrawers.personalKey.default.name=Personal Key
+item.storagedrawers.personalKey.default.description=Protect access from other players
+item.storagedrawers.personalKey.cofh.name=Personal Key (CoFH)
+item.storagedrawers.personalKey.cofh.description=Protect access from other players
+item.storagedrawers.tape.name=Packing Tape
+item.storagedrawers.tape.description=Seals drawers for moving
+tile.fullCustom1.name=Framed Drawer
+tile.fullCustom2.name=Framed Drawers 1x2
+tile.fullCustom4.name=Framed Drawers 2x2
+tile.halfCustom2.name=Framed Drawers 1x2
+tile.halfCustom4.name=Framed Drawers 2x2
+tile.trimCustom.name=Framed Trim
+tile.framingTable.name=Framing Table
+storageDrawers.drawers.sealed=Contents sealed within
+storageDrawers.waila.limit=Stack Limit: %s (x%s)
+storageDrawers.waila.nolimit=Stack Limit: ∞
+storageDrawers.waila.protected=Protected
+storageDrawers.config.prop.enablePersonalUpgrades=Enable Access Protection
+storageDrawers.config.prop.enableCreativeUpgrades=Enable Creative Upgrade
+storageDrawers.config.prop.enableRedstoneUpgrades=Enable Redstone Upgrade
+storageDrawers.config.prop.enableDrawerUI=Enable Drawer UI
+storageDrawers.config.prop.enableDrawerUI.tooltip=Shows item counts and provides upgrade management.
+storageDrawers.config.prop.enableFallbackRecipes=Enable Fallback Recipes
+storageDrawers.config.prop.enableFallbackRecipes.tooltip=Any valid plank wood can craft oak drawers.
+storageDrawers.config.prop.enableTape=Enable Tape
+storageDrawers.config.prop.enableTape.tooltip=For moving drawers with contents.
+storageDrawers.config.prop.wailaStackRemainder=WAILA amount presentation
+storageDrawers.config.prop.wailaStackRemainder.tooltip=How item amounts are displayed by WAILA.
+storageDrawers.config.prop.controllerRange=Portée du contrôleur
+storageDrawers.config.prop.controllerRange.tooltip=Portée de détection du réseau de blocs.
+storageDrawers.config.prop.controllerMaxDrawers=Max. tiroirs du contrôleur
+storageDrawers.config.prop.controllerMaxDrawers.tooltip=Maximum de tiroirs détectés par le contrôleur
+storageDrawers.config.prop.enableFramedDrawers=Enable Framed Drawers
+storageDrawers.config.prop.enableFramedDrawers.tooltip=Drawers with custom materials.
+storageDrawers.config.integration.enableThermalExpansion=Enable Thermal Expansion Integration
+storageDrawers.config.integration.enableThermalFoundation=Enable Thermal Foundation IntegrationstorageDrawers.container.framingTable=Framing Table
