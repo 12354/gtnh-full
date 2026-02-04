@@ -1,0 +1,650 @@
+[
+  {
+    "species": "ARID",
+    "branch": "BARREN",
+    "temperature": "HOT",
+    "humidity": "ARID"
+  },
+  {
+    "species": "BARREN",
+    "branch": "BARREN",
+    "temperature": "HOT",
+    "humidity": "ARID"
+  },
+  {
+    "species": "DESOLATE",
+    "branch": "BARREN",
+    "temperature": "HOT",
+    "humidity": "ARID"
+  },
+  {
+    "species": "DECOMPOSING",
+    "branch": "BARREN",
+    "temperature": "HOT",
+    "humidity": "ARID"
+  },
+  {
+    "species": "GNAWING",
+    "branch": "BARREN",
+    "temperature": "HOT",
+    "humidity": "ARID"
+  },
+  {
+    "species": "ROTTEN",
+    "branch": "HOSTILE",
+    "temperature": "HOT",
+    "humidity": "ARID"
+  },
+  {
+    "species": "BONE",
+    "branch": "HOSTILE",
+    "temperature": "HOT",
+    "humidity": "ARID"
+  },
+  {
+    "species": "CREEPER",
+    "branch": "HOSTILE",
+    "temperature": "HOT",
+    "humidity": "ARID"
+  },
+  {
+    "species": "ROCK",
+    "branch": "ROCKY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "STONE",
+    "branch": "ROCKY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "GRANITE",
+    "branch": "ROCKY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "MINERAL",
+    "branch": "ROCKY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "COPPER",
+    "branch": "METALLIC",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "TIN",
+    "branch": "METALLIC",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "IRON",
+    "branch": "METALLIC",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "LEAD",
+    "branch": "METALLIC",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "ZINC",
+    "branch": "METALLIC2",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "TITANIUM",
+    "branch": "METALLIC2",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "TUNGSTATE",
+    "branch": "METALLIC2",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "NICKEL",
+    "branch": "METALLIC2",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "GOLD",
+    "branch": "PRECIOUS",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "SILVER",
+    "branch": "PRECIOUS",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "PLATINUM",
+    "branch": "PRECIOUS",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "LAPIS",
+    "branch": "MINERAL",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "EMERALD",
+    "branch": "GEMSTONE",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "RUBY",
+    "branch": "GEMSTONE",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "SAPPHIRE",
+    "branch": "GEMSTONE",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "DIAMOND",
+    "branch": "GEMSTONE",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "UNSTABLE",
+    "branch": "NUCLEAR",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "NUCLEAR",
+    "branch": "NUCLEAR",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "RADIOACTIVE",
+    "branch": "NUCLEAR",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "YELLORIUM",
+    "branch": "NUCLEAR",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "CYANITE",
+    "branch": "NUCLEAR",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "BLUTONIUM",
+    "branch": "NUCLEAR",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "ANCIENT",
+    "branch": "HISTORIC",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "PRIMEVAL",
+    "branch": "HISTORIC",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "PREHISTORIC",
+    "branch": "HISTORIC",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "RELIC",
+    "branch": "HISTORIC",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "COAL",
+    "branch": "FOSSILIZED",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "RESIN",
+    "branch": "FOSSILIZED",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "OIL",
+    "branch": "FOSSILIZED",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "DISTILLED",
+    "branch": "REFINED",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "FUEL",
+    "branch": "REFINED",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "CREOSOTE",
+    "branch": "REFINED",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "LATEX",
+    "branch": "REFINED",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "WATER",
+    "branch": "AQUATIC",
+    "temperature": null,
+    "humidity": "DAMP"
+  },
+  {
+    "species": "RIVER",
+    "branch": "AQUATIC",
+    "temperature": null,
+    "humidity": "DAMP"
+  },
+  {
+    "species": "OCEAN",
+    "branch": "AQUATIC",
+    "temperature": null,
+    "humidity": "DAMP"
+  },
+  {
+    "species": "INK",
+    "branch": "AQUATIC",
+    "temperature": null,
+    "humidity": "DAMP"
+  },
+  {
+    "species": "GROWING",
+    "branch": "AGRARIAN",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "FARM",
+    "branch": "AGRARIAN",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "THRIVING",
+    "branch": "AGRARIAN",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "BLOOMING",
+    "branch": "AGRARIAN",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "SWEET",
+    "branch": "SACCHARINE",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "SUGAR",
+    "branch": "SACCHARINE",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "RIPENING",
+    "branch": "SACCHARINE",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "FRUIT",
+    "branch": "SACCHARINE",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "ALCOHOL",
+    "branch": "FARMING",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "MILK",
+    "branch": "FARMING",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "COFFEE",
+    "branch": "FARMING",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "SWAMP",
+    "branch": "BOGGY",
+    "temperature": null,
+    "humidity": "DAMP"
+  },
+  {
+    "species": "BOGGY",
+    "branch": "BOGGY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "FUNGAL",
+    "branch": "BOGGY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "BASALT",
+    "branch": "VOLCANIC",
+    "temperature": "HELLISH",
+    "humidity": "ARID"
+  },
+  {
+    "species": "TEMPERED",
+    "branch": "VOLCANIC",
+    "temperature": "HELLISH",
+    "humidity": "ARID"
+  },
+  {
+    "species": "VOLCANIC",
+    "branch": "VOLCANIC",
+    "temperature": "HELLISH",
+    "humidity": "ARID"
+  },
+  {
+    "species": "GLOWSTONE",
+    "branch": "VOLCANIC",
+    "temperature": "HELLISH",
+    "humidity": "ARID"
+  },
+  {
+    "species": "MALICIOUS",
+    "branch": "VIRULENT",
+    "temperature": "WARM",
+    "humidity": "DAMP"
+  },
+  {
+    "species": "INFECTIOUS",
+    "branch": "VIRULENT",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "VIRULENT",
+    "branch": "VIRULENT",
+    "temperature": "WARM",
+    "humidity": "DAMP"
+  },
+  {
+    "species": "VISCOUS",
+    "branch": "VISCOUS",
+    "temperature": "WARM",
+    "humidity": "DAMP"
+  },
+  {
+    "species": "GLUTINOUS",
+    "branch": "VISCOUS",
+    "temperature": "WARM",
+    "humidity": "DAMP"
+  },
+  {
+    "species": "STICKY",
+    "branch": "VISCOUS",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "CORROSIVE",
+    "branch": "CAUSTIC",
+    "temperature": "WARM",
+    "humidity": "DAMP"
+  },
+  {
+    "species": "CAUSTIC",
+    "branch": "CAUSTIC",
+    "temperature": "WARM",
+    "humidity": "DAMP"
+  },
+  {
+    "species": "ACIDIC",
+    "branch": "CAUSTIC",
+    "temperature": "WARM",
+    "humidity": "DAMP"
+  },
+  {
+    "species": "EXCITED",
+    "branch": "ENERGETIC",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "ENERGETIC",
+    "branch": "ENERGETIC",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "ECSTATIC",
+    "branch": "ENERGETIC",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "ARTIC",
+    "branch": "FROZEN",
+    "temperature": "ICY",
+    "humidity": null
+  },
+  {
+    "species": "FREEZING",
+    "branch": "FROZEN",
+    "temperature": "ICY",
+    "humidity": null
+  },
+  {
+    "species": "SHADOW",
+    "branch": "SHADOW",
+    "temperature": "HELLISH",
+    "humidity": "ARID"
+  },
+  {
+    "species": "DARKENED",
+    "branch": "SHADOW",
+    "temperature": "HELLISH",
+    "humidity": "ARID"
+  },
+  {
+    "species": "ABYSS",
+    "branch": "SHADOW",
+    "temperature": "HELLISH",
+    "humidity": "ARID"
+  },
+  {
+    "species": "RED",
+    "branch": "PRIMARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "YELLOW",
+    "branch": "PRIMARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "BLUE",
+    "branch": "PRIMARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "GREEN",
+    "branch": "PRIMARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "BLACK",
+    "branch": "PRIMARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "WHITE",
+    "branch": "PRIMARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "BROWN",
+    "branch": "PRIMARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "ORANGE",
+    "branch": "SECONDARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "CYAN",
+    "branch": "SECONDARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "PURPLE",
+    "branch": "SECONDARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "GRAY",
+    "branch": "SECONDARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "LIGHTBLUE",
+    "branch": "SECONDARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "PINK",
+    "branch": "SECONDARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "LIMEGREEN",
+    "branch": "SECONDARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "MAGENTA",
+    "branch": "TERTIARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "LIGHTGRAY",
+    "branch": "TERTIARY",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "CELEBRATORY",
+    "branch": "FESTIVE",
+    "temperature": "ICY",
+    "humidity": null
+  },
+  {
+    "species": "JADED",
+    "branch": "FTB",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "CHAD",
+    "branch": "FTB",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "HAZARDOUS",
+    "branch": "AUSTERE",
+    "temperature": "HOT",
+    "humidity": "ARID"
+  },
+  {
+    "species": "QUANTUM",
+    "branch": "QUANTUM",
+    "temperature": null,
+    "humidity": null
+  },
+  {
+    "species": "UNUSUAL",
+    "branch": "QUANTUM",
+    "temperature": "COLD",
+    "humidity": null
+  },
+  {
+    "species": "SPATIAL",
+    "branch": "QUANTUM",
+    "temperature": "COLD",
+    "humidity": null
+  },
+  {
+    "species": "MYSTICAL",
+    "branch": "BOTANIA",
+    "temperature": null,
+    "humidity": null
+  }
+]
