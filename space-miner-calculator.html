@@ -469,11 +469,14 @@ function calculate() {
     const avgChance = (chanceMap.get(ast.n) || 0) / distances.length;
     const size = adjSize(ast, inp.droneTier);
     const avgSize = size.min + sizeBonus * (size.max - size.min);
-    const adjDur = ast.dur * timeMult;
+    const droneDurScale = Math.sqrt(inp.droneTier - ast.drMin + 1);
+    const adjBaseDur = Math.ceil(ast.dur / droneDurScale);
+    const adjEut = Math.ceil(ast.eut * droneDurScale);
+    const adjDur = adjBaseDur * timeMult;
     const tw = ast.w.reduce((s, v) => s + v, 0);
     const matPcts = ast.w.map(v => v / tw);
 
-    const maxParPow = Math.floor(MODULE_MAX_EU[inp.moduleTier] / ast.eut);
+    const maxParPow = Math.floor(MODULE_MAX_EU[inp.moduleTier] / adjEut);
     const maxParComp = Math.floor(MODULE_MAX_COMP[inp.moduleTier] / ast.comp);
     const par = Math.max(1, Math.min(MODULE_MAX_PAR[inp.moduleTier], maxParPow, maxParComp));
 
@@ -486,7 +489,7 @@ function calculate() {
       ast, avail, inRange: avgChance > 0, chance: avgChance,
       size, avgSize, adjDur, matPcts, par,
       cycleSec, sps, spt: sps/20, sph: sps*3600,
-      plasmaPS, eutTotal: ast.eut * par
+      plasmaPS, eutTotal: adjEut * par
     };
   });
 
@@ -740,8 +743,12 @@ function runOptimizer() {
       if (!accessible.length) continue;
 
       const parMap = new Map();
+      const durScaleMap = new Map();
       for (const t of accessible) {
-        const maxP = Math.floor(MODULE_MAX_EU[modT] / t.ast.eut);
+        const dScale = Math.sqrt(drT - t.ast.drMin + 1);
+        durScaleMap.set(t.ast, dScale);
+        const adjEut = Math.ceil(t.ast.eut * dScale);
+        const maxP = Math.floor(MODULE_MAX_EU[modT] / adjEut);
         const maxC = Math.floor(MODULE_MAX_COMP[modT] / t.ast.comp);
         parMap.set(t.ast, Math.max(1, Math.min(MODULE_MAX_PAR[modT], maxP, maxC)));
       }
@@ -775,7 +782,8 @@ function runOptimizer() {
             const chance = t.ast.wt / totalWt;
             const size = adjSize(t.ast, drT);
             const avgSize = size.min + sizeBonus * (size.max - size.min);
-            const cycleSec = t.ast.dur * timeMult / 20;
+            const adjBaseDur = Math.ceil(t.ast.dur / durScaleMap.get(t.ast));
+            const cycleSec = adjBaseDur * timeMult / 20;
             const par = parMap.get(t.ast);
             targetSPS += chance * par * avgSize * t.oreFrac / cycleSec;
           }
