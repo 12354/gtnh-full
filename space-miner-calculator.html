@@ -454,42 +454,53 @@ function calculate() {
 
   const distances = getDistances(inp);
 
-  // Per-asteroid average chance across cycle distances
-  const chanceMap = new Map();
-  for (const dist of distances) {
-    const eligible = A.filter(a => isAvail(a, inp) && dist >= a.dMin && dist <= a.dMax);
-    const tw = eligible.reduce((s, a) => s + a.wt, 0);
-    for (const a of eligible) {
-      chanceMap.set(a.n, (chanceMap.get(a.n) || 0) + (tw > 0 ? a.wt / tw : 0));
-    }
-  }
-
-  const output = A.map(ast => {
+  // Pre-compute per-asteroid static properties (independent of distance)
+  const astInfo = A.map(ast => {
     const avail = isAvail(ast, inp);
-    const avgChance = (chanceMap.get(ast.n) || 0) / distances.length;
     const size = adjSize(ast, inp.droneTier);
     const avgSize = size.min + sizeBonus * (size.max - size.min);
     const droneDurScale = Math.sqrt(inp.droneTier - ast.drMin + 1);
     const adjBaseDur = Math.ceil(ast.dur / droneDurScale);
     const adjEut = Math.ceil(ast.eut * droneDurScale);
     const adjDur = adjBaseDur * timeMult;
+    const cycleSec = adjDur / 20;
     const tw = ast.w.reduce((s, v) => s + v, 0);
     const matPcts = ast.w.map(v => v / tw);
-
     const maxParPow = Math.floor(MODULE_MAX_EU[inp.moduleTier] / adjEut);
     const maxParComp = Math.floor(MODULE_MAX_COMP[inp.moduleTier] / ast.comp);
     const par = Math.max(1, Math.min(MODULE_MAX_PAR[inp.moduleTier], maxParPow, maxParComp));
+    return { ast, avail, size, avgSize, adjDur, adjEut, cycleSec, matPcts, par };
+  });
 
-    const cycleSec = adjDur / 20;
-    const sps = avgChance > 0 ? avgChance * par * avgSize / cycleSec : 0;
+  // Per-distance: accumulate selection chances and weighted expected cycle time
+  const chanceMap = new Map();
+  let totalExpectedTime = 0;
+  for (const dist of distances) {
+    const eligible = astInfo.filter(d => d.avail && dist >= d.ast.dMin && dist <= d.ast.dMax);
+    const tw = eligible.reduce((s, d) => s + d.ast.wt, 0);
+    let expectedTime = 0;
+    for (const d of eligible) {
+      const p = tw > 0 ? d.ast.wt / tw : 0;
+      chanceMap.set(d.ast.n, (chanceMap.get(d.ast.n) || 0) + p);
+      expectedTime += p * d.cycleSec;
+    }
+    totalExpectedTime += expectedTime;
+  }
+  // Average expected cycle time per scan step (accounts for time spent on all asteroids)
+  const avgExpCycleTime = totalExpectedTime / distances.length;
 
-    const plasmaPS = avgChance > 0 ? avgChance * plasma.consumed * par / cycleSec : 0;
+  const output = astInfo.map(d => {
+    const avgChance = (chanceMap.get(d.ast.n) || 0) / distances.length;
+    // Correct rate: use expected cycle time as denominator, not each asteroid's own time
+    // The machine picks ONE asteroid per cycle; slow asteroids delay everything
+    const sps = (avgChance > 0 && avgExpCycleTime > 0) ? avgChance * d.par * d.avgSize / avgExpCycleTime : 0;
+    const plasmaPS = (avgChance > 0 && avgExpCycleTime > 0) ? avgChance * PLASMA[inp.plasmaTier].consumed * d.par / avgExpCycleTime : 0;
 
     return {
-      ast, avail, inRange: avgChance > 0, chance: avgChance,
-      size, avgSize, adjDur, matPcts, par,
-      cycleSec, sps, spt: sps/20, sph: sps*3600,
-      plasmaPS, eutTotal: adjEut * par
+      ast: d.ast, avail: d.avail, inRange: avgChance > 0, chance: avgChance,
+      size: d.size, avgSize: d.avgSize, adjDur: d.adjDur, matPcts: d.matPcts, par: d.par,
+      cycleSec: d.cycleSec, sps, spt: sps/20, sph: sps*3600,
+      plasmaPS, eutTotal: d.adjEut * d.par
     };
   });
 
@@ -776,16 +787,24 @@ function runOptimizer() {
           if (!eligible.length) continue;
           const totalWt = eligible.reduce((s, a) => s + a.wt, 0);
 
+          // Compute expected cycle time across all eligible asteroids at this distance
+          let expectedCycleTime = 0;
+          for (const a of eligible) {
+            const p = a.wt / totalWt;
+            const dScale = Math.sqrt(drT - a.drMin + 1);
+            const adjDur = Math.ceil(a.dur / dScale) * timeMult / 20;
+            const aPar = parMap.has(a) ? parMap.get(a) : 1;
+            expectedCycleTime += p * adjDur;
+          }
+
           let targetSPS = 0;
           for (const t of accessible) {
             if (dist < t.ast.dMin || dist > t.ast.dMax) continue;
             const chance = t.ast.wt / totalWt;
             const size = adjSize(t.ast, drT);
             const avgSize = size.min + sizeBonus * (size.max - size.min);
-            const adjBaseDur = Math.ceil(t.ast.dur / durScaleMap.get(t.ast));
-            const cycleSec = adjBaseDur * timeMult / 20;
             const par = parMap.get(t.ast);
-            targetSPS += chance * par * avgSize * t.oreFrac / cycleSec;
+            targetSPS += chance * par * avgSize * t.oreFrac / expectedCycleTime;
           }
 
           if (targetSPS > 0 && (!best || targetSPS > best.sps)) {
