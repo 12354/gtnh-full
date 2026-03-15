@@ -793,7 +793,6 @@ function runOptimizer() {
             const p = a.wt / totalWt;
             const dScale = Math.sqrt(drT - a.drMin + 1);
             const adjDur = Math.ceil(a.dur / dScale) * timeMult / 20;
-            const aPar = parMap.has(a) ? parMap.get(a) : 1;
             expectedCycleTime += p * adjDur;
           }
 
