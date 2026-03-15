@@ -698,11 +698,50 @@ function runOptimizer() {
   const targetOre = document.getElementById('targetOre').value;
   if (!targetOre) return;
 
-  // For each combo of (moduleTier, droneTier), find the best (plasma, od, distance)
+  // Pre-compute: which asteroids contain this ore, and their oreFrac + material total weight
+  const targetAsts = [];
+  for (const ast of A) {
+    const tw = ast.w.reduce((s, v) => s + v, 0);
+    let oreFrac = 0;
+    for (let i = 0; i < ast.m.length; i++) {
+      if (ast.m[i] === targetOre) oreFrac += ast.w[i] / tw;
+    }
+    if (oreFrac > 0) targetAsts.push({ ast, oreFrac });
+  }
+
+  if (!targetAsts.length) {
+    document.getElementById('optResult').innerHTML = `<div class="opt-result"><h3>No configuration found</h3>
+      <p style="color:var(--text2)">"${targetOre}" does not exist in any asteroid.</p></div>`;
+    return;
+  }
+
+  // For each combo of (moduleTier, droneTier), find best (plasma, od, distance)
   const results = [];
 
   for (let modT = 1; modT <= 3; modT++) {
     for (let drT = 1; drT <= 13; drT++) {
+      // Pre-filter: which target asteroids are accessible with this mod+drone
+      const accessible = targetAsts.filter(t =>
+        drT >= t.ast.drMin && drT <= t.ast.drMax && modT >= t.ast.mod
+      );
+      if (!accessible.length) continue;
+
+      // Pre-compute parallels per accessible asteroid (independent of plasma/od/dist)
+      const parMap = new Map();
+      for (const t of accessible) {
+        const maxP = Math.floor(MODULE_MAX_EU[modT] / t.ast.eut);
+        const maxC = Math.floor(MODULE_MAX_COMP[modT] / t.ast.comp);
+        parMap.set(t.ast, Math.max(1, Math.min(MODULE_MAX_PAR[modT], maxP, maxC)));
+      }
+
+      // Find overall distance range to search
+      let distLo = 200, distHi = 0;
+      for (const t of accessible) {
+        distLo = Math.min(distLo, t.ast.dMin);
+        distHi = Math.max(distHi, t.ast.dMax);
+      }
+      distHi = Math.min(distHi, 200);
+
       let best = null;
 
       for (let pt = 1; pt <= 5; pt++) {
@@ -715,36 +754,25 @@ function runOptimizer() {
           const timeDiscount = Math.min(0.5, plasma.tau * od);
           const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
 
-          for (let dist = 0; dist <= 200; dist++) {
+          for (let dist = distLo; dist <= distHi; dist++) {
+            // All asteroids eligible at this distance (not just target ones)
             const eligible = A.filter(a =>
               drT >= a.drMin && drT <= a.drMax &&
               modT >= a.mod &&
               dist >= a.dMin && dist <= a.dMax
             );
             if (!eligible.length) continue;
-
             const totalWt = eligible.reduce((s, a) => s + a.wt, 0);
+
             let targetSPS = 0;
-
-            for (const ast of eligible) {
-              const chance = ast.wt / totalWt;
-              const tw = ast.w.reduce((s, v) => s + v, 0);
-              let oreFrac = 0;
-              for (let i = 0; i < ast.m.length; i++) {
-                if (ast.m[i] === targetOre) oreFrac += ast.w[i] / tw;
-              }
-              if (oreFrac === 0) continue;
-
-              const size = adjSize(ast, drT);
+            for (const t of accessible) {
+              if (dist < t.ast.dMin || dist > t.ast.dMax) continue;
+              const chance = t.ast.wt / totalWt;
+              const size = adjSize(t.ast, drT);
               const avgSize = size.min + sizeBonus * (size.max - size.min);
-              const dur = ast.dur * (1 - timeDiscount);
-              const cycleSec = dur / 20;
-
-              const maxParPow = Math.floor(MODULE_MAX_EU[modT] / ast.eut);
-              const maxParComp = Math.floor(MODULE_MAX_COMP[modT] / ast.comp);
-              const par = Math.max(1, Math.min(MODULE_MAX_PAR[modT], maxParPow, maxParComp));
-
-              targetSPS += chance * par * avgSize * oreFrac / cycleSec;
+              const cycleSec = t.ast.dur * (1 - timeDiscount) / 20;
+              const par = parMap.get(t.ast);
+              targetSPS += chance * par * avgSize * t.oreFrac / cycleSec;
             }
 
             if (targetSPS > 0 && (!best || targetSPS > best.sps)) {
@@ -761,8 +789,9 @@ function runOptimizer() {
 
   const container = document.getElementById('optResult');
   if (!results.length) {
+    const astNames = targetAsts.map(t => t.ast.n).join(', ');
     container.innerHTML = `<div class="opt-result"><h3>No configuration found</h3>
-      <p style="color:var(--text2)">The target ore "${targetOre}" is not available with any module/drone combination.</p></div>`;
+      <p style="color:var(--text2)">"${targetOre}" exists in [${astNames}] but no module/drone/distance combo yields output. This should not happen - please report a bug.</p></div>`;
     return;
   }
 
