@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTNH Space Miner Calculator</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --bg2: #16213e;
+    --bg3: #0f3460;
+    --accent: #e94560;
+    --text: #eee;
+    --text2: #aab;
+    --green: #4ecca3;
+    --gold: #f0c040;
+    --border: #2a2a4e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  h1 { text-align: center; margin-bottom: 8px; color: var(--gold); font-size: 1.8em; }
+  .subtitle { text-align: center; color: var(--text2); margin-bottom: 24px; font-size: 0.9em; }
+  .subtitle a { color: var(--accent); text-decoration: none; }
+  .subtitle a:hover { text-decoration: underline; }
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    max-width: 1400px;
+    margin: 0 auto 24px;
+    background: var(--bg2);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .control-group { display: flex; flex-direction: column; gap: 4px; }
+  .control-group label { font-size: 0.85em; color: var(--text2); font-weight: 600; }
+  .control-group input, .control-group select {
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    padding: 8px 12px; border-radius: 6px; font-size: 0.95em;
+  }
+  .control-group input:focus, .control-group select:focus { outline: none; border-color: var(--accent); }
+  .control-group .value-display { font-size: 0.8em; color: var(--green); min-height: 1.2em; }
+  .info-cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px; max-width: 1400px; margin: 0 auto 24px;
+  }
+  .info-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px; text-align: center;
+  }
+  .info-card .card-label { font-size: 0.8em; color: var(--text2); margin-bottom: 4px; }
+  .info-card .card-value { font-size: 1.3em; font-weight: 700; color: var(--green); }
+  .info-card .card-sub { font-size: 0.75em; color: var(--text2); margin-top: 2px; }
+  .results { max-width: 1400px; margin: 0 auto; }
+  .results h2 { color: var(--gold); margin-bottom: 12px; font-size: 1.2em; }
+  table {
+    width: 100%; border-collapse: collapse; background: var(--bg2);
+    border-radius: 10px; overflow: hidden; margin-bottom: 24px;
+  }
+  th {
+    background: var(--bg3); padding: 10px 8px; text-align: left;
+    font-size: 0.8em; color: var(--text2); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  th:hover { color: var(--gold); }
+  th.sorted-asc::after { content: ' \u25B2'; color: var(--accent); }
+  th.sorted-desc::after { content: ' \u25BC'; color: var(--accent); }
+  td { padding: 8px; border-top: 1px solid var(--border); font-size: 0.88em; vertical-align: top; }
+  tr:hover td { background: rgba(233, 69, 96, 0.05); }
+  .chance-bar {
+    display: inline-block; height: 6px; background: var(--accent);
+    border-radius: 3px; min-width: 2px; margin-right: 6px; vertical-align: middle;
+  }
+  .ore-breakdown { display: flex; flex-direction: column; gap: 2px; }
+  .ore-line { display: flex; justify-content: space-between; gap: 8px; font-size: 0.85em; }
+  .ore-name { color: var(--text); }
+  .ore-pct { color: var(--text2); white-space: nowrap; }
+  .module-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; font-weight: 700; }
+  .module-1 { background: #2d5a27; color: #8fde84; }
+  .module-2 { background: #5a4a27; color: #decc84; }
+  .module-3 { background: #5a2727; color: #de8484; }
+  .not-available { opacity: 0.35; }
+  .plasma-info {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; max-width: 1400px; margin: 0 auto 24px;
+  }
+  .plasma-info h3 { color: var(--gold); margin-bottom: 8px; font-size: 1em; }
+  .plasma-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+  .plasma-stat { font-size: 0.85em; }
+  .plasma-stat span { color: var(--green); font-weight: 600; }
+  .filter-row {
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    max-width: 1400px; margin: 0 auto 16px;
+  }
+  .filter-row input[type="text"] {
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 6px; flex: 1; min-width: 200px;
+  }
+  .filter-row label { font-size: 0.85em; color: var(--text2); cursor: pointer; }
+  .filter-row input[type="checkbox"] { accent-color: var(--accent); }
+  .total-row td {
+    font-weight: 700; background: rgba(78, 204, 163, 0.08);
+    border-top: 2px solid var(--green);
+  }
+  @media (max-width: 768px) {
+    .controls { grid-template-columns: 1fr 1fr; padding: 14px; }
+    table { font-size: 0.82em; }
+    td, th { padding: 6px 4px; }
+    .info-cards { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>GTNH Space Miner Calculator</h1>
+<p class="subtitle">
+  Space Elevator Mining Module output calculator &mdash;
+  <a href="https://gtnh.miraheze.org/wiki/Space_Elevator" target="_blank">Wiki</a> |
+  <a href="https://docs.google.com/spreadsheets/d/1xRApa3HnQiJDstr8I5csIi24Mx4mJNsalRJh8PVa52M/" target="_blank">Spreadsheet</a>
+</p>
+
+<div class="controls">
+  <div class="control-group">
+    <label>Mining Module Tier</label>
+    <select id="moduleTier">
+      <option value="1">MK-I (2 parallels, 245,760 EU/t max)</option>
+      <option value="2">MK-II (4 parallels, 4,815,896 EU/t max)</option>
+      <option value="3" selected>MK-III (8 parallels, 7,864,320 EU/t max)</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label>Drone Tier</label>
+    <select id="droneTier">
+      <option value="1">LV - Mining Drone-I</option>
+      <option value="2">MV - Mining Drone-II</option>
+      <option value="3">HV - Mining Drone-III</option>
+      <option value="4">EV - Mining Drone-IV</option>
+      <option value="5">IV - Mining Drone-V</option>
+      <option value="6">LuV - Mining Drone-VI</option>
+      <option value="7">ZPM - Mining Drone-VII</option>
+      <option value="8" selected>UV - Mining Drone-VIII</option>
+      <option value="9">UHV - Mining Drone-IX</option>
+      <option value="10">UEV - Mining Drone-X</option>
+      <option value="11">UIV - Mining Drone-XI</option>
+      <option value="12">UMV - Mining Drone-XII</option>
+      <option value="13">UXV - Mining Drone-XIII</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label>Distance (0-200)</label>
+    <input type="range" id="distance" min="0" max="200" value="95">
+    <div class="value-display" id="distDisplay">95</div>
+  </div>
+  <div class="control-group">
+    <label>Plasma Tier</label>
+    <select id="plasmaTier">
+      <option value="1">T1 - Helium (825L, no time discount)</option>
+      <option value="2">T2 - Bismuth (550L, 10% time disc.)</option>
+      <option value="3">T3 - Radon (375L, 20% time disc.)</option>
+      <option value="4">T4 - Technetium (250L, 30% time disc.)</option>
+      <option value="5">T5 - Plutonium-241 (150L, 40% time disc.)</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label>Overdrive (0.00 - 2.00)</label>
+    <input type="range" id="overdrive" min="0" max="200" value="100" step="1">
+    <div class="value-display" id="odDisplay">1.00</div>
+  </div>
+  <div class="control-group">
+    <label>Parallels</label>
+    <input type="number" id="parallels" min="1" max="8" value="1">
+  </div>
+  <div class="control-group">
+    <label>Mode</label>
+    <select id="mode">
+      <option value="static">Static (fixed distance)</option>
+      <option value="cycle">Cycle (distance range)</option>
+    </select>
+  </div>
+  <div class="control-group" id="rangeGroup" style="display:none">
+    <label>Range (0-150)</label>
+    <input type="range" id="range" min="0" max="150" value="50">
+    <div class="value-display" id="rangeDisplay">50</div>
+  </div>
+  <div class="control-group" id="stepGroup" style="display:none">
+    <label>Step (1-20)</label>
+    <input type="number" id="step" min="1" max="20" value="10">
+  </div>
+</div>
+
+<div class="info-cards" id="infoCards"></div>
+<div class="plasma-info" id="plasmaInfo"></div>
+
+<div class="filter-row">
+  <input type="text" id="oreFilter" placeholder="Filter by ore or asteroid name...">
+  <label><input type="checkbox" id="hideUnavailable" checked> Hide unavailable</label>
+  <label><input type="checkbox" id="showPerItem"> Show per-ore rates</label>
+</div>
+
+<div class="results" id="results"></div>
+
+<script>
+const TIERS = ['','LV','MV','HV','EV','IV','LuV','ZPM','UV','UHV','UEV','UIV','UMV','UXV'];
+const TIER_EU = { EV: 1920, IV: 7680, LuV: 30720, ZPM: 122880, UV: 491520, UEV: 1966080 };
+const MODULE_MAX_EU = { 1: 245760, 2: 4815896, 3: 7864320 };
+const MODULE_MAX_PAR = { 1: 2, 2: 4, 3: 8 };
+const MODULE_MAX_COMP = { 1: 600, 2: 1280, 3: 2880 };
+const SECONDS = 20;
+
+const PLASMA = [
+  null,
+  { name: 'Helium', consumed: 825, tau: 0.00, lambda: 0.004 },
+  { name: 'Bismuth', consumed: 550, tau: 0.10, lambda: 0.037 },
+  { name: 'Radon', consumed: 375, tau: 0.20, lambda: 0.125 },
+  { name: 'Technetium', consumed: 250, tau: 0.30, lambda: 0.296 },
+  { name: 'Plutonium-241', consumed: 150, tau: 0.40, lambda: 0.578 }
+];
+
+const A = [
+  { n:"Coal", m:["Coal","Lignite","Graphite"], w:[7000,1000,2000],
+    sMin:30,sMax:120,dMin:1,dMax:40, comp:20,mod:1,dur:10*SECONDS,
+    eut:TIER_EU.EV, drMin:1,drMax:7, wt:200 },
+  { n:"Salt", m:["Salt","Rock Salt","Saltpeter"], w:[4000,2000,4000],
+    sMin:30,sMax:120,dMin:1,dMax:250, comp:20,mod:1,dur:10*SECONDS,
+    eut:TIER_EU.EV, drMin:1,drMax:5, wt:300 },
+  { n:"Iron", m:["Iron","Gold","Magnetite","Pyrite","Basaltic Mineral Sand","Granitic Mineral Sand"],
+    w:[4000,2000,1000,1000,500,500],
+    sMin:30,sMax:150,dMin:1,dMax:180, comp:10,mod:1,dur:10*SECONDS,
+    eut:TIER_EU.EV, drMin:1,drMax:7, wt:600 },
+  { n:"Copper", m:["Copper","Chalcopyrite","Malachite"], w:[5000,3000,2000],
+    sMin:30,sMax:150,dMin:3,dMax:12, comp:10,mod:1,dur:10*SECONDS,
+    eut:TIER_EU.EV, drMin:1,drMax:6, wt:500 },
+  { n:"Tin", m:["Cassiterite","Cassiterite Sand","Tin","Asbestos"], w:[2000,1500,6000,500],
+    sMin:50,sMax:200,dMin:2,dMax:100, comp:10,mod:1,dur:50,
+    eut:TIER_EU.IV, drMin:1,drMax:5, wt:400 },
+  { n:"Aluminium", m:["Aluminium","Bauxite","Rutile"], w:[5000,3500,1500],
+    sMin:10,sMax:20,dMin:5,dMax:20, comp:20,mod:1,dur:50,
+    eut:TIER_EU.IV, drMin:2,drMax:4, wt:120 },
+  { n:"Nickel", m:["Nickel","Pentlandite","Garnierite"], w:[4000,3000,3000],
+    sMin:20,sMax:40,dMin:5,dMax:20, comp:20,mod:1,dur:50,
+    eut:TIER_EU.IV, drMin:1,drMax:5, wt:170 },
+  { n:"Chrome", m:["Chrome","Ruby","Chromite"], w:[5000,3000,2000],
+    sMin:16,sMax:32,dMin:10,dMax:20, comp:40,mod:1,dur:50,
+    eut:TIER_EU.LuV, drMin:2,drMax:6, wt:100 },
+  { n:"PlatLine Ore", m:["Platinum","Palladium","Iridium","Osmium"], w:[6000,2000,1500,500],
+    sMin:20,sMax:40,dMin:10,dMax:50, comp:60,mod:1,dur:50,
+    eut:TIER_EU.LuV, drMin:3,drMax:7, wt:130 },
+  { n:"Gem Ores", m:["Ruby","Emerald","Sapphire","Green Sapphire","Diamond","Opal","Amethyst","Topaz","Blue Topaz","Bauxite","Vinteum","Nether Star"],
+    w:[1500,1500,1500,1500,750,750,750,1000,500,500,400,100],
+    sMin:30,sMax:160,dMin:17,dMax:40, comp:60,mod:1,dur:100,
+    eut:TIER_EU.LuV, drMin:1,drMax:6, wt:180 },
+  { n:"Thaumium Dust", m:["Thaumium","Void Metal"], w:[6000,4000],
+    sMin:20,sMax:50,dMin:10,dMax:70, comp:120,mod:1,dur:30*SECONDS,
+    eut:TIER_EU.LuV, drMin:3,drMax:6, wt:150 },
+  { n:"Basic Magic", m:["Infused Gold","Shadow Metal","Infused Air","Infused Earth","Infused Fire","Infused Water","Infused Entropy","Infused Order"],
+    w:[3500,3500,500,500,500,500,500,500],
+    sMin:24,sMax:60,dMin:8,dMax:24, comp:120,mod:1,dur:100,
+    eut:TIER_EU.LuV, drMin:3,drMax:6, wt:200 },
+  { n:"Niobium", m:["Niobium","Quantium","Ytterbium","Yttrium"], w:[3000,2000,1500,3500],
+    sMin:30,sMax:120,dMin:30,dMax:160, comp:120,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:5,drMax:9, wt:160 },
+  { n:"Quartz", m:["Quartzite","Certus Quartz","Nether Quartz","Vanadium"], w:[3000,2250,2250,2500],
+    sMin:20,sMax:80,dMin:20,dMax:120, comp:50,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.IV, drMin:2,drMax:7, wt:230 },
+  { n:"Lutetium", m:["Tellurium","Thulium","Tantalum","Lutetium","Redstone"], w:[1500,1000,1500,500,5500],
+    sMin:20,sMax:80,dMin:40,dMax:240, comp:90,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:5,drMax:9, wt:100 },
+  { n:"Phosphate", m:["Phosphate","Tricalcium Phosphate","Sulfur"], w:[4500,2500,3000],
+    sMin:20,sMax:150,dMin:60,dMax:250, comp:60,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:5,drMax:11, wt:150 },
+  { n:"Lead", m:["Lead","Arsenic","Barium","Lepidolite"], w:[3000,2500,2500,2000],
+    sMin:30,sMax:100,dMin:5,dMax:150, comp:20,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.EV, drMin:1,drMax:8, wt:220 },
+  { n:"Adamantium", m:["Adamantium","Bismuth","Antimony","Gallium","Lithium"], w:[2500,2000,2000,2000,1500],
+    sMin:30,sMax:120,dMin:5,dMax:120, comp:20,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.EV, drMin:4,drMax:7, wt:300 },
+  { n:"Tungsten-Titanium", m:["Tungsten","Titanium","Neodymium","Molybdenum","Tungstate"], w:[3000,3000,2000,1500,500],
+    sMin:30,sMax:70,dMin:60,dMax:200, comp:120,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:1,drMax:6, wt:100 },
+  { n:"Blue", m:["Lapis","Calcite","Lazurite","Sodalite"], w:[6000,2000,1000,1000],
+    sMin:10,sMax:50,dMin:20,dMax:200, comp:60,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.IV, drMin:3,drMax:8, wt:250 },
+  { n:"Aluminium-LanthLine", m:["Aluminium","Bauxite","Monazite","Bastnasite"], w:[3500,1500,2500,2500],
+    sMin:10,sMax:80,dMin:40,dMax:120, comp:60,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.IV, drMin:2,drMax:7, wt:250 },
+  { n:"Everglades", m:["Koboldite","Crocroite","Gadolinite-Y","Lepersonnite","Zircon","Lautarite","Honeaite","Alburnite","Rare Earth (Low)","Rare Earth (Mid)","Rare Earth (High)"],
+    w:[600,400,1500,1500,1000,400,1000,600,1000,1000,1000],
+    sMin:10,sMax:20,dMin:110,dMax:230, comp:200,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.IV, drMin:7,drMax:9, wt:100 },
+  { n:"Ardite/Cobalt", m:["Cobalt","Ardite","Manyullyn"], w:[3750,3750,2500],
+    sMin:20,sMax:90,dMin:30,dMax:100, comp:180,mod:1,dur:50*SECONDS,
+    eut:TIER_EU.IV, drMin:4,drMax:9, wt:150 },
+  { n:"Clay", m:["Clay Block"], w:[10000],
+    sMin:30,sMax:60,dMin:20,dMax:100, comp:30,mod:1,dur:40*SECONDS,
+    eut:TIER_EU.IV, drMin:1,drMax:6, wt:200 },
+  { n:"Uranium-Plutonium", m:["Uranium","Uranium-235","Plutonium","Plutonium-241","Thorianite"], w:[3000,2450,2450,2000,100],
+    sMin:40,sMax:180,dMin:30,dMax:70, comp:120,mod:1,dur:20*SECONDS,
+    eut:TIER_EU.LuV, drMin:3,drMax:7, wt:150 },
+  { n:"Magnesium", m:["Magnesium","Manganese","Fluorspar"], w:[4000,3000,3000],
+    sMin:10,sMax:80,dMin:10,dMax:200, comp:60,mod:1,dur:20*SECONDS,
+    eut:TIER_EU.IV, drMin:4,drMax:9, wt:250 },
+  { n:"Naquadah", m:["Naquadah Oxide Mixture","Enriched Naquadah Oxide Mixture","Naquadria Oxide Mixture"], w:[4000,3500,2500],
+    sMin:20,sMax:80,dMin:50,dMax:150, comp:240,mod:1,dur:50*SECONDS,
+    eut:TIER_EU.LuV, drMin:5,drMax:8, wt:200 },
+  { n:"Mysterious Crystal", m:["Mysterious Crystal","Mytryl","Oriharukon","HEE Endium","End Powder Ore"], w:[7400,2000,500,98,2],
+    sMin:30,sMax:60,dMin:65,dMax:120, comp:300,mod:1,dur:500,
+    eut:TIER_EU.ZPM, drMin:5,drMax:13, wt:220 },
+  // Module Tier 2
+  { n:"Indium", m:["Indium","Sphalerite","Zinc","Cadmium"], w:[6000,2000,1000,1000],
+    sMin:30,sMax:120,dMin:50,dMax:90, comp:120,mod:2,dur:500,
+    eut:TIER_EU.LuV, drMin:5,drMax:10, wt:170 },
+  { n:"Silicon", m:["Mica","Silicon","Silicon SG"], w:[2000,4500,2500],
+    sMin:20,sMax:80,dMin:50,dMax:250, comp:60,mod:2,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:3,drMax:6, wt:200 },
+  { n:"Draconic", m:["Draconium","Draconium Awakened","Electrum Flux"], w:[6500,2500,1000],
+    sMin:15,sMax:60,dMin:60,dMax:200, comp:360,mod:2,dur:30*SECONDS,
+    eut:TIER_EU.LuV, drMin:6,drMax:9, wt:190 },
+  { n:"Cheese", m:["Cheese"], w:[10000],
+    sMin:1,sMax:30,dMin:90,dMax:200, comp:240,mod:2,dur:50*SECONDS,
+    eut:TIER_EU.ZPM, drMin:5,drMax:13, wt:10 },
+  { n:"Europium", m:["Ledox","Callisto Ice","Borax","Europium"], w:[4000,4000,1500,500],
+    sMin:40,sMax:120,dMin:40,dMax:60, comp:240,mod:2,dur:50*SECONDS,
+    eut:TIER_EU.ZPM, drMin:7,drMax:13, wt:150 },
+  { n:"Cosmic", m:["Cosmic Neutronium","Neutronium","Black Plutonium","Bedrockium"], w:[2500,2500,2500,2500],
+    sMin:10,sMax:70,dMin:60,dMax:100, comp:240,mod:2,dur:500,
+    eut:TIER_EU.UV, drMin:7,drMax:13, wt:170 },
+  { n:"Infinity Catalyst", m:["Infinity Catalyst","Cosmic Neutronium","Neutronium"], w:[5000,3000,2000],
+    sMin:30,sMax:120,dMin:70,dMax:100, comp:320,mod:2,dur:1000,
+    eut:TIER_EU.UV, drMin:8,drMax:13, wt:150 },
+  { n:"Holmium/Samarium", m:["Holmium","Samarium","Tiberium","Strontium"], w:[2000,3000,3000,2000],
+    sMin:15,sMax:50,dMin:40,dMax:80, comp:260,mod:2,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:8,drMax:13, wt:75 },
+  { n:"Lanthanum", m:["Trinium","Lanthanum","Orundum","Silver"], w:[1500,2000,3000,3500],
+    sMin:30,sMax:120,dMin:30,dMax:230, comp:120,mod:2,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:5,drMax:11, wt:150 },
+  // Module Tier 3
+  { n:"Ichorium", m:["Shadow Iron","Meteoric Iron","Ichorium","Desh","Americium"], w:[4500,3000,1500,500,500],
+    sMin:30,sMax:120,dMin:70,dMax:100, comp:320,mod:3,dur:1000,
+    eut:TIER_EU.UV, drMin:10,drMax:13, wt:150 },
+  { n:"PlatLine Dust", m:["Platinum","Palladium","Iridium","Osmium","Ruthenium","Rhodium"], w:[3800,2000,1500,500,1200,1000],
+    sMin:10,sMax:30,dMin:25,dMax:200, comp:360,mod:3,dur:500,
+    eut:TIER_EU.ZPM, drMin:7,drMax:10, wt:60 },
+  { n:"Tengam", m:["Dilithium","Orundum","Vanadium","Ytterbium","Tengam (Raw)"], w:[100,1650,3500,2250,2500],
+    sMin:5,sMax:100,dMin:20,dMax:100, comp:120,mod:3,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:10,drMax:13, wt:50 },
+  { n:"Draconic Core Ruin", m:["DEFC Draconic Schematic","Draconic Core","ZPM Battery"], w:[100,100,9800],
+    sMin:1,sMax:1,dMin:50,dMax:200, comp:1000,mod:3,dur:100*SECONDS,
+    eut:TIER_EU.UEV, drMin:9,drMax:11, wt:1 }
+];
+
+let sortCol = null, sortDir = 1;
+
+function getInputs() {
+  const moduleTier = +document.getElementById('moduleTier').value;
+  const droneTier = +document.getElementById('droneTier').value;
+  const distance = +document.getElementById('distance').value;
+  const plasmaTier = +document.getElementById('plasmaTier').value;
+  const od = +document.getElementById('overdrive').value / 100;
+  const parallels = Math.min(+document.getElementById('parallels').value, MODULE_MAX_PAR[moduleTier]);
+  const mode = document.getElementById('mode').value;
+  const range = +document.getElementById('range').value;
+  const step = Math.max(1, +document.getElementById('step').value);
+  return { moduleTier, droneTier, distance, plasmaTier, od, parallels, mode, range, step };
+}
+
+function getDistances(inp) {
+  if (inp.mode === 'static') return [inp.distance];
+  const lo = Math.max(0, inp.distance - inp.range);
+  const hi = Math.min(200, inp.distance + inp.range);
+  const dists = [];
+  for (let d = lo; d <= hi; d += inp.step) dists.push(d);
+  if (!dists.length) dists.push(inp.distance);
+  return dists;
+}
+
+function isAvail(a, inp) {
+  return inp.droneTier >= a.drMin && inp.droneTier <= a.drMax && inp.moduleTier >= a.mod;
+}
+
+function adjSize(a, droneTier) {
+  const N = droneTier - a.drMin;
+  const b = N > 0 ? Math.pow(2, N) - 1 : 0;
+  return { min: a.sMin + b, max: a.sMax + b };
+}
+
+function calculate() {
+  const inp = getInputs();
+  const plasma = PLASMA[inp.plasmaTier];
+
+  const maxOD = plasma.tau > 0 ? Math.min(2.0, 0.5 / plasma.tau) : 2.0;
+  const minOD = plasma.lambda > 0 ? Math.max(0, 2.0 - 0.75 / plasma.lambda) : 0;
+  const od = Math.max(minOD, Math.min(maxOD, inp.od));
+
+  const timeDiscount = Math.min(0.5, plasma.tau * od);
+  const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
+
+  const distances = getDistances(inp);
+
+  // Per-asteroid average chance across cycle distances
+  const chanceMap = new Map();
+  for (const dist of distances) {
+    const eligible = A.filter(a => isAvail(a, inp) && dist >= a.dMin && dist <= a.dMax);
+    const tw = eligible.reduce((s, a) => s + a.wt, 0);
+    for (const a of eligible) {
+      chanceMap.set(a.n, (chanceMap.get(a.n) || 0) + (tw > 0 ? a.wt / tw : 0));
+    }
+  }
+
+  const output = A.map(ast => {
+    const avail = isAvail(ast, inp);
+    const avgChance = (chanceMap.get(ast.n) || 0) / distances.length;
+    const size = adjSize(ast, inp.droneTier);
+    const avgSize = size.min + sizeBonus * (size.max - size.min);
+    const adjDur = ast.dur * (1 - timeDiscount);
+    const tw = ast.w.reduce((s, v) => s + v, 0);
+    const matPcts = ast.w.map(v => v / tw);
+
+    const maxParPow = Math.floor(MODULE_MAX_EU[inp.moduleTier] / ast.eut);
+    const maxParComp = Math.floor(MODULE_MAX_COMP[inp.moduleTier] / ast.comp);
+    const par = Math.max(1, Math.min(inp.parallels, MODULE_MAX_PAR[inp.moduleTier], maxParPow, maxParComp));
+
+    const cycleSec = adjDur / 20;
+    const sps = avgChance > 0 ? avgChance * par * avgSize / cycleSec : 0;
+
+    const plasmaPS = avgChance > 0 ? avgChance * plasma.consumed * par / cycleSec : 0;
+
+    return {
+      ast, avail, inRange: avgChance > 0, chance: avgChance,
+      size, avgSize, adjDur, matPcts, par,
+      cycleSec, sps, spt: sps/20, sph: sps*3600,
+      plasmaPS, eutTotal: ast.eut * par
+    };
+  });
+
+  renderCards(inp, plasma, od, timeDiscount, sizeBonus, minOD, maxOD, output, distances);
+  renderPlasma(plasma, od, timeDiscount, sizeBonus, minOD, maxOD, inp);
+  renderTable(output, inp);
+}
+
+function renderCards(inp, plasma, od, td, sb, minOD, maxOD, output, dists) {
+  const el = output.filter(o => o.avail && o.inRange);
+  const tss = el.reduce((s, o) => s + o.sps, 0);
+  const tsh = el.reduce((s, o) => s + o.sph, 0);
+  const tp = el.reduce((s, o) => s + o.plasmaPS, 0);
+  const we = el.reduce((s, o) => s + o.chance * o.eutTotal, 0);
+  const dl = inp.mode === 'cycle' ?
+    `${Math.max(0,inp.distance-inp.range)}-${Math.min(200,inp.distance+inp.range)} (${dists.length} steps)` : inp.distance;
+
+  document.getElementById('infoCards').innerHTML = `
+    <div class="info-card"><div class="card-label">Total Stacks/sec</div>
+      <div class="card-value">${tss.toFixed(2)}</div>
+      <div class="card-sub">${fmt(tss*64)} items/sec</div></div>
+    <div class="info-card"><div class="card-label">Total Stacks/hour</div>
+      <div class="card-value">${fmt(tsh)}</div>
+      <div class="card-sub">${fmt(tsh*64)} items/hour</div></div>
+    <div class="info-card"><div class="card-label">Eligible Asteroids</div>
+      <div class="card-value">${el.length}</div>
+      <div class="card-sub">at distance ${dl}</div></div>
+    <div class="info-card"><div class="card-label">Plasma Usage</div>
+      <div class="card-value">${tp.toFixed(1)} L/s</div>
+      <div class="card-sub">${plasma.name} Plasma</div></div>
+    <div class="info-card"><div class="card-label">Avg EU/t</div>
+      <div class="card-value">${fmt(we)}</div>
+      <div class="card-sub">weighted by probability</div></div>
+    <div class="info-card"><div class="card-label">Size Bonus (B)</div>
+      <div class="card-value">${(sb*100).toFixed(1)}%</div>
+      <div class="card-sub">Time discount: ${(td*100).toFixed(1)}%</div></div>`;
+}
+
+function renderPlasma(plasma, od, td, sb, minOD, maxOD, inp) {
+  document.getElementById('plasmaInfo').innerHTML = `
+    <h3>Plasma & Overdrive</h3>
+    <div class="plasma-grid">
+      <div class="plasma-stat">Plasma: <span>${plasma.name}</span></div>
+      <div class="plasma-stat">Consumed: <span>${plasma.consumed} L/cycle/parallel</span></div>
+      <div class="plasma-stat">Overdrive: <span>${od.toFixed(2)}</span> (${minOD.toFixed(2)} - ${maxOD.toFixed(2)})</div>
+      <div class="plasma-stat">Time Discount: <span>${(plasma.tau*100).toFixed(0)}% &times; OD = ${(td*100).toFixed(1)}%</span></div>
+      <div class="plasma-stat">Size Mult: <span>${(plasma.lambda*100).toFixed(1)}% &times; (2-OD) = ${(sb*100).toFixed(1)}%</span></div>
+      <div class="plasma-stat">Module: <span>MK-${['I','II','III'][inp.moduleTier-1]}</span> | Drone: <span>${TIERS[inp.droneTier]}</span></div>
+    </div>`;
+}
+
+function renderTable(output, inp) {
+  const filter = document.getElementById('oreFilter').value.toLowerCase();
+  const hideU = document.getElementById('hideUnavailable').checked;
+  const showPI = document.getElementById('showPerItem').checked;
+
+  let f = output;
+  if (hideU) f = f.filter(o => o.avail && o.inRange);
+  if (filter) f = f.filter(o =>
+    o.ast.n.toLowerCase().includes(filter) ||
+    o.ast.m.some(m => m.toLowerCase().includes(filter))
+  );
+
+  if (sortCol) {
+    f.sort((a, b) => {
+      let va, vb;
+      switch(sortCol) {
+        case 'name': return sortDir * a.ast.n.localeCompare(b.ast.n);
+        case 'chance': va=a.chance; vb=b.chance; break;
+        case 'module': va=a.ast.mod; vb=b.ast.mod; break;
+        case 'size': va=a.avgSize; vb=b.avgSize; break;
+        case 'time': va=a.cycleSec; vb=b.cycleSec; break;
+        case 'sps': va=a.sps; vb=b.sps; break;
+        case 'sph': va=a.sph; vb=b.sph; break;
+        case 'eut': va=a.eutTotal; vb=b.eutTotal; break;
+        case 'weight': va=a.ast.wt; vb=b.ast.wt; break;
+        case 'dist': va=a.ast.dMin; vb=b.ast.dMin; break;
+        default: va=0; vb=0;
+      }
+      return sortDir * (va - vb);
+    });
+  }
+
+  const el = f.filter(o => o.avail && o.inRange);
+  const tss = el.reduce((s, o) => s + o.sps, 0);
+  const tsh = el.reduce((s, o) => s + o.sph, 0);
+  const cls = c => sortCol===c ? (sortDir===1?'sorted-asc':'sorted-desc') : '';
+
+  let h = `<h2>Asteroid Breakdown (${el.length} eligible)</h2><table>
+    <thead><tr>
+      <th class="${cls('name')}" onclick="doSort('name')">Asteroid</th>
+      <th class="${cls('chance')}" onclick="doSort('chance')">Chance</th>
+      <th class="${cls('module')}" onclick="doSort('module')">Module</th>
+      <th class="${cls('weight')}" onclick="doSort('weight')">Weight</th>
+      <th class="${cls('dist')}" onclick="doSort('dist')">Distance</th>
+      <th class="${cls('size')}" onclick="doSort('size')">Avg Size</th>
+      <th class="${cls('time')}" onclick="doSort('time')">Cycle</th>
+      <th class="${cls('eut')}" onclick="doSort('eut')">EU/t</th>
+      <th class="${cls('sps')}" onclick="doSort('sps')">Stacks/s</th>
+      <th class="${cls('sph')}" onclick="doSort('sph')">Stacks/hr</th>
+      <th>Materials</th>
+    </tr></thead><tbody>`;
+
+  for (const o of f) {
+    const rc = (!o.avail || !o.inRange) ? 'not-available' : '';
+    const tc = `module-${o.ast.mod}`;
+    const bw = Math.max(2, o.chance * 300);
+    const tw = o.ast.w.reduce((s, v) => s + v, 0);
+
+    let mh = '<div class="ore-breakdown">';
+    for (let i = 0; i < o.ast.m.length; i++) {
+      const pct = (o.ast.w[i] / tw * 100).toFixed(1);
+      const rate = showPI ? ` - ${(o.sps * o.ast.w[i] / tw).toFixed(3)}/s` : '';
+      mh += `<div class="ore-line"><span class="ore-name">${o.ast.m[i]}</span><span class="ore-pct">${pct}%${rate}</span></div>`;
+    }
+    mh += '</div>';
+
+    const reason = !o.avail ?
+      (inp.moduleTier < o.ast.mod ? `Needs MK-${['I','II','III'][o.ast.mod-1]}` :
+       `Drone: ${TIERS[o.ast.drMin]}-${TIERS[o.ast.drMax]}`) :
+      (!o.inRange ? 'Out of range' : '');
+
+    h += `<tr class="${rc}">
+      <td><strong>${o.ast.n}</strong>${reason ? `<br><small style="color:var(--accent)">${reason}</small>` : ''}</td>
+      <td><span class="chance-bar" style="width:${bw}px"></span>${(o.chance*100).toFixed(2)}%</td>
+      <td><span class="module-tag ${tc}">MK-${['I','II','III'][o.ast.mod-1]}</span></td>
+      <td>${o.ast.wt}</td>
+      <td>${o.ast.dMin}-${o.ast.dMax}</td>
+      <td>${o.size.min}-${o.size.max} (${o.avgSize.toFixed(1)})</td>
+      <td>${o.cycleSec.toFixed(1)}s</td>
+      <td>${fmt(o.eutTotal)} (${o.par}p)</td>
+      <td style="color:var(--green);font-weight:600">${o.sps.toFixed(3)}</td>
+      <td style="color:var(--green);font-weight:600">${fmt(o.sph)}</td>
+      <td>${mh}</td>
+    </tr>`;
+  }
+
+  h += `<tr class="total-row">
+    <td colspan="8" style="text-align:right">TOTAL</td>
+    <td style="color:var(--green)">${tss.toFixed(3)}</td>
+    <td style="color:var(--green)">${fmt(tsh)}</td><td></td></tr>`;
+  h += '</tbody></table>';
+
+  if (showPI && el.length > 0) h += oreSum(el);
+  document.getElementById('results').innerHTML = h;
+}
+
+function oreSum(data) {
+  const r = {};
+  for (const o of data) {
+    const tw = o.ast.w.reduce((s, v) => s + v, 0);
+    for (let i = 0; i < o.ast.m.length; i++) {
+      const n = o.ast.m[i];
+      r[n] = (r[n] || 0) + o.sps * o.ast.w[i] / tw;
+    }
+  }
+  const sorted = Object.entries(r).sort((a, b) => b[1] - a[1]);
+  let h = '<h2>Per-Ore Rate Summary</h2><table><thead><tr><th>Ore</th><th>Stacks/sec</th><th>Stacks/hour</th><th>Items/hour</th></tr></thead><tbody>';
+  for (const [n, rate] of sorted) {
+    if (rate < 0.00001) continue;
+    h += `<tr><td>${n}</td>
+      <td style="color:var(--green)">${rate.toFixed(4)}</td>
+      <td style="color:var(--green)">${fmt(rate*3600)}</td>
+      <td style="color:var(--green)">${fmt(rate*3600*64)}</td></tr>`;
+  }
+  return h + '</tbody></table>';
+}
+
+function fmt(n) {
+  if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if (Math.abs(n) >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return n.toFixed(1);
+}
+
+function doSort(col) {
+  if (sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = col === 'name' ? 1 : -1; }
+  calculate();
+}
+
+// Wire up events
+document.querySelectorAll('.controls input, .controls select').forEach(el => {
+  el.addEventListener('input', calculate);
+  el.addEventListener('change', calculate);
+});
+document.getElementById('distance').addEventListener('input', function() {
+  document.getElementById('distDisplay').textContent = this.value;
+});
+document.getElementById('overdrive').addEventListener('input', function() {
+  document.getElementById('odDisplay').textContent = (this.value/100).toFixed(2);
+});
+document.getElementById('range').addEventListener('input', function() {
+  document.getElementById('rangeDisplay').textContent = this.value;
+});
+document.getElementById('oreFilter').addEventListener('input', calculate);
+document.getElementById('hideUnavailable').addEventListener('change', calculate);
+document.getElementById('showPerItem').addEventListener('change', calculate);
+document.getElementById('mode').addEventListener('change', function() {
+  const c = this.value === 'cycle';
+  document.getElementById('rangeGroup').style.display = c ? '' : 'none';
+  document.getElementById('stepGroup').style.display = c ? '' : 'none';
+});
+
+calculate();
+</script>
+</body>
+</html>
