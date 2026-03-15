@@ -110,6 +110,39 @@
     font-weight: 700; background: rgba(78, 204, 163, 0.08);
     border-top: 2px solid var(--green);
   }
+  .optimizer {
+    max-width: 1400px; margin: 0 auto 24px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .optimizer h2 { color: var(--gold); margin-bottom: 12px; font-size: 1.2em; }
+  .optimizer-row {
+    display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .optimizer-row .control-group { min-width: 220px; }
+  .opt-btn {
+    background: var(--accent); color: #fff; border: none; padding: 9px 20px;
+    border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.95em;
+    white-space: nowrap;
+  }
+  .opt-btn:hover { filter: brightness(1.15); }
+  .opt-result {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; margin-top: 12px;
+  }
+  .opt-result h3 { color: var(--green); margin-bottom: 8px; font-size: 1em; }
+  .opt-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px; margin-bottom: 12px;
+  }
+  .opt-stat { font-size: 0.88em; }
+  .opt-stat span { color: var(--green); font-weight: 600; }
+  .apply-btn {
+    background: var(--green); color: var(--bg); border: none; padding: 8px 18px;
+    border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.9em;
+    margin-top: 8px;
+  }
+  .apply-btn:hover { filter: brightness(1.1); }
   @media (max-width: 768px) {
     .controls { grid-template-columns: 1fr 1fr; padding: 14px; }
     table { font-size: 0.82em; }
@@ -175,10 +208,6 @@
     <div class="value-display" id="odDisplay">1.00</div>
   </div>
   <div class="control-group">
-    <label>Parallels</label>
-    <input type="number" id="parallels" min="1" max="8" value="1">
-  </div>
-  <div class="control-group">
     <label>Mode</label>
     <select id="mode">
       <option value="static">Static (fixed distance)</option>
@@ -194,6 +223,18 @@
     <label>Step (1-20)</label>
     <input type="number" id="step" min="1" max="20" value="10">
   </div>
+</div>
+
+<div class="optimizer">
+  <h2>Target Ore Optimizer</h2>
+  <div class="optimizer-row">
+    <div class="control-group">
+      <label>Target Ore</label>
+      <select id="targetOre"><option value="">-- Select an ore --</option></select>
+    </div>
+    <button class="opt-btn" onclick="runOptimizer()">Find Best Config</button>
+  </div>
+  <div id="optResult"></div>
 </div>
 
 <div class="info-cards" id="infoCards"></div>
@@ -364,7 +405,7 @@ function getInputs() {
   const distance = +document.getElementById('distance').value;
   const plasmaTier = +document.getElementById('plasmaTier').value;
   const od = +document.getElementById('overdrive').value / 100;
-  const parallels = Math.min(+document.getElementById('parallels').value, MODULE_MAX_PAR[moduleTier]);
+  const parallels = MODULE_MAX_PAR[moduleTier];
   const mode = document.getElementById('mode').value;
   const range = +document.getElementById('range').value;
   const step = Math.max(1, +document.getElementById('step').value);
@@ -425,7 +466,7 @@ function calculate() {
 
     const maxParPow = Math.floor(MODULE_MAX_EU[inp.moduleTier] / ast.eut);
     const maxParComp = Math.floor(MODULE_MAX_COMP[inp.moduleTier] / ast.comp);
-    const par = Math.max(1, Math.min(inp.parallels, MODULE_MAX_PAR[inp.moduleTier], maxParPow, maxParComp));
+    const par = Math.max(1, Math.min(MODULE_MAX_PAR[inp.moduleTier], maxParPow, maxParComp));
 
     const cycleSec = adjDur / 20;
     const sps = avgChance > 0 ? avgChance * par * avgSize / cycleSec : 0;
@@ -639,6 +680,121 @@ document.getElementById('mode').addEventListener('change', function() {
   document.getElementById('rangeGroup').style.display = c ? '' : 'none';
   document.getElementById('stepGroup').style.display = c ? '' : 'none';
 });
+
+// Populate target ore dropdown with all unique ore names
+(function() {
+  const ores = new Set();
+  for (const a of A) for (const m of a.m) ores.add(m);
+  const sel = document.getElementById('targetOre');
+  for (const name of [...ores].sort()) {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    sel.appendChild(opt);
+  }
+})();
+
+// Optimizer: brute-force search for best config to maximize target ore stacks/hr
+function runOptimizer() {
+  const targetOre = document.getElementById('targetOre').value;
+  if (!targetOre) return;
+
+  const moduleTier = +document.getElementById('moduleTier').value;
+  const droneTier = +document.getElementById('droneTier').value;
+
+  let best = null;
+
+  for (let pt = 1; pt <= 5; pt++) {
+    const plasma = PLASMA[pt];
+    const maxODLim = plasma.tau > 0 ? Math.min(2.0, 0.5 / plasma.tau) : 2.0;
+    const minODLim = plasma.lambda > 0 ? Math.max(0, 2.0 - 0.75 / plasma.lambda) : 0;
+
+    // Sample overdrive values across valid range
+    for (let odStep = 0; odStep <= 20; odStep++) {
+      const od = minODLim + (maxODLim - minODLim) * odStep / 20;
+      const timeDiscount = Math.min(0.5, plasma.tau * od);
+      const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
+
+      for (let dist = 0; dist <= 200; dist++) {
+        // Find eligible asteroids at this distance
+        const eligible = A.filter(a =>
+          droneTier >= a.drMin && droneTier <= a.drMax &&
+          moduleTier >= a.mod &&
+          dist >= a.dMin && dist <= a.dMax
+        );
+        if (!eligible.length) continue;
+
+        const totalWt = eligible.reduce((s, a) => s + a.wt, 0);
+
+        // Sum the target ore stacks/sec across all eligible asteroids
+        let targetSPS = 0;
+        for (const ast of eligible) {
+          const chance = ast.wt / totalWt;
+          const tw = ast.w.reduce((s, v) => s + v, 0);
+          // Check if this asteroid contains the target ore
+          let oreFrac = 0;
+          for (let i = 0; i < ast.m.length; i++) {
+            if (ast.m[i] === targetOre) oreFrac += ast.w[i] / tw;
+          }
+          if (oreFrac === 0) continue;
+
+          const size = adjSize(ast, droneTier);
+          const avgSize = size.min + sizeBonus * (size.max - size.min);
+          const adjDur = ast.dur * (1 - timeDiscount);
+          const cycleSec = adjDur / 20;
+
+          const maxParPow = Math.floor(MODULE_MAX_EU[moduleTier] / ast.eut);
+          const maxParComp = Math.floor(MODULE_MAX_COMP[moduleTier] / ast.comp);
+          const par = Math.max(1, Math.min(MODULE_MAX_PAR[moduleTier], maxParPow, maxParComp));
+
+          targetSPS += chance * par * avgSize * oreFrac / cycleSec;
+        }
+
+        if (targetSPS > 0 && (!best || targetSPS > best.sps)) {
+          best = { dist, pt, od, sps: targetSPS, timeDiscount, sizeBonus,
+                   plasma: plasma.name, plasmaConsumed: plasma.consumed };
+        }
+      }
+    }
+  }
+
+  const container = document.getElementById('optResult');
+  if (!best) {
+    container.innerHTML = `<div class="opt-result"><h3>No configuration found</h3>
+      <p style="color:var(--text2)">The target ore "${targetOre}" is not available with the current module tier (MK-${['I','II','III'][moduleTier-1]}) and drone tier (${TIERS[droneTier]}).</p></div>`;
+    return;
+  }
+
+  const sph = best.sps * 3600;
+  container.innerHTML = `
+    <div class="opt-result">
+      <h3>Best config for "${targetOre}": ${fmt(sph)} stacks/hr (${fmt(sph*64)} items/hr)</h3>
+      <div class="opt-grid">
+        <div class="opt-stat">Distance: <span>${best.dist}</span></div>
+        <div class="opt-stat">Plasma: <span>T${best.pt} - ${best.plasma}</span></div>
+        <div class="opt-stat">Overdrive: <span>${best.od.toFixed(2)}</span></div>
+        <div class="opt-stat">Stacks/sec: <span>${best.sps.toFixed(4)}</span></div>
+        <div class="opt-stat">Time Discount: <span>${(best.timeDiscount*100).toFixed(1)}%</span></div>
+        <div class="opt-stat">Size Bonus: <span>${(best.sizeBonus*100).toFixed(1)}%</span></div>
+        <div class="opt-stat">Module: <span>MK-${['I','II','III'][moduleTier-1]}</span></div>
+        <div class="opt-stat">Drone: <span>${TIERS[droneTier]}</span></div>
+      </div>
+      <button class="apply-btn" onclick="applyOptimal(${best.dist}, ${best.pt}, ${best.od})">Apply to Calculator</button>
+    </div>`;
+}
+
+function applyOptimal(dist, pt, od) {
+  document.getElementById('distance').value = dist;
+  document.getElementById('distDisplay').textContent = dist;
+  document.getElementById('plasmaTier').value = pt;
+  document.getElementById('overdrive').value = Math.round(od * 100);
+  document.getElementById('odDisplay').textContent = od.toFixed(2);
+  document.getElementById('mode').value = 'static';
+  document.getElementById('rangeGroup').style.display = 'none';
+  document.getElementById('stepGroup').style.display = 'none';
+  calculate();
+  // Scroll to results
+  document.getElementById('infoCards').scrollIntoView({ behavior: 'smooth' });
+}
 
 calculate();
 </script>
