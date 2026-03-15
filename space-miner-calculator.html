@@ -203,8 +203,8 @@
     </select>
   </div>
   <div class="control-group">
-    <label>Overdrive (0.00 - 2.00)</label>
-    <input type="range" id="overdrive" min="0" max="200" value="100" step="1">
+    <label>Overdrive (0.01 - 2.00)</label>
+    <input type="range" id="overdrive" min="1" max="200" value="100" step="1">
     <div class="value-display" id="odDisplay">1.00</div>
   </div>
   <div class="control-group">
@@ -256,13 +256,17 @@ const MODULE_MAX_PAR = { 1: 2, 2: 4, 3: 8 };
 const MODULE_MAX_COMP = { 1: 600, 2: 1280, 3: 2880 };
 const SECONDS = 20;
 
+// Actual formulas from source code (TileEntityModuleMiner.java):
+//   time = baseTime * max((1 - 0.1*(plasmaTier-1)) / overdrive, 0.5)
+//   sizeBonus = min((plasmaTier/6)^3 * (2.0 - overdrive), 0.75)
+// discount = 1 - 0.1*(tier-1), lambda = (tier/6)^3
 const PLASMA = [
   null,
-  { name: 'Helium', consumed: 825, tau: 0.00, lambda: 0.004 },
-  { name: 'Bismuth', consumed: 550, tau: 0.10, lambda: 0.037 },
-  { name: 'Radon', consumed: 375, tau: 0.20, lambda: 0.125 },
-  { name: 'Technetium', consumed: 250, tau: 0.30, lambda: 0.296 },
-  { name: 'Plutonium-241', consumed: 150, tau: 0.40, lambda: 0.578 }
+  { name: 'Helium', consumed: 825, discount: 1.0, lambda: 0.00463 },
+  { name: 'Bismuth', consumed: 550, discount: 0.9, lambda: 0.03704 },
+  { name: 'Radon', consumed: 375, discount: 0.8, lambda: 0.125 },
+  { name: 'Technetium', consumed: 250, discount: 0.7, lambda: 0.29630 },
+  { name: 'Plutonium-241', consumed: 150, discount: 0.6, lambda: 0.57870 }
 ];
 
 const A = [
@@ -436,11 +440,14 @@ function calculate() {
   const inp = getInputs();
   const plasma = PLASMA[inp.plasmaTier];
 
-  const maxOD = plasma.tau > 0 ? Math.min(2.0, 0.5 / plasma.tau) : 2.0;
-  const minOD = plasma.lambda > 0 ? Math.max(0, 2.0 - 0.75 / plasma.lambda) : 0;
+  // max OD: time modifier can't go below 0.5 → discount/OD >= 0.5 → OD <= 2*discount
+  const maxOD = Math.min(2.0, 2.0 * plasma.discount);
+  // min OD: size bonus can't exceed 0.75 → lambda*(2-OD) <= 0.75 → OD >= 2 - 0.75/lambda
+  const minOD = plasma.lambda > 0 ? Math.max(0.01, 2.0 - 0.75 / plasma.lambda) : 0.01;
   const od = Math.max(minOD, Math.min(maxOD, inp.od));
 
-  const timeDiscount = Math.min(0.5, plasma.tau * od);
+  // time = baseTime * max(discount / OD, 0.5)
+  const timeMult = Math.max(plasma.discount / od, 0.5);
   const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
 
   const distances = getDistances(inp);
@@ -460,7 +467,7 @@ function calculate() {
     const avgChance = (chanceMap.get(ast.n) || 0) / distances.length;
     const size = adjSize(ast, inp.droneTier);
     const avgSize = size.min + sizeBonus * (size.max - size.min);
-    const adjDur = ast.dur * (1 - timeDiscount);
+    const adjDur = ast.dur * timeMult;
     const tw = ast.w.reduce((s, v) => s + v, 0);
     const matPcts = ast.w.map(v => v / tw);
 
@@ -481,12 +488,12 @@ function calculate() {
     };
   });
 
-  renderCards(inp, plasma, od, timeDiscount, sizeBonus, minOD, maxOD, output, distances);
-  renderPlasma(plasma, od, timeDiscount, sizeBonus, minOD, maxOD, inp);
+  renderCards(inp, plasma, od, timeMult, sizeBonus, minOD, maxOD, output, distances);
+  renderPlasma(plasma, od, timeMult, sizeBonus, minOD, maxOD, inp);
   renderTable(output, inp);
 }
 
-function renderCards(inp, plasma, od, td, sb, minOD, maxOD, output, dists) {
+function renderCards(inp, plasma, od, tm, sb, minOD, maxOD, output, dists) {
   const el = output.filter(o => o.avail && o.inRange);
   const tss = el.reduce((s, o) => s + o.sps, 0);
   const tsh = el.reduce((s, o) => s + o.sph, 0);
@@ -494,6 +501,7 @@ function renderCards(inp, plasma, od, td, sb, minOD, maxOD, output, dists) {
   const we = el.reduce((s, o) => s + o.chance * o.eutTotal, 0);
   const dl = inp.mode === 'cycle' ?
     `${Math.max(0,inp.distance-inp.range)}-${Math.min(200,inp.distance+inp.range)} (${dists.length} steps)` : inp.distance;
+  const timeReduction = ((1 - tm) * 100).toFixed(1);
 
   document.getElementById('infoCards').innerHTML = `
     <div class="info-card"><div class="card-label">Total Stacks/sec</div>
@@ -513,18 +521,18 @@ function renderCards(inp, plasma, od, td, sb, minOD, maxOD, output, dists) {
       <div class="card-sub">weighted by probability</div></div>
     <div class="info-card"><div class="card-label">Size Bonus (B)</div>
       <div class="card-value">${(sb*100).toFixed(1)}%</div>
-      <div class="card-sub">Time discount: ${(td*100).toFixed(1)}%</div></div>`;
+      <div class="card-sub">Time multiplier: ${tm.toFixed(2)}x (${timeReduction}% faster)</div></div>`;
 }
 
-function renderPlasma(plasma, od, td, sb, minOD, maxOD, inp) {
+function renderPlasma(plasma, od, tm, sb, minOD, maxOD, inp) {
   document.getElementById('plasmaInfo').innerHTML = `
     <h3>Plasma & Overdrive</h3>
     <div class="plasma-grid">
       <div class="plasma-stat">Plasma: <span>${plasma.name}</span></div>
       <div class="plasma-stat">Consumed: <span>${plasma.consumed} L/cycle/parallel</span></div>
       <div class="plasma-stat">Overdrive: <span>${od.toFixed(2)}</span> (${minOD.toFixed(2)} - ${maxOD.toFixed(2)})</div>
-      <div class="plasma-stat">Time Discount: <span>${(plasma.tau*100).toFixed(0)}% &times; OD = ${(td*100).toFixed(1)}%</span></div>
-      <div class="plasma-stat">Size Mult: <span>${(plasma.lambda*100).toFixed(1)}% &times; (2-OD) = ${(sb*100).toFixed(1)}%</span></div>
+      <div class="plasma-stat">Time: <span>discount ${plasma.discount.toFixed(1)} / OD ${od.toFixed(2)} = ${tm.toFixed(2)}x</span></div>
+      <div class="plasma-stat">Size Bonus: <span>&lambda; ${(plasma.lambda*100).toFixed(2)}% &times; (2-${od.toFixed(2)}) = ${(sb*100).toFixed(1)}%</span></div>
       <div class="plasma-stat">Module: <span>MK-${['I','II','III'][inp.moduleTier-1]}</span> | Drone: <span>${TIERS[inp.droneTier]}</span></div>
     </div>`;
 }
@@ -700,8 +708,8 @@ function runOptimizer() {
 
   const pt = +document.getElementById('plasmaTier').value;
   const plasma = PLASMA[pt];
-  const maxODLim = plasma.tau > 0 ? Math.min(2.0, 0.5 / plasma.tau) : 2.0;
-  const minODLim = plasma.lambda > 0 ? Math.max(0, 2.0 - 0.75 / plasma.lambda) : 0;
+  const maxODLim = Math.min(2.0, 2.0 * plasma.discount);
+  const minODLim = plasma.lambda > 0 ? Math.max(0.01, 2.0 - 0.75 / plasma.lambda) : 0.01;
 
   // Pre-compute: which asteroids contain this ore
   const targetAsts = [];
@@ -747,7 +755,7 @@ function runOptimizer() {
 
       for (let odStep = 0; odStep <= 20; odStep++) {
         const od = minODLim + (maxODLim - minODLim) * odStep / 20;
-        const timeDiscount = Math.min(0.5, plasma.tau * od);
+        const timeMult = Math.max(plasma.discount / od, 0.5);
         const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
 
         for (let dist = distLo; dist <= distHi; dist++) {
@@ -765,13 +773,13 @@ function runOptimizer() {
             const chance = t.ast.wt / totalWt;
             const size = adjSize(t.ast, drT);
             const avgSize = size.min + sizeBonus * (size.max - size.min);
-            const cycleSec = t.ast.dur * (1 - timeDiscount) / 20;
+            const cycleSec = t.ast.dur * timeMult / 20;
             const par = parMap.get(t.ast);
             targetSPS += chance * par * avgSize * t.oreFrac / cycleSec;
           }
 
           if (targetSPS > 0 && (!best || targetSPS > best.sps)) {
-            best = { dist, od, sps: targetSPS, timeDiscount, sizeBonus, modT, drT };
+            best = { dist, od, sps: targetSPS, timeMult, sizeBonus, modT, drT };
           }
         }
       }
@@ -796,7 +804,7 @@ function runOptimizer() {
     <h3>Best configurations for "${targetOre}" with T${pt} ${plasma.name} Plasma &mdash; top: ${fmt(bestSPH)} stacks/hr (${fmt(bestSPH*64)} items/hr)</h3>
     <table><thead><tr>
       <th>Rank</th><th>Module</th><th>Drone</th><th>Distance</th>
-      <th>Overdrive</th><th>Time Disc.</th><th>Size Bonus</th>
+      <th>Overdrive</th><th>Time Mult</th><th>Size Bonus</th>
       <th>Stacks/sec</th><th>Stacks/hr</th><th>Items/hr</th><th></th>
     </tr></thead><tbody>`;
 
@@ -809,7 +817,7 @@ function runOptimizer() {
       <td>${TIERS[r.drT]}</td>
       <td>${r.dist}</td>
       <td>${r.od.toFixed(2)}</td>
-      <td>${(r.timeDiscount*100).toFixed(1)}%</td>
+      <td>${r.timeMult.toFixed(2)}x</td>
       <td>${(r.sizeBonus*100).toFixed(1)}%</td>
       <td style="color:var(--green);font-weight:600">${r.sps.toFixed(4)}</td>
       <td style="color:var(--green);font-weight:600">${fmt(sph)}</td>
