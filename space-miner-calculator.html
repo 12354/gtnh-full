@@ -116,6 +116,8 @@
     border-radius: 12px; padding: 20px;
   }
   .optimizer h2 { color: var(--gold); margin-bottom: 12px; font-size: 1.2em; }
+  .optimizer summary { cursor: pointer; padding: 4px 0; list-style: revert; }
+  .optimizer summary:hover h2 { filter: brightness(1.2); }
   .optimizer-row {
     display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px;
   }
@@ -225,8 +227,8 @@
   </div>
 </div>
 
-<div class="optimizer">
-  <h2>Target Ore Optimizer</h2>
+<details class="optimizer">
+  <summary><h2 style="display:inline">Target Ore Optimizer</h2></summary>
   <div class="optimizer-row">
     <div class="control-group">
       <label>Target Ore</label>
@@ -235,7 +237,7 @@
     <button class="opt-btn" onclick="runOptimizer()">Find Best Config</button>
   </div>
   <div id="optResult"></div>
-</div>
+</details>
 
 <div class="info-cards" id="infoCards"></div>
 <div class="plasma-info" id="plasmaInfo"></div>
