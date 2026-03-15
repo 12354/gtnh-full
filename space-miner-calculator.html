@@ -607,7 +607,7 @@ function renderTable(output, inp) {
       <td>${o.ast.wt}</td>
       <td>${o.ast.dMin}-${o.ast.dMax}</td>
       <td>${o.size.min}-${o.size.max} (${o.avgSize.toFixed(1)})</td>
-      <td>${o.cycleSec.toFixed(1)}s</td>
+      <td>${o.cycleSec.toFixed(1)}s<br><small style="color:var(--text2)">${Math.round(o.adjDur)}t</small></td>
       <td>${fmt(o.eutTotal)} (${o.par}p)</td>
       <td style="color:var(--green);font-weight:600">${o.sps.toFixed(3)}</td>
       <td style="color:var(--green);font-weight:600">${fmt(o.sph)}</td>
@@ -693,12 +693,17 @@ document.getElementById('mode').addEventListener('change', function() {
   }
 })();
 
-// Optimizer: brute-force all drone tiers, module tiers, plasma, OD, distance
+// Optimizer: use selected plasma, brute-force module/drone/overdrive/distance
 function runOptimizer() {
   const targetOre = document.getElementById('targetOre').value;
   if (!targetOre) return;
 
-  // Pre-compute: which asteroids contain this ore, and their oreFrac + material total weight
+  const pt = +document.getElementById('plasmaTier').value;
+  const plasma = PLASMA[pt];
+  const maxODLim = plasma.tau > 0 ? Math.min(2.0, 0.5 / plasma.tau) : 2.0;
+  const minODLim = plasma.lambda > 0 ? Math.max(0, 2.0 - 0.75 / plasma.lambda) : 0;
+
+  // Pre-compute: which asteroids contain this ore
   const targetAsts = [];
   for (const ast of A) {
     const tw = ast.w.reduce((s, v) => s + v, 0);
@@ -715,18 +720,15 @@ function runOptimizer() {
     return;
   }
 
-  // For each combo of (moduleTier, droneTier), find best (plasma, od, distance)
   const results = [];
 
   for (let modT = 1; modT <= 3; modT++) {
     for (let drT = 1; drT <= 13; drT++) {
-      // Pre-filter: which target asteroids are accessible with this mod+drone
       const accessible = targetAsts.filter(t =>
         drT >= t.ast.drMin && drT <= t.ast.drMax && modT >= t.ast.mod
       );
       if (!accessible.length) continue;
 
-      // Pre-compute parallels per accessible asteroid (independent of plasma/od/dist)
       const parMap = new Map();
       for (const t of accessible) {
         const maxP = Math.floor(MODULE_MAX_EU[modT] / t.ast.eut);
@@ -734,7 +736,6 @@ function runOptimizer() {
         parMap.set(t.ast, Math.max(1, Math.min(MODULE_MAX_PAR[modT], maxP, maxC)));
       }
 
-      // Find overall distance range to search
       let distLo = 200, distHi = 0;
       for (const t of accessible) {
         distLo = Math.min(distLo, t.ast.dMin);
@@ -744,41 +745,33 @@ function runOptimizer() {
 
       let best = null;
 
-      for (let pt = 1; pt <= 5; pt++) {
-        const plasma = PLASMA[pt];
-        const maxODLim = plasma.tau > 0 ? Math.min(2.0, 0.5 / plasma.tau) : 2.0;
-        const minODLim = plasma.lambda > 0 ? Math.max(0, 2.0 - 0.75 / plasma.lambda) : 0;
+      for (let odStep = 0; odStep <= 20; odStep++) {
+        const od = minODLim + (maxODLim - minODLim) * odStep / 20;
+        const timeDiscount = Math.min(0.5, plasma.tau * od);
+        const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
 
-        for (let odStep = 0; odStep <= 20; odStep++) {
-          const od = minODLim + (maxODLim - minODLim) * odStep / 20;
-          const timeDiscount = Math.min(0.5, plasma.tau * od);
-          const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
+        for (let dist = distLo; dist <= distHi; dist++) {
+          const eligible = A.filter(a =>
+            drT >= a.drMin && drT <= a.drMax &&
+            modT >= a.mod &&
+            dist >= a.dMin && dist <= a.dMax
+          );
+          if (!eligible.length) continue;
+          const totalWt = eligible.reduce((s, a) => s + a.wt, 0);
 
-          for (let dist = distLo; dist <= distHi; dist++) {
-            // All asteroids eligible at this distance (not just target ones)
-            const eligible = A.filter(a =>
-              drT >= a.drMin && drT <= a.drMax &&
-              modT >= a.mod &&
-              dist >= a.dMin && dist <= a.dMax
-            );
-            if (!eligible.length) continue;
-            const totalWt = eligible.reduce((s, a) => s + a.wt, 0);
+          let targetSPS = 0;
+          for (const t of accessible) {
+            if (dist < t.ast.dMin || dist > t.ast.dMax) continue;
+            const chance = t.ast.wt / totalWt;
+            const size = adjSize(t.ast, drT);
+            const avgSize = size.min + sizeBonus * (size.max - size.min);
+            const cycleSec = t.ast.dur * (1 - timeDiscount) / 20;
+            const par = parMap.get(t.ast);
+            targetSPS += chance * par * avgSize * t.oreFrac / cycleSec;
+          }
 
-            let targetSPS = 0;
-            for (const t of accessible) {
-              if (dist < t.ast.dMin || dist > t.ast.dMax) continue;
-              const chance = t.ast.wt / totalWt;
-              const size = adjSize(t.ast, drT);
-              const avgSize = size.min + sizeBonus * (size.max - size.min);
-              const cycleSec = t.ast.dur * (1 - timeDiscount) / 20;
-              const par = parMap.get(t.ast);
-              targetSPS += chance * par * avgSize * t.oreFrac / cycleSec;
-            }
-
-            if (targetSPS > 0 && (!best || targetSPS > best.sps)) {
-              best = { dist, pt, od, sps: targetSPS, timeDiscount, sizeBonus,
-                       plasmaName: plasma.name, modT, drT };
-            }
+          if (targetSPS > 0 && (!best || targetSPS > best.sps)) {
+            best = { dist, od, sps: targetSPS, timeDiscount, sizeBonus, modT, drT };
           }
         }
       }
@@ -791,53 +784,48 @@ function runOptimizer() {
   if (!results.length) {
     const astNames = targetAsts.map(t => t.ast.n).join(', ');
     container.innerHTML = `<div class="opt-result"><h3>No configuration found</h3>
-      <p style="color:var(--text2)">"${targetOre}" exists in [${astNames}] but no module/drone/distance combo yields output. This should not happen - please report a bug.</p></div>`;
+      <p style="color:var(--text2)">"${targetOre}" exists in [${astNames}] but no module/drone/distance combo yields output.</p></div>`;
     return;
   }
 
-  // Sort by stacks/hr descending
   results.sort((a, b) => b.sps - a.sps);
-
   const bestR = results[0];
   const bestSPH = bestR.sps * 3600;
 
   let h = `<div class="opt-result">
-    <h3>Best configurations for "${targetOre}" &mdash; top result: ${fmt(bestSPH)} stacks/hr (${fmt(bestSPH*64)} items/hr)</h3>
+    <h3>Best configurations for "${targetOre}" with T${pt} ${plasma.name} Plasma &mdash; top: ${fmt(bestSPH)} stacks/hr (${fmt(bestSPH*64)} items/hr)</h3>
     <table><thead><tr>
       <th>Rank</th><th>Module</th><th>Drone</th><th>Distance</th>
-      <th>Plasma</th><th>Overdrive</th><th>Time Disc.</th><th>Size Bonus</th>
+      <th>Overdrive</th><th>Time Disc.</th><th>Size Bonus</th>
       <th>Stacks/sec</th><th>Stacks/hr</th><th>Items/hr</th><th></th>
     </tr></thead><tbody>`;
 
   for (let i = 0; i < results.length; i++) {
     const r = results[i];
     const sph = r.sps * 3600;
-    const isBest = i === 0;
-    h += `<tr${isBest ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
+    h += `<tr${i===0 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
       <td>${i+1}</td>
       <td><span class="module-tag module-${r.modT}">MK-${['I','II','III'][r.modT-1]}</span></td>
       <td>${TIERS[r.drT]}</td>
       <td>${r.dist}</td>
-      <td>T${r.pt} ${r.plasmaName}</td>
       <td>${r.od.toFixed(2)}</td>
       <td>${(r.timeDiscount*100).toFixed(1)}%</td>
       <td>${(r.sizeBonus*100).toFixed(1)}%</td>
       <td style="color:var(--green);font-weight:600">${r.sps.toFixed(4)}</td>
       <td style="color:var(--green);font-weight:600">${fmt(sph)}</td>
       <td style="color:var(--green)">${fmt(sph*64)}</td>
-      <td><button class="apply-btn" onclick="applyOptimal(${r.dist},${r.pt},${r.od},${r.modT},${r.drT})">Apply</button></td>
+      <td><button class="apply-btn" onclick="applyOptimal(${r.dist},${r.od},${r.modT},${r.drT})">Apply</button></td>
     </tr>`;
   }
   h += '</tbody></table></div>';
   container.innerHTML = h;
 }
 
-function applyOptimal(dist, pt, od, modT, drT) {
+function applyOptimal(dist, od, modT, drT) {
   document.getElementById('moduleTier').value = modT;
   document.getElementById('droneTier').value = drT;
   document.getElementById('distance').value = dist;
   document.getElementById('distDisplay').textContent = dist;
-  document.getElementById('plasmaTier').value = pt;
   document.getElementById('overdrive').value = Math.round(od * 100);
   document.getElementById('odDisplay').textContent = od.toFixed(2);
   document.getElementById('mode').value = 'static';
