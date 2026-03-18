@@ -1,6 +1,5 @@
 package com.glodblock.github.inventory;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -124,11 +123,9 @@ public class MEMonitorIFluidHandler implements IMEMonitor<IAEFluidStack> {
             IAEFluidStack o = request.copy();
             o.setStackSize(removed.amount);
             if (type == Actionable.MODULATE) {
-                IAEFluidStack cachedStack = this.cache.findPrecise(request);
-                if (cachedStack != null) {
-                    cachedStack.decStackSize(o.getStackSize());
-                    this.postDifference(Collections.singletonList(o.copy().setStackSize(-o.getStackSize())));
-                }
+                // Full cache refresh to fix stale cache when tank is modified externally
+                // (e.g., GT machines filling output hatches). This matches injectItems() behavior.
+                this.onTick();
             }
             return o;
         } else {
