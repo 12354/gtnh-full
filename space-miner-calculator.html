@@ -440,6 +440,7 @@ function adjSize(a, droneTier) {
 }
 
 function calculate() {
+  if (typeof saveState === 'function') saveState();
   const inp = getInputs();
   const plasma = PLASMA[inp.plasmaTier];
 
@@ -872,6 +873,42 @@ function applyOptimal(dist, od, modT, drT) {
   document.getElementById('infoCards').scrollIntoView({ behavior: 'smooth' });
 }
 
+// URL state: save settings to hash, restore on load
+const STATE_KEYS = ['moduleTier','droneTier','distance','plasmaTier','overdrive','mode','range','step'];
+const CHECK_KEYS = ['hideUnavailable','showPerItem'];
+
+function saveState() {
+  const p = new URLSearchParams();
+  for (const k of STATE_KEYS) p.set(k, document.getElementById(k).value);
+  for (const k of CHECK_KEYS) p.set(k, document.getElementById(k).checked ? '1' : '0');
+  const f = document.getElementById('oreFilter').value;
+  if (f) p.set('filter', f);
+  history.replaceState(null, '', '#' + p.toString());
+}
+
+function loadState() {
+  if (!location.hash || location.hash.length < 2) return;
+  const p = new URLSearchParams(location.hash.slice(1));
+  for (const k of STATE_KEYS) {
+    const v = p.get(k);
+    if (v !== null) document.getElementById(k).value = v;
+  }
+  for (const k of CHECK_KEYS) {
+    const v = p.get(k);
+    if (v !== null) document.getElementById(k).checked = v === '1';
+  }
+  const f = p.get('filter');
+  if (f !== null) document.getElementById('oreFilter').value = f;
+  // Sync displays
+  document.getElementById('distDisplay').textContent = document.getElementById('distance').value;
+  document.getElementById('odDisplay').textContent = (+document.getElementById('overdrive').value / 100).toFixed(2);
+  document.getElementById('rangeDisplay').textContent = document.getElementById('range').value;
+  const c = document.getElementById('mode').value === 'cycle';
+  document.getElementById('rangeGroup').style.display = c ? '' : 'none';
+  document.getElementById('stepGroup').style.display = c ? '' : 'none';
+}
+
+loadState();
 calculate();
 </script>
 </body>
