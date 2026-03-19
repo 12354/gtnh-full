@@ -252,6 +252,7 @@
 
 <script>
 const TIERS = ['','LV','MV','HV','EV','IV','LuV','ZPM','UV','UHV','UEV','UIV','UMV','UXV'];
+const ROMAN = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII'];
 const TIER_EU = { EV: 1920, IV: 7680, LuV: 30720, ZPM: 122880, UV: 491520, UEV: 1966080 };
 const MODULE_MAX_EU = { 1: 245760, 2: 4815896, 3: 7864320 };
 const MODULE_MAX_PAR = { 1: 2, 2: 4, 3: 8 };
@@ -842,7 +843,7 @@ function runOptimizer() {
     h += `<tr${i===0 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
       <td>${i+1}</td>
       <td><span class="module-tag module-${r.modT}">MK-${['I','II','III'][r.modT-1]}</span></td>
-      <td>${TIERS[r.drT]}</td>
+      <td>${ROMAN[r.drT]}</td>
       <td>${r.dist}</td>
       <td>${r.od.toFixed(2)}</td>
       <td>${r.timeMult.toFixed(2)}x</td>
