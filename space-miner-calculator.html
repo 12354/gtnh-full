@@ -132,6 +132,29 @@
     background: var(--bg); border: 1px solid var(--border);
     border-radius: 8px; padding: 16px; margin-top: 12px;
   }
+  .ore-tip-wrap {
+    position: relative; display: inline;
+  }
+  .ore-tip-wrap .ore-tip {
+    display: none;
+    position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px; min-width: 280px; max-width: 360px;
+    z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    pointer-events: none; white-space: normal; text-align: left;
+  }
+  .ore-tip-wrap:hover .ore-tip { display: block; }
+  .ore-tip .tip-name { font-weight: 700; color: var(--gold); font-size: 0.95em; margin-bottom: 6px; }
+  .ore-tip .tip-row { display: flex; justify-content: space-between; gap: 8px; font-size: 0.82em; padding: 1px 0; }
+  .ore-tip .tip-label { color: var(--text2); }
+  .ore-tip .tip-val { color: var(--text); font-weight: 600; text-align: right; }
+  .ore-tip .tip-val.green { color: var(--green); }
+  .ore-tip .tip-sep { border-top: 1px solid var(--border); margin: 5px 0; }
+  .ore-tip .tip-mats { margin-top: 4px; }
+  .ore-tip .tip-mat { display: flex; justify-content: space-between; gap: 6px; font-size: 0.8em; padding: 1px 0; }
+  .ore-tip .tip-mat-name { color: var(--text); }
+  .ore-tip .tip-mat-pct { color: var(--text2); }
   .opt-result h3 { color: var(--green); margin-bottom: 8px; font-size: 1em; }
   .opt-grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -1079,16 +1102,67 @@ function runCycleOptimizer() {
   }
 }
 
-function oreTooltip(name, extraStyle) {
+function oreTooltip(name, extraStyle, tipCtx) {
   const ast = A.find(a => a.n === name);
-  const tip = ast ? ast.m.join(', ') : '';
+  if (!ast) return `<span style="${extraStyle||''}">${name}</span>`;
   const s = extraStyle || '';
-  return `<span title="${tip}" style="cursor:help;border-bottom:1px dotted var(--text2)${s ? ';' + s : ''}">${name}</span>`;
+  const ctx = tipCtx || window._tipCtx || {};
+  const drTip = ctx.droneTier || +document.getElementById('droneTier').value;
+  const modTip = ctx.modT || +document.getElementById('moduleTier').value;
+  const ptTip = ctx.plasmaTier || +document.getElementById('plasmaTier').value;
+  const plasma = PLASMA[ptTip];
+  const maxOD = Math.min(2.0, 2.0 * plasma.discount);
+  const minOD = plasma.lambda > 0 ? Math.max(0.01, 2.0 - 0.75 / plasma.lambda) : 0.01;
+  const od = ctx.od || Math.max(minOD, Math.min(maxOD, +document.getElementById('overdrive').value / 100));
+  const timeMult = Math.max(plasma.discount / od, 0.5);
+  const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
+
+  const avail = drTip >= ast.drMin && drTip <= ast.drMax && modTip >= ast.mod;
+  const size = adjSize(ast, drTip);
+  const avgSz = size.min + sizeBonus * (size.max - size.min);
+  const dScale = Math.sqrt(drTip - ast.drMin + 1);
+  const adjDur = Math.ceil(ast.dur / dScale);
+  const cycleSec = adjDur * timeMult / 20;
+  const adjEut = Math.ceil(ast.eut * dScale);
+  const maxP = Math.floor(MODULE_MAX_EU[modTip] / adjEut);
+  const maxC = Math.floor(MODULE_MAX_COMP[modTip] / ast.comp);
+  const par = Math.max(1, Math.min(MODULE_MAX_PAR[modTip], maxP, maxC));
+  const sps = cycleSec > 0 ? par * avgSz / cycleSec : 0;
+  const sph = sps * 3600;
+
+  const tw = ast.w.reduce((s, v) => s + v, 0);
+  let matsHtml = '';
+  for (let i = 0; i < ast.m.length; i++) {
+    const pct = (ast.w[i] / tw * 100).toFixed(1);
+    const mSps = sps * ast.w[i] / tw;
+    matsHtml += `<div class="tip-mat"><span class="tip-mat-name">${ast.m[i]}</span><span class="tip-mat-pct">${pct}% &middot; ${mSps.toFixed(3)}/s</span></div>`;
+  }
+
+  const tipHtml = `<div class="ore-tip">
+    <div class="tip-name">${ast.n}</div>
+    <div class="tip-row"><span class="tip-label">Drone</span><span class="tip-val">${ROMAN[drTip]} ${avail ? '' : '(N/A: ' + ROMAN[ast.drMin] + '-' + ROMAN[ast.drMax] + ')'}</span></div>
+    <div class="tip-row"><span class="tip-label">Distance</span><span class="tip-val">${ast.dMin}\u2013${ast.dMax}</span></div>
+    <div class="tip-row"><span class="tip-label">Module</span><span class="tip-val">MK-${['I','II','III'][ast.mod-1]}</span></div>
+    <div class="tip-row"><span class="tip-label">Weight</span><span class="tip-val">${ast.wt}</span></div>
+    <div class="tip-sep"></div>
+    <div class="tip-row"><span class="tip-label">Size</span><span class="tip-val">${size.min}\u2013${size.max} (avg ${avgSz.toFixed(1)})</span></div>
+    <div class="tip-row"><span class="tip-label">Cycle</span><span class="tip-val">${cycleSec.toFixed(1)}s (${adjDur}t \u00d7 ${timeMult.toFixed(2)})</span></div>
+    <div class="tip-row"><span class="tip-label">EU/t</span><span class="tip-val">${fmt(adjEut)} (${par}p = ${fmt(adjEut*par)})</span></div>
+    <div class="tip-sep"></div>
+    <div class="tip-row"><span class="tip-label">Stacks/s</span><span class="tip-val green">${sps.toFixed(3)}</span></div>
+    <div class="tip-row"><span class="tip-label">Stacks/hr</span><span class="tip-val green">${fmt(sph)}</span></div>
+    <div class="tip-row"><span class="tip-label">Items/hr</span><span class="tip-val green">${fmt(sph*64)}</span></div>
+    <div class="tip-sep"></div>
+    <div class="tip-mats">${matsHtml}</div>
+  </div>`;
+
+  return `<span class="ore-tip-wrap" style="cursor:help;border-bottom:1px dotted var(--text2)${s ? ';' + s : ''}">${name}${tipHtml}</span>`;
 }
 
 function renderCycleOptTable(showDiff) {
   const { top, modT, drT, currentNames, isCycle } = window._cycleOptData;
   const currentSet = new Set(currentNames);
+  const tipCtx = { droneTier: drT, modT };
 
   const best = top[0];
   let h = `<div class="opt-result">
@@ -1112,11 +1186,11 @@ function renderCycleOptTable(showDiff) {
     if (showDiff && isCycle) {
       const gained = r.names.filter(n => !currentSet.has(n));
       const gainedSet = new Set(gained);
-      const kept = r.names.map(n => gainedSet.has(n) ? oreTooltip(n, 'color:var(--green)') : oreTooltip(n)).join(', ');
+      const kept = r.names.map(n => gainedSet.has(n) ? oreTooltip(n, 'color:var(--green)', tipCtx) : oreTooltip(n, '', tipCtx)).join(', ');
       const lost = [...currentSet].filter(n => !rowNames.has(n)).sort();
-      namesHtml = kept + (lost.length ? ', ' + lost.map(n => oreTooltip(n, 'color:var(--accent);text-decoration:line-through')).join(', ') : '');
+      namesHtml = kept + (lost.length ? ', ' + lost.map(n => oreTooltip(n, 'color:var(--accent);text-decoration:line-through', tipCtx)).join(', ') : '');
     } else {
-      namesHtml = r.names.map(n => oreTooltip(n)).join(', ');
+      namesHtml = r.names.map(n => oreTooltip(n, '', tipCtx)).join(', ');
     }
     h += `<tr${i===0 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
       <td>${i+1}</td>
@@ -1162,10 +1236,11 @@ function renderMultiDroneTable() {
   for (const d of drones) {
     const newSet = new Set(d.newNames);
     const overlapSet = new Set(d.overlapNames);
+    const tipCtx = { droneTier: d.droneTier, modT };
     const namesHtml = d.names.map(n => {
-      if (newSet.has(n)) return oreTooltip(n, 'color:var(--green)');
-      if (overlapSet.has(n)) return oreTooltip(n, 'color:var(--text2);opacity:0.6');
-      return oreTooltip(n);
+      if (newSet.has(n)) return oreTooltip(n, 'color:var(--green)', tipCtx);
+      if (overlapSet.has(n)) return oreTooltip(n, 'color:var(--text2);opacity:0.6', tipCtx);
+      return oreTooltip(n, '', tipCtx);
     }).join(', ');
 
     h += `<tr${d.droneIndex === 1 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
