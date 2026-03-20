@@ -1044,7 +1044,7 @@ function renderCycleOptTable(showDiff) {
   if (isCycle) {
     h += `<label style="display:inline-flex;align-items:center;gap:6px;margin-bottom:8px;cursor:pointer;font-size:0.9em;color:var(--text2)">
       <input type="checkbox" id="cycleDiffToggle" onchange="renderCycleOptTable(this.checked)"${showDiff ? ' checked' : ''}>
-      Show lost asteroids <span style="color:var(--accent);font-size:0.85em">(red = in current config but not in this row)</span>
+      Show asteroid differences <span style="font-size:0.85em">(<span style="color:var(--green)">green</span> = gained, <span style="color:var(--accent)">red</span> = lost)</span>
     </label>`;
   }
   h += `<table><thead><tr>
@@ -1058,7 +1058,9 @@ function renderCycleOptTable(showDiff) {
     const rowNames = new Set(r.names);
     let namesHtml;
     if (showDiff && isCycle) {
-      const kept = r.names.map(n => oreTooltip(n)).join(', ');
+      const gained = r.names.filter(n => !currentSet.has(n));
+      const gainedSet = new Set(gained);
+      const kept = r.names.map(n => gainedSet.has(n) ? oreTooltip(n, 'color:var(--green)') : oreTooltip(n)).join(', ');
       const lost = [...currentSet].filter(n => !rowNames.has(n)).sort();
       namesHtml = kept + (lost.length ? ', ' + lost.map(n => oreTooltip(n, 'color:var(--accent);text-decoration:line-through')).join(', ') : '');
     } else {
