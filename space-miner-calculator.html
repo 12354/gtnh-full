@@ -1225,39 +1225,78 @@ function _runCycleOptimizerInner() {
       return { drones, coveredCount, totalSPS, combinedPerOre, balance: bm };
     }
 
-    // Boost Weakest greedy: first drone covers most asteroids, subsequent drones
-    // intentionally overlap to boost the lowest-producing ores
+    // Boost Weakest greedy: first drone maximizes coverage (like balanced),
+    // subsequent drones target configs that boost the weakest ores — overlap is welcome.
     function greedyBoostWeak(startIdx) {
       const drones = [];
+      const covered = new Set();
       let combinedPerOre = {};
+      const usedKeys = new Set();
 
+      // Phase 1: first drone — maximize coverage, tiebreak by balance
       const first = deduped[startIdx];
+      for (const n of first.names) covered.add(n);
       combinedPerOre = { ...first.perOre };
+      const firstKey = first.droneTier + ':' + first.distance + ':' + first.range;
+      usedKeys.add(firstKey);
       drones.push({
         ...first, droneIndex: 1,
         newNames: [...first.names].sort(), overlapNames: [],
         newCount: first.names.length, overlapCount: 0
       });
 
+      // Phase 2: subsequent drones — boost the weakest ores
       for (let d = 1; d < maxDrones; d++) {
-        let bestConfig = null, bestMinRate = -Infinity, bestCV = Infinity;
+        // Find the bottom 25% of ores by rate
+        const oreRates = Object.entries(combinedPerOre).sort((a, b) => a[1] - b[1]);
+        const weakCount = Math.max(1, Math.ceil(oreRates.length * 0.25));
+        const weakOres = new Set(oreRates.slice(0, weakCount).map(e => e[0]));
+
+        let bestConfig = null, bestWeakBoost = -1, bestNewCount = -1, bestMinRate = -Infinity;
         for (const r of deduped) {
+          const rKey = r.droneTier + ':' + r.distance + ':' + r.range;
+          if (usedKeys.has(rKey)) continue; // don't reuse same config
+
+          // How much does this config boost the weak ores?
+          let weakBoost = 0;
+          for (const [ore, rate] of Object.entries(r.perOre)) {
+            if (weakOres.has(ore)) weakBoost += rate;
+          }
+
+          // Also count new asteroids as a secondary benefit
+          let newCount = 0;
+          for (const n of r.names) { if (!covered.has(n)) newCount++; }
+
           const merged = mergePerOre(combinedPerOre, r.perOre);
-          const rates = Object.values(merged);
-          const minRate = Math.min(...rates);
-          const bm = balanceMetrics(merged);
-          // Primary: maximize the minimum ore rate; secondary: lowest CV
-          if (minRate > bestMinRate ||
-              (minRate === bestMinRate && bm.cv < bestCV)) {
-            bestConfig = r; bestMinRate = minRate; bestCV = bm.cv;
+          const minRate = Math.min(...Object.values(merged));
+
+          // Primary: highest boost to weak ores; secondary: highest min rate; tertiary: most new asteroids
+          if (weakBoost > bestWeakBoost ||
+              (weakBoost === bestWeakBoost && minRate > bestMinRate) ||
+              (weakBoost === bestWeakBoost && minRate === bestMinRate && newCount > bestNewCount)) {
+            bestConfig = r; bestWeakBoost = weakBoost; bestMinRate = minRate; bestNewCount = newCount;
+          }
+        }
+
+        // If no config boosts weak ores at all, fall back to best coverage
+        if (!bestConfig || bestWeakBoost <= 0) {
+          for (const r of deduped) {
+            const rKey = r.droneTier + ':' + r.distance + ':' + r.range;
+            if (usedKeys.has(rKey)) continue;
+            let newCount = 0;
+            for (const n of r.names) { if (!covered.has(n)) newCount++; }
+            if (newCount > bestNewCount || (newCount === bestNewCount && r.sps > (bestConfig ? bestConfig.sps : 0))) {
+              bestConfig = r; bestNewCount = newCount;
+            }
           }
         }
         if (!bestConfig) break;
 
-        const covered = new Set();
-        for (const dd of drones) for (const n of dd.names) covered.add(n);
+        const rKey = bestConfig.droneTier + ':' + bestConfig.distance + ':' + bestConfig.range;
+        usedKeys.add(rKey);
         const newNames = bestConfig.names.filter(n => !covered.has(n));
         const overlapNames = bestConfig.names.filter(n => covered.has(n));
+        for (const n of bestConfig.names) covered.add(n);
         combinedPerOre = mergePerOre(combinedPerOre, bestConfig.perOre);
         drones.push({
           ...bestConfig, droneIndex: d + 1,
@@ -1266,9 +1305,7 @@ function _runCycleOptimizerInner() {
         });
       }
 
-      const coveredSet = new Set();
-      for (const dd of drones) for (const n of dd.names) coveredSet.add(n);
-      const coveredCount = coveredSet.size;
+      const coveredCount = covered.size;
       const totalSPS = drones.reduce((s, d) => s + d.sps, 0);
       const bm = balanceMetrics(combinedPerOre);
       return { drones, coveredCount, totalSPS, combinedPerOre, balance: bm };
@@ -1310,14 +1347,12 @@ function _runCycleOptimizerInner() {
           bestResult = result;
         }
       } else if (goal === 'boostweak') {
-        // Prefer higher minimum ore rate, then lower CV
-        const rRates = Object.values(result.combinedPerOre || {});
-        const bRates = Object.values(bestResult.combinedPerOre || {});
-        const rMin = rRates.length ? Math.min(...rRates) : 0;
-        const bMin = bRates.length ? Math.min(...bRates) : 0;
+        // Prefer more coverage first, then lower CV (which reflects boosted weak ores)
         const rc = result.balance || balanceMetrics(result.combinedPerOre || {});
         const bc = bestResult.balance || balanceMetrics(bestResult.combinedPerOre || {});
-        if (rMin > bMin || (rMin === bMin && rc.cv < bc.cv)) {
+        if (result.coveredCount > bestResult.coveredCount ||
+            (result.coveredCount === bestResult.coveredCount && rc.cv < bc.cv) ||
+            (result.coveredCount === bestResult.coveredCount && rc.cv === bc.cv && result.totalSPS > bestResult.totalSPS)) {
           bestResult = result;
         }
       } else {
