@@ -1409,9 +1409,9 @@ function renderMultiDroneTable() {
       <div class="opt-stat">Coverage: <span>${coveredCount} / ${allCount} (${(coveredCount/allCount*100).toFixed(0)}%)</span></div>`;
   if (balance) {
     const ratio = balance.maxRate > 0 ? (balance.minRate / balance.maxRate * 100).toFixed(1) : 0;
-    h += `<div class="opt-stat">Balance: <span style="color:var(--gold)">${ratio}% min/max</span> <span style="color:var(--text2);font-size:0.85em">(CV ${balance.cv.toFixed(2)})</span></div>
-      <div class="opt-stat">Min ore: <span>${fmt(balance.minRate * 3600)} stk/hr</span></div>
-      <div class="opt-stat">Max ore: <span>${fmt(balance.maxRate * 3600)} stk/hr</span></div>`;
+    h += `<div class="opt-stat" title="Min/Max: ratio of lowest to highest ore rate (100% = all ores equal). CV (Coefficient of Variation): std dev / mean of ore rates — lower is more balanced, 0 = perfectly even.">Balance: <span style="color:var(--gold)">${ratio}% min/max</span> <span style="color:var(--text2);font-size:0.85em">(CV ${balance.cv.toFixed(2)})</span></div>
+      <div class="opt-stat" title="Lowest ore production rate across all ores">Min ore: <span>${fmt(balance.minRate * 3600)} stk/hr</span></div>
+      <div class="opt-stat" title="Highest ore production rate across all ores">Max ore: <span>${fmt(balance.maxRate * 3600)} stk/hr</span></div>`;
   }
   h += `</div>`;
 
