@@ -1047,14 +1047,17 @@ function runCycleOptimizer() {
 
   // Helper: compute balance metrics for a per-ore map
   function balanceMetrics(perOre) {
-    const rates = Object.values(perOre);
-    if (rates.length === 0) return { minRate: 0, maxRate: 0, ratio: 1, cv: 0, oreCount: 0 };
-    const minRate = Math.min(...rates);
-    const maxRate = Math.max(...rates);
-    const mean = rates.reduce((s, v) => s + v, 0) / rates.length;
-    const variance = rates.reduce((s, v) => s + (v - mean) ** 2, 0) / rates.length;
+    const rates = Object.values(perOre).sort((a, b) => a - b);
+    const n = rates.length;
+    if (n === 0) return { minRate: 0, maxRate: 0, p10: 0, p90: 0, ratio: 1, cv: 0, oreCount: 0 };
+    const minRate = rates[0];
+    const maxRate = rates[n - 1];
+    const p10 = rates[Math.floor(n * 0.1)];
+    const p90 = rates[Math.min(n - 1, Math.ceil(n * 0.9) - 1)];
+    const mean = rates.reduce((s, v) => s + v, 0) / n;
+    const variance = rates.reduce((s, v) => s + (v - mean) ** 2, 0) / n;
     const cv = mean > 0 ? Math.sqrt(variance) / mean : 0;
-    return { minRate, maxRate, ratio: maxRate > 0 ? minRate / maxRate : 1, cv, oreCount: rates.length };
+    return { minRate, maxRate, p10, p90, ratio: p90 > 0 ? p10 / p90 : 1, cv, oreCount: n };
   }
 
   // Helper: merge two perOre maps
@@ -1409,9 +1412,10 @@ function renderMultiDroneTable() {
       <div class="opt-stat">Coverage: <span>${coveredCount} / ${allCount} (${(coveredCount/allCount*100).toFixed(0)}%)</span></div>`;
   if (balance) {
     const ratio = balance.maxRate > 0 ? (balance.minRate / balance.maxRate * 100).toFixed(1) : 0;
-    h += `<div class="opt-stat" title="Min/Max: ratio of lowest to highest ore rate (100% = all ores equal). CV (Coefficient of Variation): std dev / mean of ore rates — lower is more balanced, 0 = perfectly even.">Balance: <span style="color:var(--gold)">${ratio}% min/max</span> <span style="color:var(--text2);font-size:0.85em">(CV ${balance.cv.toFixed(2)})</span></div>
-      <div class="opt-stat" title="Lowest ore production rate across all ores">Min ore: <span>${fmt(balance.minRate * 3600)} stk/hr</span></div>
-      <div class="opt-stat" title="Highest ore production rate across all ores">Max ore: <span>${fmt(balance.maxRate * 3600)} stk/hr</span></div>`;
+    const p10p90 = balance.p90 > 0 ? (balance.p10 / balance.p90 * 100).toFixed(1) : 0;
+    h += `<div class="opt-stat" title="P10/P90: ratio of 10th to 90th percentile ore rate — ignores extreme outliers. 100% = very even distribution. CV: std dev / mean, lower = more balanced.">Balance: <span style="color:var(--gold)">${p10p90}% P10/P90</span> <span style="color:var(--text2);font-size:0.85em">(CV ${balance.cv.toFixed(2)})</span></div>
+      <div class="opt-stat" title="10th percentile ore rate — 90% of ores produce at least this much">P10 ore: <span>${fmt(balance.p10 * 3600)} stk/hr</span></div>
+      <div class="opt-stat" title="90th percentile ore rate — only 10% of ores produce more than this">P90 ore: <span>${fmt(balance.p90 * 3600)} stk/hr</span></div>`;
   }
   h += `</div>`;
 
