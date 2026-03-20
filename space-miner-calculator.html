@@ -260,6 +260,33 @@
   <div id="optResult"></div>
 </details>
 
+<details class="optimizer">
+  <summary><h2 style="display:inline">Cycle Mode Optimizer</h2></summary>
+  <p style="color:var(--text2);margin:4px 0 12px">Finds the best center distance &amp; range to hit the most asteroids. Uses your current module tier, max drone tier, and plasma settings.</p>
+  <div class="optimizer-row">
+    <div class="control-group">
+      <label>Max Range</label>
+      <select id="cycleMaxRange">
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50" selected>50</option>
+        <option value="75">75</option>
+        <option value="100">100</option>
+        <option value="200">200</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Optimize For</label>
+      <select id="cycleOptGoal">
+        <option value="asteroids">Most asteroids</option>
+        <option value="throughput">Highest throughput (stacks/hr)</option>
+      </select>
+    </div>
+    <button class="opt-btn" onclick="runCycleOptimizer()">Optimize Cycle</button>
+  </div>
+  <div id="cycleOptResult"></div>
+</details>
+
 <div class="filter-row">
   <input type="text" id="oreFilter" placeholder="Filter by ore or asteroid name...">
   <label><input type="checkbox" id="hideUnavailable" checked> Hide unavailable</label>
@@ -877,6 +904,144 @@ function runOptimizer() {
   }
   h += '</tbody></table></div>';
   container.innerHTML = h;
+}
+
+// Cycle Optimizer: find center+range to maximize asteroid count or throughput
+function runCycleOptimizer() {
+  const modT = +document.getElementById('moduleTier').value;
+  const drT = Math.min(+document.getElementById('droneTier').value, +document.getElementById('maxDroneTier').value);
+  const pt = +document.getElementById('plasmaTier').value;
+  const plasma = PLASMA[pt];
+  const maxRange = +document.getElementById('cycleMaxRange').value;
+  const goal = document.getElementById('cycleOptGoal').value;
+  const step = Math.max(1, +document.getElementById('step').value);
+
+  const maxODLim = Math.min(2.0, 2.0 * plasma.discount);
+  const minODLim = plasma.lambda > 0 ? Math.max(0.01, 2.0 - 0.75 / plasma.lambda) : 0.01;
+  const od = Math.max(minODLim, Math.min(maxODLim, +document.getElementById('overdrive').value / 100));
+  const timeMult = Math.max(plasma.discount / od, 0.5);
+  const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
+
+  // Filter accessible asteroids by module+drone
+  const accessible = A.filter(a => drT >= a.drMin && drT <= a.drMax && modT >= a.mod);
+  if (!accessible.length) {
+    document.getElementById('cycleOptResult').innerHTML = `<div class="opt-result"><h3>No accessible asteroids</h3>
+      <p style="color:var(--text2)">No asteroids are accessible with the current module and drone tier.</p></div>`;
+    return;
+  }
+
+  const results = [];
+
+  for (let center = 0; center <= 200; center++) {
+    for (let range = 0; range <= maxRange; range += (range < 10 ? 1 : 5)) {
+      const lo = Math.max(0, center - range);
+      const hi = Math.min(200, center + range);
+      const dists = [];
+      for (let d = lo; d <= hi; d += step) dists.push(d);
+      if (!dists.length) continue;
+
+      // Count unique asteroids hit across all distances
+      const hitSet = new Set();
+      let totalSPS = 0;
+
+      // Aggregate across distances (same logic as calculate())
+      const chanceMap = new Map();
+      let totalExpTime = 0;
+      for (const dist of dists) {
+        const eligible = accessible.filter(a => dist >= a.dMin && dist <= a.dMax);
+        if (!eligible.length) continue;
+        const tw = eligible.reduce((s, a) => s + a.wt, 0);
+        let expectedTime = 0;
+        for (const a of eligible) {
+          hitSet.add(a.n);
+          const p = a.wt / tw;
+          chanceMap.set(a.n, (chanceMap.get(a.n) || 0) + p);
+          const dScale = Math.sqrt(drT - a.drMin + 1);
+          const adjDur = Math.ceil(a.dur / dScale) * timeMult / 20;
+          expectedTime += p * adjDur;
+        }
+        totalExpTime += expectedTime;
+      }
+
+      const avgExpTime = totalExpTime / dists.length;
+      if (avgExpTime > 0) {
+        for (const a of accessible) {
+          const avgChance = (chanceMap.get(a.n) || 0) / dists.length;
+          if (avgChance <= 0) continue;
+          const size = adjSize(a, drT);
+          const avgSz = size.min + sizeBonus * (size.max - size.min);
+          const adjEut = Math.ceil(a.eut * Math.sqrt(drT - a.drMin + 1));
+          const maxP = Math.floor(MODULE_MAX_EU[modT] / adjEut);
+          const maxC = Math.floor(MODULE_MAX_COMP[modT] / a.comp);
+          const par = Math.max(1, Math.min(MODULE_MAX_PAR[modT], maxP, maxC));
+          totalSPS += avgChance * par * avgSz / avgExpTime;
+        }
+      }
+
+      results.push({ center, range, lo, hi, count: hitSet.size, sps: totalSPS, names: [...hitSet].sort() });
+    }
+  }
+
+  if (!results.length) {
+    document.getElementById('cycleOptResult').innerHTML = `<div class="opt-result"><h3>No results</h3></div>`;
+    return;
+  }
+
+  // Sort by goal
+  if (goal === 'asteroids') {
+    results.sort((a, b) => b.count - a.count || b.sps - a.sps || a.range - b.range);
+  } else {
+    results.sort((a, b) => b.sps - a.sps || b.count - a.count);
+  }
+
+  // Deduplicate: keep best per unique (count, lo, hi) combo
+  const seen = new Set();
+  const top = [];
+  for (const r of results) {
+    const key = `${r.count}|${r.lo}|${r.hi}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    top.push(r);
+    if (top.length >= 20) break;
+  }
+
+  const best = top[0];
+  let h = `<div class="opt-result">
+    <h3>Best cycle configs &mdash; MK-${['I','II','III'][modT-1]} / Drone ${ROMAN[drT]} &mdash; top: ${best.count} asteroids, ${fmt(best.sps*3600)} stacks/hr</h3>
+    <table><thead><tr>
+      <th>Rank</th><th>Center</th><th>Range</th><th>Distance Span</th>
+      <th>Asteroids</th><th>Stacks/hr</th><th>Items/hr</th><th>Asteroid Names</th><th></th>
+    </tr></thead><tbody>`;
+
+  for (let i = 0; i < top.length; i++) {
+    const r = top[i];
+    const sph = r.sps * 3600;
+    h += `<tr${i===0 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
+      <td>${i+1}</td>
+      <td>${r.center}</td>
+      <td>${r.range}</td>
+      <td>${r.lo}-${r.hi}</td>
+      <td style="font-weight:600">${r.count}</td>
+      <td style="color:var(--green);font-weight:600">${fmt(sph)}</td>
+      <td style="color:var(--green)">${fmt(sph*64)}</td>
+      <td style="font-size:0.85em;max-width:400px">${r.names.join(', ')}</td>
+      <td><button class="apply-btn" onclick="applyCycle(${r.center},${r.range})">Apply</button></td>
+    </tr>`;
+  }
+  h += '</tbody></table></div>';
+  document.getElementById('cycleOptResult').innerHTML = h;
+}
+
+function applyCycle(center, range) {
+  document.getElementById('distance').value = center;
+  document.getElementById('distDisplay').textContent = center;
+  document.getElementById('range').value = range;
+  document.getElementById('rangeDisplay').textContent = range;
+  document.getElementById('mode').value = 'cycle';
+  document.getElementById('rangeGroup').style.display = '';
+  document.getElementById('stepGroup').style.display = '';
+  calculate();
+  document.getElementById('infoCards').scrollIntoView({ behavior: 'smooth' });
 }
 
 function applyOptimal(dist, od, modT, drT) {
