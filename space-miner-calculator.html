@@ -288,7 +288,7 @@
 
 <details class="optimizer">
   <summary><h2 style="display:inline">Cycle Mode Optimizer</h2></summary>
-  <p style="color:var(--text2);margin:4px 0 12px">Finds the best distance, range &amp; step to hit the most unique asteroids. With multiple drones, uses greedy set cover to maximize unique asteroid coverage while minimizing overlap.</p>
+  <p style="color:var(--text2);margin:4px 0 12px">Finds the best distance, range &amp; step to hit the most unique asteroids. With multiple drones, uses greedy set cover to maximize coverage. Boost Weakest intentionally overlaps drones on asteroids that produce the scarcest ores.</p>
   <div class="optimizer-row">
     <div class="control-group">
       <label>Max Range</label>
@@ -319,6 +319,7 @@
       <select id="cycleGoal">
         <option value="throughput" selected>Max Throughput</option>
         <option value="balanced">Most Balanced</option>
+        <option value="boostweak">Boost Weakest</option>
       </select>
     </div>
     <div class="control-group">
@@ -1088,8 +1089,8 @@ function _runCycleOptimizerInner() {
     return merged;
   }
 
-  // Sort: for balanced mode, prefer many asteroids then low CV; for throughput, count then SPS
-  if (goal === 'balanced') {
+  // Sort: for balanced/boostweak modes, prefer many asteroids then low CV; for throughput, count then SPS
+  if (goal === 'balanced' || goal === 'boostweak') {
     allResults.sort((a, b) => {
       const ba = balanceMetrics(a.perOre), bb = balanceMetrics(b.perOre);
       return b.count - a.count || ba.cv - bb.cv || b.sps - a.sps || a.range - b.range;
@@ -1224,7 +1225,56 @@ function _runCycleOptimizerInner() {
       return { drones, coveredCount, totalSPS, combinedPerOre, balance: bm };
     }
 
-    const greedyFn = goal === 'balanced' ? greedyBalanced : greedyThroughput;
+    // Boost Weakest greedy: first drone covers most asteroids, subsequent drones
+    // intentionally overlap to boost the lowest-producing ores
+    function greedyBoostWeak(startIdx) {
+      const drones = [];
+      let combinedPerOre = {};
+
+      const first = deduped[startIdx];
+      combinedPerOre = { ...first.perOre };
+      drones.push({
+        ...first, droneIndex: 1,
+        newNames: [...first.names].sort(), overlapNames: [],
+        newCount: first.names.length, overlapCount: 0
+      });
+
+      for (let d = 1; d < maxDrones; d++) {
+        let bestConfig = null, bestMinRate = -Infinity, bestCV = Infinity;
+        for (const r of deduped) {
+          const merged = mergePerOre(combinedPerOre, r.perOre);
+          const rates = Object.values(merged);
+          const minRate = Math.min(...rates);
+          const bm = balanceMetrics(merged);
+          // Primary: maximize the minimum ore rate; secondary: lowest CV
+          if (minRate > bestMinRate ||
+              (minRate === bestMinRate && bm.cv < bestCV)) {
+            bestConfig = r; bestMinRate = minRate; bestCV = bm.cv;
+          }
+        }
+        if (!bestConfig) break;
+
+        const covered = new Set();
+        for (const dd of drones) for (const n of dd.names) covered.add(n);
+        const newNames = bestConfig.names.filter(n => !covered.has(n));
+        const overlapNames = bestConfig.names.filter(n => covered.has(n));
+        combinedPerOre = mergePerOre(combinedPerOre, bestConfig.perOre);
+        drones.push({
+          ...bestConfig, droneIndex: d + 1,
+          newNames: newNames.sort(), overlapNames: overlapNames.sort(),
+          newCount: newNames.length, overlapCount: overlapNames.length
+        });
+      }
+
+      const coveredSet = new Set();
+      for (const dd of drones) for (const n of dd.names) coveredSet.add(n);
+      const coveredCount = coveredSet.size;
+      const totalSPS = drones.reduce((s, d) => s + d.sps, 0);
+      const bm = balanceMetrics(combinedPerOre);
+      return { drones, coveredCount, totalSPS, combinedPerOre, balance: bm };
+    }
+
+    const greedyFn = goal === 'balanced' ? greedyBalanced : goal === 'boostweak' ? greedyBoostWeak : greedyThroughput;
 
     // Try multiple starting points: top N by count, by SPS, and by balance
     const byCount = [...deduped].sort((a, b) => b.count - a.count || b.sps - a.sps);
@@ -1257,6 +1307,17 @@ function _runCycleOptimizerInner() {
         if (result.coveredCount > bestResult.coveredCount ||
             (result.coveredCount === bestResult.coveredCount && rc.cv < bc.cv) ||
             (result.coveredCount === bestResult.coveredCount && rc.cv === bc.cv && result.totalSPS > bestResult.totalSPS)) {
+          bestResult = result;
+        }
+      } else if (goal === 'boostweak') {
+        // Prefer higher minimum ore rate, then lower CV
+        const rRates = Object.values(result.combinedPerOre || {});
+        const bRates = Object.values(bestResult.combinedPerOre || {});
+        const rMin = rRates.length ? Math.min(...rRates) : 0;
+        const bMin = bRates.length ? Math.min(...bRates) : 0;
+        const rc = result.balance || balanceMetrics(result.combinedPerOre || {});
+        const bc = bestResult.balance || balanceMetrics(bestResult.combinedPerOre || {});
+        if (rMin > bMin || (rMin === bMin && rc.cv < bc.cv)) {
           bestResult = result;
         }
       } else {
@@ -1461,8 +1522,8 @@ function renderMultiDroneTable() {
   const { drones, modT, maxDrT, allCount, allAccessibleNames, coveredCount, totalSPS, goal, combinedPerOre, balance } = window._cycleOptData;
   const totalOverlap = drones.reduce((s, d) => s + d.overlapCount, 0);
   const totalSPH = (totalSPS || drones.reduce((s, d) => s + d.sps, 0)) * 3600;
-  const isBalanced = goal === 'balanced';
-  const goalLabel = isBalanced ? 'Most Balanced' : 'Max Throughput';
+  const isBalanced = goal === 'balanced' || goal === 'boostweak';
+  const goalLabel = goal === 'balanced' ? 'Most Balanced' : goal === 'boostweak' ? 'Boost Weakest' : 'Max Throughput';
 
   // Compute missing and all-overlap asteroids for tooltips
   const coveredSet = new Set();
