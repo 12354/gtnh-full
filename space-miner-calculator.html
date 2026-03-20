@@ -262,7 +262,7 @@
 
 <details class="optimizer">
   <summary><h2 style="display:inline">Cycle Mode Optimizer</h2></summary>
-  <p style="color:var(--text2);margin:4px 0 12px">Finds the best center distance &amp; range to hit the most asteroids. Uses your current module tier, max drone tier, and plasma settings.</p>
+  <p style="color:var(--text2);margin:4px 0 12px">Finds the best range &amp; step to hit the most asteroids at your current distance. Uses your current module tier, max drone tier, and plasma settings.</p>
   <div class="optimizer-row">
     <div class="control-group">
       <label>Max Range</label>
@@ -906,7 +906,7 @@ function runOptimizer() {
   container.innerHTML = h;
 }
 
-// Cycle Optimizer: find center+range to maximize asteroid count or throughput
+// Cycle Optimizer: find best range+step to maximize asteroid count or throughput
 function runCycleOptimizer() {
   const modT = +document.getElementById('moduleTier').value;
   const drT = Math.min(+document.getElementById('droneTier').value, +document.getElementById('maxDroneTier').value);
