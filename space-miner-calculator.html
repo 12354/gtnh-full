@@ -1418,7 +1418,8 @@ function applyCycle(distance, range, droneTier) {
 }
 
 // Build a rich tooltip listing asteroids with their production rates
-function asteroidListTip(title, names, tipCtx, color) {
+function asteroidListTip(title, names, tipCtx, color, showRates) {
+  if (showRates === undefined) showRates = true;
   if (!names.length) return '';
   const ptTip = tipCtx.plasmaTier || +document.getElementById('plasmaTier').value;
   const plasma = PLASMA[ptTip];
@@ -1450,7 +1451,7 @@ function asteroidListTip(title, names, tipCtx, color) {
   h += `<div class="tip-row" style="margin-bottom:4px"><span class="tip-label">${rows.length} asteroid${rows.length !== 1 ? 's' : ''}</span></div>`;
   h += '<div class="tip-sep"></div>';
   for (const r of rows) {
-    h += `<div class="tip-row"><span class="tip-label">${r.name}</span><span class="tip-val green">${fmt(r.sph)}/hr</span></div>`;
+    h += `<div class="tip-row"><span class="tip-label">${r.name}</span>${showRates ? `<span class="tip-val green">${fmt(r.sph)}/hr</span>` : ''}</div>`;
   }
   h += '</div>';
   return h.replace(/"/g, '&quot;');
@@ -1471,7 +1472,7 @@ function renderMultiDroneTable() {
   // Use a generic tipCtx — for missing asteroids use best-fit drone tier
   const summaryTipCtx = { modT, droneTier: maxDrT, plasmaTier: +document.getElementById('plasmaTier').value };
 
-  const missingTip = missingNames.length > 0 ? asteroidListTip(`Missing Asteroids (${missingNames.length})`, missingNames, summaryTipCtx, 'var(--accent)') : '';
+  const missingTip = missingNames.length > 0 ? asteroidListTip(`Missing Asteroids (${missingNames.length})`, missingNames, summaryTipCtx, 'var(--accent)', false) : '';
   const overlapTip = allOverlapNames.length > 0 ? asteroidListTip(`Overlapping Asteroids (${allOverlapNames.length})`, allOverlapNames, summaryTipCtx, 'var(--accent)') : '';
 
   let h = `<div class="opt-result">
@@ -1544,7 +1545,7 @@ function renderMultiDroneTable() {
   }
 
   const totalOverlapTip = allOverlapNames.length > 0 ? asteroidListTip(`All Overlapping (${allOverlapNames.length})`, allOverlapNames, summaryTipCtx, 'var(--accent)') : '';
-  const totalMissingTip = missingNames.length > 0 ? asteroidListTip(`Missing (${missingNames.length})`, missingNames, summaryTipCtx, 'var(--accent)') : '';
+  const totalMissingTip = missingNames.length > 0 ? asteroidListTip(`Missing (${missingNames.length})`, missingNames, summaryTipCtx, 'var(--accent)', false) : '';
   h += `<tr class="total-row">
     <td colspan="5" style="text-align:right">TOTAL</td>
     <td${totalMissingTip ? ` data-richtip="${totalMissingTip}" style="cursor:help"` : ''}>${coveredCount}${missingNames.length > 0 ? ' / ' + allCount : ''}</td>
