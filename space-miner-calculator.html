@@ -190,6 +190,24 @@
     </select>
   </div>
   <div class="control-group">
+    <label>Max Drone Tier</label>
+    <select id="maxDroneTier">
+      <option value="1">LV - Mining Drone-I</option>
+      <option value="2">MV - Mining Drone-II</option>
+      <option value="3">HV - Mining Drone-III</option>
+      <option value="4">EV - Mining Drone-IV</option>
+      <option value="5">IV - Mining Drone-V</option>
+      <option value="6">LuV - Mining Drone-VI</option>
+      <option value="7">ZPM - Mining Drone-VII</option>
+      <option value="8">UV - Mining Drone-VIII</option>
+      <option value="9">UHV - Mining Drone-IX</option>
+      <option value="10">UEV - Mining Drone-X</option>
+      <option value="11">UIV - Mining Drone-XI</option>
+      <option value="12">UMV - Mining Drone-XII</option>
+      <option value="13" selected>UXV - Mining Drone-XIII</option>
+    </select>
+  </div>
+  <div class="control-group">
     <label>Distance (0-200)</label>
     <input type="range" id="distance" min="0" max="200" value="95">
     <div class="value-display" id="distDisplay">95</div>
@@ -416,7 +434,8 @@ function getInputs() {
   const mode = document.getElementById('mode').value;
   const range = +document.getElementById('range').value;
   const step = Math.max(1, +document.getElementById('step').value);
-  return { moduleTier, droneTier, distance, plasmaTier, od, parallels, mode, range, step };
+  const maxDroneTier = +document.getElementById('maxDroneTier').value;
+  return { moduleTier, droneTier: Math.min(droneTier, maxDroneTier), maxDroneTier, distance, plasmaTier, od, parallels, mode, range, step };
 }
 
 function getDistances(inp) {
@@ -746,10 +765,11 @@ function runOptimizer() {
     return;
   }
 
+  const maxDrT = +document.getElementById('maxDroneTier').value;
   const results = [];
 
   for (let modT = 1; modT <= 3; modT++) {
-    for (let drT = 1; drT <= 13; drT++) {
+    for (let drT = 1; drT <= maxDrT; drT++) {
       const accessible = targetAsts.filter(t =>
         drT >= t.ast.drMin && drT <= t.ast.drMax && modT >= t.ast.mod
       );
@@ -874,7 +894,7 @@ function applyOptimal(dist, od, modT, drT) {
 }
 
 // URL state: save settings to hash, restore on load
-const STATE_KEYS = ['moduleTier','droneTier','distance','plasmaTier','overdrive','mode','range','step'];
+const STATE_KEYS = ['moduleTier','droneTier','maxDroneTier','distance','plasmaTier','overdrive','mode','range','step'];
 const CHECK_KEYS = ['hideUnavailable','showPerItem'];
 
 function saveState() {
