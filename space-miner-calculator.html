@@ -1027,6 +1027,13 @@ function runCycleOptimizer() {
   renderCycleOptTable(false);
 }
 
+function oreTooltip(name, extraStyle) {
+  const ast = A.find(a => a.n === name);
+  const tip = ast ? ast.m.join(', ') : '';
+  const s = extraStyle || '';
+  return `<span title="${tip}" style="cursor:help;border-bottom:1px dotted var(--text2)${s ? ';' + s : ''}">${name}</span>`;
+}
+
 function renderCycleOptTable(showDiff) {
   const { top, modT, drT, currentNames, isCycle } = window._cycleOptData;
   const currentSet = new Set(currentNames);
@@ -1051,12 +1058,11 @@ function renderCycleOptTable(showDiff) {
     const rowNames = new Set(r.names);
     let namesHtml;
     if (showDiff && isCycle) {
-      // Show row's asteroids, then append lost ones in red
-      const kept = r.names.join(', ');
+      const kept = r.names.map(n => oreTooltip(n)).join(', ');
       const lost = [...currentSet].filter(n => !rowNames.has(n)).sort();
-      namesHtml = kept + (lost.length ? ', ' + lost.map(n => `<span style="color:var(--accent);text-decoration:line-through">${n}</span>`).join(', ') : '');
+      namesHtml = kept + (lost.length ? ', ' + lost.map(n => oreTooltip(n, 'color:var(--accent);text-decoration:line-through')).join(', ') : '');
     } else {
-      namesHtml = r.names.join(', ');
+      namesHtml = r.names.map(n => oreTooltip(n)).join(', ');
     }
     h += `<tr${i===0 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
       <td>${i+1}</td>
