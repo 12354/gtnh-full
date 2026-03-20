@@ -128,6 +128,10 @@
     white-space: nowrap;
   }
   .opt-btn:hover { filter: brightness(1.15); }
+  .opt-btn:disabled { opacity: 0.6; cursor: wait; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .opt-loading { display: flex; align-items: center; gap: 10px; padding: 16px; color: var(--text2); }
+  .opt-loading::before { content: ''; width: 18px; height: 18px; border: 2.5px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
   .opt-result {
     background: var(--bg); border: 1px solid var(--border);
     border-radius: 8px; padding: 16px; margin-top: 12px;
@@ -813,6 +817,12 @@ document.getElementById('mode').addEventListener('change', function() {
 function runOptimizer() {
   const targetOre = document.getElementById('targetOre').value;
   if (!targetOre) return;
+  const btn = document.querySelector('#optResult').closest('.optimizer').querySelector('.opt-btn');
+  btn.disabled = true;
+  document.getElementById('optResult').innerHTML = '<div class="opt-loading">Optimizing\u2026</div>';
+  setTimeout(() => { try { _runOptimizerInner(targetOre); } finally { btn.disabled = false; } }, 20);
+}
+function _runOptimizerInner(targetOre) {
 
   const pt = +document.getElementById('plasmaTier').value;
   const plasma = PLASMA[pt];
@@ -952,6 +962,16 @@ function runOptimizer() {
 
 // Cycle Optimizer: find best distance+range+step to maximize asteroid count or throughput
 function runCycleOptimizer() {
+  const btn = document.querySelector('#cycleOptResult').closest('.optimizer').querySelector('.opt-btn');
+  btn.disabled = true;
+  document.getElementById('cycleOptResult').innerHTML = '<div class="opt-loading">Optimizing\u2026</div>';
+  setTimeout(_runCycleOptimizerSync, 20);
+}
+function _runCycleOptimizerSync() {
+  const btn = document.querySelector('#cycleOptResult').closest('.optimizer').querySelector('.opt-btn');
+  try { _runCycleOptimizerInner(); } finally { btn.disabled = false; }
+}
+function _runCycleOptimizerInner() {
   const modT = +document.getElementById('moduleTier').value;
   const drT = Math.min(+document.getElementById('droneTier').value, +document.getElementById('maxDroneTier').value);
   const maxDrT = +document.getElementById('maxDroneTier').value;
