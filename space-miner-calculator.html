@@ -143,7 +143,8 @@
     display: none;
     position: fixed;
     background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 12px 14px; min-width: 280px; max-width: 360px;
+    border-radius: 8px; padding: 12px 14px; min-width: 280px; max-width: 400px;
+    max-height: 70vh; overflow-y: auto;
     z-index: 10000; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     pointer-events: none; white-space: normal; text-align: left;
   }
@@ -1278,7 +1279,7 @@ function _runCycleOptimizerInner() {
     }
     if (!bestResult.balance) bestResult.balance = balanceMetrics(bestResult.combinedPerOre);
 
-    window._cycleOptData = { drones: bestResult.drones, modT, drT, maxDrT, currentNames: [...currentNames], isCycle, maxDrones, goal, allCount: allAccessibleNames.size, coveredCount: bestResult.coveredCount, totalSPS: bestResult.totalSPS, combinedPerOre: bestResult.combinedPerOre, balance: bestResult.balance };
+    window._cycleOptData = { drones: bestResult.drones, modT, drT, maxDrT, currentNames: [...currentNames], isCycle, maxDrones, goal, allCount: allAccessibleNames.size, allAccessibleNames: [...allAccessibleNames], coveredCount: bestResult.coveredCount, totalSPS: bestResult.totalSPS, combinedPerOre: bestResult.combinedPerOre, balance: bestResult.balance };
     renderMultiDroneTable();
   }
 }
@@ -1416,20 +1417,70 @@ function applyCycle(distance, range, droneTier) {
   document.getElementById('infoCards').scrollIntoView({ behavior: 'smooth' });
 }
 
+// Build a rich tooltip listing asteroids with their production rates
+function asteroidListTip(title, names, tipCtx, color) {
+  if (!names.length) return '';
+  const ptTip = tipCtx.plasmaTier || +document.getElementById('plasmaTier').value;
+  const plasma = PLASMA[ptTip];
+  const maxOD = Math.min(2.0, 2.0 * plasma.discount);
+  const minOD = plasma.lambda > 0 ? Math.max(0.01, 2.0 - 0.75 / plasma.lambda) : 0.01;
+  const od = tipCtx.od || Math.max(minOD, Math.min(maxOD, +document.getElementById('overdrive').value / 100));
+  const timeMult = Math.max(plasma.discount / od, 0.5);
+  const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
+  const rows = [];
+  for (const name of names.sort()) {
+    const ast = A.find(a => a.n === name);
+    if (!ast) { rows.push({ name, sph: 0 }); continue; }
+    const drT = Math.max(tipCtx.droneTier || 1, ast.drMin);
+    const modT = tipCtx.modT || 1;
+    const size = adjSize(ast, drT);
+    const avgSz = size.min + sizeBonus * (size.max - size.min);
+    const dScale = Math.sqrt(drT - ast.drMin + 1);
+    const adjDur = Math.ceil(ast.dur / dScale);
+    const cycleSec = adjDur * timeMult / 20;
+    const adjEut = Math.ceil(ast.eut * dScale);
+    const maxP = Math.floor(MODULE_MAX_EU[modT] / adjEut);
+    const maxC = Math.floor(MODULE_MAX_COMP[modT] / ast.comp);
+    const par = Math.max(1, Math.min(MODULE_MAX_PAR[modT], maxP, maxC));
+    const sps = cycleSec > 0 ? par * avgSz / cycleSec : 0;
+    rows.push({ name, sph: sps * 3600 });
+  }
+  rows.sort((a, b) => a.sph - b.sph);
+  let h = `<div class="ore-tip"><div class="tip-name" style="color:${color || 'var(--gold)'}">${title}</div>`;
+  h += `<div class="tip-row" style="margin-bottom:4px"><span class="tip-label">${rows.length} asteroid${rows.length !== 1 ? 's' : ''}</span></div>`;
+  h += '<div class="tip-sep"></div>';
+  for (const r of rows) {
+    h += `<div class="tip-row"><span class="tip-label">${r.name}</span><span class="tip-val green">${fmt(r.sph)}/hr</span></div>`;
+  }
+  h += '</div>';
+  return h.replace(/"/g, '&quot;');
+}
+
 function renderMultiDroneTable() {
-  const { drones, modT, maxDrT, allCount, coveredCount, totalSPS, goal, combinedPerOre, balance } = window._cycleOptData;
+  const { drones, modT, maxDrT, allCount, allAccessibleNames, coveredCount, totalSPS, goal, combinedPerOre, balance } = window._cycleOptData;
   const totalOverlap = drones.reduce((s, d) => s + d.overlapCount, 0);
   const totalSPH = (totalSPS || drones.reduce((s, d) => s + d.sps, 0)) * 3600;
   const isBalanced = goal === 'balanced';
   const goalLabel = isBalanced ? 'Most Balanced' : 'Max Throughput';
+
+  // Compute missing and all-overlap asteroids for tooltips
+  const coveredSet = new Set();
+  for (const d of drones) for (const n of d.names) coveredSet.add(n);
+  const missingNames = (allAccessibleNames || []).filter(n => !coveredSet.has(n)).sort();
+  const allOverlapNames = [...new Set(drones.flatMap(d => d.overlapNames))].sort();
+  // Use a generic tipCtx — for missing asteroids use best-fit drone tier
+  const summaryTipCtx = { modT, droneTier: maxDrT, plasmaTier: +document.getElementById('plasmaTier').value };
+
+  const missingTip = missingNames.length > 0 ? asteroidListTip(`Missing Asteroids (${missingNames.length})`, missingNames, summaryTipCtx, 'var(--accent)') : '';
+  const overlapTip = allOverlapNames.length > 0 ? asteroidListTip(`Overlapping Asteroids (${allOverlapNames.length})`, allOverlapNames, summaryTipCtx, 'var(--accent)') : '';
 
   let h = `<div class="opt-result">
     <h3>Multi-drone coverage (${goalLabel}) &mdash; MK-${['I','II','III'][modT-1]} / Drones I\u2013${ROMAN[maxDrT]} &mdash; ${drones.length} drone${drones.length > 1 ? 's' : ''} cover ${coveredCount} / ${allCount} accessible asteroids</h3>
     <div class="opt-grid" style="margin-bottom:12px">
       <div class="opt-stat">Combined throughput: <span>${fmt(totalSPH)} stacks/hr</span></div>
       <div class="opt-stat">Items/hr: <span>${fmt(totalSPH * 64)}</span></div>
-      <div class="opt-stat">Overlap: <span style="color:${totalOverlap > 0 ? 'var(--accent)' : 'var(--green)'}">${totalOverlap} asteroid${totalOverlap !== 1 ? 's' : ''}</span></div>
-      <div class="opt-stat">Coverage: <span>${coveredCount} / ${allCount} (${(coveredCount/allCount*100).toFixed(0)}%)</span></div>`;
+      <div class="opt-stat"${overlapTip ? ` data-richtip="${overlapTip}" style="cursor:help"` : ''}>Overlap: <span style="color:${totalOverlap > 0 ? 'var(--accent)' : 'var(--green)'}${overlapTip ? ';border-bottom:1px dotted var(--text2)' : ''}">${totalOverlap} asteroid${totalOverlap !== 1 ? 's' : ''}${overlapTip ? ' \u24d8' : ''}</span></div>
+      <div class="opt-stat"${missingTip ? ` data-richtip="${missingTip}" style="cursor:help"` : ''}>Coverage: <span style="${missingTip ? 'border-bottom:1px dotted var(--text2)' : ''}">${coveredCount} / ${allCount} (${(coveredCount/allCount*100).toFixed(0)}%)${missingTip ? ' \u24d8' : ''}</span></div>`;
   if (balance) {
     const ratio = balance.maxRate > 0 ? (balance.minRate / balance.maxRate * 100).toFixed(1) : 0;
     const p10p90 = balance.p90 > 0 ? (balance.p10 / balance.p90 * 100).toFixed(1) : 0;
@@ -1473,6 +1524,10 @@ function renderMultiDroneTable() {
     }).join(', ');
     const dSPH = d.sps * 3600;
 
+    // Per-drone overlap/new tooltips
+    const droneOverlapTip = d.overlapCount > 0 ? asteroidListTip(`Drone ${d.droneIndex} Overlap (${d.overlapCount})`, d.overlapNames, tipCtx, 'var(--accent)') : '';
+    const droneNewTip = d.newCount > 0 ? asteroidListTip(`Drone ${d.droneIndex} New (${d.newCount})`, d.newNames, tipCtx, 'var(--green)') : '';
+
     h += `<tr${d.droneIndex === 1 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
       <td style="font-weight:700">${d.droneIndex}</td>
       <td>${ROMAN[d.droneTier]}</td>
@@ -1480,19 +1535,21 @@ function renderMultiDroneTable() {
       <td>${d.range}</td>
       <td>${d.steps}</td>
       <td>${d.count}</td>
-      <td style="color:var(--green);font-weight:600">+${d.newCount}</td>
-      <td style="color:${d.overlapCount > 0 ? 'var(--accent)' : 'var(--text2)'}">${d.overlapCount}</td>
+      <td${droneNewTip ? ` data-richtip="${droneNewTip}" style="cursor:help;color:var(--green);font-weight:600"` : ' style="color:var(--green);font-weight:600"'}>+${d.newCount}</td>
+      <td${droneOverlapTip ? ` data-richtip="${droneOverlapTip}" style="cursor:help;color:var(--accent)"` : ` style="color:${d.overlapCount > 0 ? 'var(--accent)' : 'var(--text2)'}"`}>${d.overlapCount}</td>
       <td style="color:var(--green);font-weight:600">${fmt(dSPH)}</td>
       <td style="font-size:0.85em;max-width:400px">${namesHtml}</td>
       <td><button class="apply-btn" onclick="applyCycle(${d.distance},${d.range},${d.droneTier})">Apply</button></td>
     </tr>`;
   }
 
+  const totalOverlapTip = allOverlapNames.length > 0 ? asteroidListTip(`All Overlapping (${allOverlapNames.length})`, allOverlapNames, summaryTipCtx, 'var(--accent)') : '';
+  const totalMissingTip = missingNames.length > 0 ? asteroidListTip(`Missing (${missingNames.length})`, missingNames, summaryTipCtx, 'var(--accent)') : '';
   h += `<tr class="total-row">
     <td colspan="5" style="text-align:right">TOTAL</td>
-    <td>${coveredCount}</td>
+    <td${totalMissingTip ? ` data-richtip="${totalMissingTip}" style="cursor:help"` : ''}>${coveredCount}${missingNames.length > 0 ? ' / ' + allCount : ''}</td>
     <td style="color:var(--green)">+${coveredCount}</td>
-    <td style="color:${totalOverlap > 0 ? 'var(--accent)' : 'var(--text2)'}">${totalOverlap}</td>
+    <td${totalOverlapTip ? ` data-richtip="${totalOverlapTip}" style="cursor:help;color:var(--accent)"` : ` style="color:${totalOverlap > 0 ? 'var(--accent)' : 'var(--text2)'}"`}>${totalOverlap}</td>
     <td style="color:var(--green);font-weight:700">${fmt(totalSPH)}</td>
     <td colspan="2"></td>
   </tr>`;
@@ -1564,26 +1621,30 @@ calculate();
   popup.id = 'oreTipPopup';
   document.body.appendChild(popup);
 
-  document.addEventListener('mouseenter', function(e) {
-    const el = e.target.closest('.ore-tip-wrap[data-oretip]');
-    if (!el) return;
-    popup.innerHTML = el.getAttribute('data-oretip');
+  function showPopup(el, attr) {
+    popup.innerHTML = el.getAttribute(attr);
     popup.style.display = 'block';
     const rect = el.getBoundingClientRect();
     const pw = popup.offsetWidth;
     const ph = popup.offsetHeight;
     let left = rect.left + rect.width / 2 - pw / 2;
     let top = rect.top - ph - 8;
-    // Keep within viewport
     if (left < 4) left = 4;
     if (left + pw > window.innerWidth - 4) left = window.innerWidth - pw - 4;
-    if (top < 4) { top = rect.bottom + 8; } // flip below if no room above
+    if (top < 4) { top = rect.bottom + 8; }
     popup.style.left = left + 'px';
     popup.style.top = top + 'px';
+  }
+
+  document.addEventListener('mouseenter', function(e) {
+    const ore = e.target.closest('.ore-tip-wrap[data-oretip]');
+    if (ore) { showPopup(ore, 'data-oretip'); return; }
+    const rich = e.target.closest('[data-richtip]');
+    if (rich) showPopup(rich, 'data-richtip');
   }, true);
 
   document.addEventListener('mouseleave', function(e) {
-    const el = e.target.closest('.ore-tip-wrap[data-oretip]');
+    const el = e.target.closest('.ore-tip-wrap[data-oretip]') || e.target.closest('[data-richtip]');
     if (!el) return;
     popup.style.display = 'none';
   }, true);
