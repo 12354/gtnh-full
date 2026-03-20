@@ -135,16 +135,14 @@
   .ore-tip-wrap {
     position: relative; display: inline;
   }
-  .ore-tip-wrap .ore-tip {
+  #oreTipPopup {
     display: none;
-    position: absolute; bottom: calc(100% + 8px); left: 50%;
-    transform: translateX(-50%);
+    position: fixed;
     background: var(--bg2); border: 1px solid var(--border);
     border-radius: 8px; padding: 12px 14px; min-width: 280px; max-width: 360px;
-    z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    z-index: 10000; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     pointer-events: none; white-space: normal; text-align: left;
   }
-  .ore-tip-wrap:hover .ore-tip { display: block; }
   .ore-tip .tip-name { font-weight: 700; color: var(--gold); font-size: 0.95em; margin-bottom: 6px; }
   .ore-tip .tip-row { display: flex; justify-content: space-between; gap: 8px; font-size: 0.82em; padding: 1px 0; }
   .ore-tip .tip-label { color: var(--text2); }
@@ -1156,7 +1154,9 @@ function oreTooltip(name, extraStyle, tipCtx) {
     <div class="tip-mats">${matsHtml}</div>
   </div>`;
 
-  return `<span class="ore-tip-wrap" style="cursor:help;border-bottom:1px dotted var(--text2)${s ? ';' + s : ''}">${name}${tipHtml}</span>`;
+  // Store tip HTML as a data attribute (HTML-escaped for attribute embedding)
+  const escaped = tipHtml.replace(/"/g, '&quot;');
+  return `<span class="ore-tip-wrap" data-oretip="${escaped}" style="cursor:help;border-bottom:1px dotted var(--text2)${s ? ';' + s : ''}">${name}</span>`;
 }
 
 function renderCycleOptTable(showDiff) {
@@ -1317,6 +1317,37 @@ function loadState() {
 
 loadState();
 calculate();
+
+// Floating tooltip for ore-tip-wrap elements
+(function() {
+  const popup = document.createElement('div');
+  popup.id = 'oreTipPopup';
+  document.body.appendChild(popup);
+
+  document.addEventListener('mouseenter', function(e) {
+    const el = e.target.closest('.ore-tip-wrap[data-oretip]');
+    if (!el) return;
+    popup.innerHTML = el.getAttribute('data-oretip');
+    popup.style.display = 'block';
+    const rect = el.getBoundingClientRect();
+    const pw = popup.offsetWidth;
+    const ph = popup.offsetHeight;
+    let left = rect.left + rect.width / 2 - pw / 2;
+    let top = rect.top - ph - 8;
+    // Keep within viewport
+    if (left < 4) left = 4;
+    if (left + pw > window.innerWidth - 4) left = window.innerWidth - pw - 4;
+    if (top < 4) { top = rect.bottom + 8; } // flip below if no room above
+    popup.style.left = left + 'px';
+    popup.style.top = top + 'px';
+  }, true);
+
+  document.addEventListener('mouseleave', function(e) {
+    const el = e.target.closest('.ore-tip-wrap[data-oretip]');
+    if (!el) return;
+    popup.style.display = 'none';
+  }, true);
+})();
 </script>
 </body>
 </html>
