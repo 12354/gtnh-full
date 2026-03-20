@@ -262,7 +262,7 @@
 
 <details class="optimizer">
   <summary><h2 style="display:inline">Cycle Mode Optimizer</h2></summary>
-  <p style="color:var(--text2);margin:4px 0 12px">Finds the best range &amp; step to hit the most asteroids at your current distance. Uses your current module tier, max drone tier, and plasma settings.</p>
+  <p style="color:var(--text2);margin:4px 0 12px">Finds the best distance, range &amp; step to hit the most asteroids. Uses your current module tier, max drone tier, step, and plasma settings.</p>
   <div class="optimizer-row">
     <div class="control-group">
       <label>Max Range</label>
@@ -906,7 +906,7 @@ function runOptimizer() {
   container.innerHTML = h;
 }
 
-// Cycle Optimizer: find best range+step to maximize asteroid count or throughput
+// Cycle Optimizer: find best distance+range+step to maximize asteroid count or throughput
 function runCycleOptimizer() {
   const modT = +document.getElementById('moduleTier').value;
   const drT = Math.min(+document.getElementById('droneTier').value, +document.getElementById('maxDroneTier').value);
@@ -930,55 +930,59 @@ function runCycleOptimizer() {
     return;
   }
 
-  const center = +document.getElementById('distance').value;
   const results = [];
 
-  for (let range = 0; range <= maxRange; range++) {
-    const lo = Math.max(0, center - range);
-    const hi = Math.min(200, center + range);
-    const dists = [];
-    for (let d = lo; d <= hi; d += step) dists.push(d);
-    if (!dists.length) continue;
+  // Sweep all effective (lo, hi) combinations; pick tightest distance+range per pair
+  for (let lo = 0; lo <= 200; lo++) {
+    for (let hi = lo; hi <= Math.min(200, lo + maxRange * 2); hi++) {
+      // Find tightest center+range: center at midpoint, range = half-span (rounded up)
+      const center = Math.round((lo + hi) / 2);
+      const range = Math.max(center - lo, hi - center);
+      if (range > maxRange) continue;
+      const dists = [];
+      for (let d = lo; d <= hi; d += step) dists.push(d);
+      if (!dists.length) continue;
 
-    // Count unique asteroids hit across all distances
-    const hitSet = new Set();
-    let totalSPS = 0;
+      // Count unique asteroids hit across all distances
+      const hitSet = new Set();
+      let totalSPS = 0;
 
-    // Aggregate across distances (same logic as calculate())
-    const chanceMap = new Map();
-    let totalExpTime = 0;
-    for (const dist of dists) {
-      const eligible = accessible.filter(a => dist >= a.dMin && dist <= a.dMax);
-      if (!eligible.length) continue;
-      const tw = eligible.reduce((s, a) => s + a.wt, 0);
-      let expectedTime = 0;
-      for (const a of eligible) {
-        hitSet.add(a.n);
-        const p = a.wt / tw;
-        chanceMap.set(a.n, (chanceMap.get(a.n) || 0) + p);
-        const dScale = Math.sqrt(drT - a.drMin + 1);
-        const adjDur = Math.ceil(a.dur / dScale) * timeMult / 20;
-        expectedTime += p * adjDur;
+      // Aggregate across distances (same logic as calculate())
+      const chanceMap = new Map();
+      let totalExpTime = 0;
+      for (const dist of dists) {
+        const eligible = accessible.filter(a => dist >= a.dMin && dist <= a.dMax);
+        if (!eligible.length) continue;
+        const tw = eligible.reduce((s, a) => s + a.wt, 0);
+        let expectedTime = 0;
+        for (const a of eligible) {
+          hitSet.add(a.n);
+          const p = a.wt / tw;
+          chanceMap.set(a.n, (chanceMap.get(a.n) || 0) + p);
+          const dScale = Math.sqrt(drT - a.drMin + 1);
+          const adjDur = Math.ceil(a.dur / dScale) * timeMult / 20;
+          expectedTime += p * adjDur;
+        }
+        totalExpTime += expectedTime;
       }
-      totalExpTime += expectedTime;
-    }
 
-    const avgExpTime = totalExpTime / dists.length;
-    if (avgExpTime > 0) {
-      for (const a of accessible) {
-        const avgChance = (chanceMap.get(a.n) || 0) / dists.length;
-        if (avgChance <= 0) continue;
-        const size = adjSize(a, drT);
-        const avgSz = size.min + sizeBonus * (size.max - size.min);
-        const adjEut = Math.ceil(a.eut * Math.sqrt(drT - a.drMin + 1));
-        const maxP = Math.floor(MODULE_MAX_EU[modT] / adjEut);
-        const maxC = Math.floor(MODULE_MAX_COMP[modT] / a.comp);
-        const par = Math.max(1, Math.min(MODULE_MAX_PAR[modT], maxP, maxC));
-        totalSPS += avgChance * par * avgSz / avgExpTime;
+      const avgExpTime = totalExpTime / dists.length;
+      if (avgExpTime > 0) {
+        for (const a of accessible) {
+          const avgChance = (chanceMap.get(a.n) || 0) / dists.length;
+          if (avgChance <= 0) continue;
+          const size = adjSize(a, drT);
+          const avgSz = size.min + sizeBonus * (size.max - size.min);
+          const adjEut = Math.ceil(a.eut * Math.sqrt(drT - a.drMin + 1));
+          const maxP = Math.floor(MODULE_MAX_EU[modT] / adjEut);
+          const maxC = Math.floor(MODULE_MAX_COMP[modT] / a.comp);
+          const par = Math.max(1, Math.min(MODULE_MAX_PAR[modT], maxP, maxC));
+          totalSPS += avgChance * par * avgSz / avgExpTime;
+        }
       }
-    }
 
-    results.push({ range, count: hitSet.size, sps: totalSPS, steps: dists.length, names: [...hitSet].sort() });
+      results.push({ distance: center, range, count: hitSet.size, sps: totalSPS, steps: dists.length, names: [...hitSet].sort() });
+    }
   }
 
   if (!results.length) {
@@ -998,10 +1002,7 @@ function runCycleOptimizer() {
   const top = [];
   for (const r of results) {
     const key = r.names.join('|');
-    if (seen.has(key)) {
-      // Keep the one with smaller range (tighter)
-      continue;
-    }
+    if (seen.has(key)) continue;
     seen.add(key);
     top.push(r);
     if (top.length >= 20) break;
@@ -1011,7 +1012,7 @@ function runCycleOptimizer() {
   let h = `<div class="opt-result">
     <h3>Best cycle configs &mdash; MK-${['I','II','III'][modT-1]} / Drone ${ROMAN[drT]} &mdash; top: ${best.count} asteroids, ${fmt(best.sps*3600)} stacks/hr</h3>
     <table><thead><tr>
-      <th>Rank</th><th>Range</th><th>Steps</th>
+      <th>Rank</th><th>Distance</th><th>Range</th><th>Steps</th>
       <th>Asteroids</th><th>Stacks/hr</th><th>Items/hr</th><th>Asteroid Names</th><th></th>
     </tr></thead><tbody>`;
 
@@ -1020,20 +1021,23 @@ function runCycleOptimizer() {
     const sph = r.sps * 3600;
     h += `<tr${i===0 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
       <td>${i+1}</td>
+      <td>${r.distance}</td>
       <td>${r.range}</td>
       <td>${r.steps}</td>
       <td style="font-weight:600">${r.count}</td>
       <td style="color:var(--green);font-weight:600">${fmt(sph)}</td>
       <td style="color:var(--green)">${fmt(sph*64)}</td>
       <td style="font-size:0.85em;max-width:400px">${r.names.join(', ')}</td>
-      <td><button class="apply-btn" onclick="applyCycle(${r.range})">Apply</button></td>
+      <td><button class="apply-btn" onclick="applyCycle(${r.distance},${r.range})">Apply</button></td>
     </tr>`;
   }
   h += '</tbody></table></div>';
   document.getElementById('cycleOptResult').innerHTML = h;
 }
 
-function applyCycle(range) {
+function applyCycle(distance, range) {
+  document.getElementById('distance').value = distance;
+  document.getElementById('distDisplay').textContent = distance;
   document.getElementById('range').value = range;
   document.getElementById('rangeDisplay').textContent = range;
   document.getElementById('mode').value = 'cycle';
