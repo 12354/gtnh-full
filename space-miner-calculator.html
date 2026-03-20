@@ -1064,11 +1064,11 @@ function runCycleOptimizer() {
     return merged;
   }
 
-  // Sort: for balanced mode, prefer low CV then high SPS; for throughput, count then SPS
+  // Sort: for balanced mode, prefer many asteroids then low CV; for throughput, count then SPS
   if (goal === 'balanced') {
     allResults.sort((a, b) => {
       const ba = balanceMetrics(a.perOre), bb = balanceMetrics(b.perOre);
-      return ba.cv - bb.cv || b.sps - a.sps || b.count - a.count || a.range - b.range;
+      return b.count - a.count || ba.cv - bb.cv || b.sps - a.sps || a.range - b.range;
     });
   } else {
     allResults.sort((a, b) => b.count - a.count || b.sps - a.sps || a.range - b.range);
@@ -1202,7 +1202,7 @@ function runCycleOptimizer() {
     const bySPS = [...deduped].sort((a, b) => b.sps - a.sps || b.count - a.count);
     const byBalance = [...deduped].sort((a, b) => {
       const ba = balanceMetrics(a.perOre), bb = balanceMetrics(b.perOre);
-      return ba.cv - bb.cv || b.sps - a.sps;
+      return b.count - a.count || ba.cv - bb.cv || b.sps - a.sps;
     });
     const trySet = new Set();
     const tryIndices = [];
@@ -1222,11 +1222,12 @@ function runCycleOptimizer() {
       const result = greedyFn(idx);
       if (!bestResult) { bestResult = result; continue; }
       if (goal === 'balanced') {
-        // Prefer lower CV, tiebreak by coverage then throughput
+        // Prefer more coverage first, then lower CV, then higher throughput
         const rc = result.balance || balanceMetrics(result.combinedPerOre || {});
         const bc = bestResult.balance || balanceMetrics(bestResult.combinedPerOre || {});
-        if (rc.cv < bc.cv || (rc.cv === bc.cv && result.coveredCount > bestResult.coveredCount) ||
-            (rc.cv === bc.cv && result.coveredCount === bestResult.coveredCount && result.totalSPS > bestResult.totalSPS)) {
+        if (result.coveredCount > bestResult.coveredCount ||
+            (result.coveredCount === bestResult.coveredCount && rc.cv < bc.cv) ||
+            (result.coveredCount === bestResult.coveredCount && rc.cv === bc.cv && result.totalSPS > bestResult.totalSPS)) {
           bestResult = result;
         }
       } else {
