@@ -297,6 +297,19 @@
       </select>
     </div>
     <div class="control-group">
+      <label>Max Steps</label>
+      <select id="cycleMaxSteps">
+        <option value="0">No limit</option>
+        <option value="3">3</option>
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="15">15</option>
+        <option value="20" selected>20</option>
+        <option value="30">30</option>
+        <option value="50">50</option>
+      </select>
+    </div>
+    <div class="control-group">
       <label>Max Drones</label>
       <select id="cycleMaxDrones">
         <option value="1" selected>1</option>
@@ -938,6 +951,7 @@ function runCycleOptimizer() {
   const pt = +document.getElementById('plasmaTier').value;
   const plasma = PLASMA[pt];
   const maxRange = +document.getElementById('cycleMaxRange').value;
+  const maxSteps = +document.getElementById('cycleMaxSteps').value;
   const maxDrones = +document.getElementById('cycleMaxDrones').value;
   const step = Math.max(1, +document.getElementById('step').value);
 
@@ -961,6 +975,7 @@ function runCycleOptimizer() {
         const dists = [];
         for (let d = lo; d <= hi; d += step) dists.push(d);
         if (!dists.length) continue;
+        if (maxSteps > 0 && dists.length > maxSteps) continue;
 
         const hitSet = new Set();
         const chanceMap = new Map();
