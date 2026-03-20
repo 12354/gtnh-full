@@ -913,6 +913,7 @@ function runOptimizer() {
 function runCycleOptimizer() {
   const modT = +document.getElementById('moduleTier').value;
   const drT = Math.min(+document.getElementById('droneTier').value, +document.getElementById('maxDroneTier').value);
+  const maxDrT = +document.getElementById('maxDroneTier').value;
   const pt = +document.getElementById('plasmaTier').value;
   const plasma = PLASMA[pt];
   const maxRange = +document.getElementById('cycleMaxRange').value;
@@ -981,8 +982,8 @@ function runCycleOptimizer() {
     return configs;
   }
 
-  // Single drone: use selected tier only. Multi-drone: sweep all tiers 1..drT
-  const tiersToSweep = maxDrones === 1 ? [drT] : Array.from({ length: drT }, (_, i) => i + 1);
+  // Single drone: optimize for currently selected drone tier. Multi-drone: sweep all tiers 1..maxDrT
+  const tiersToSweep = maxDrones === 1 ? [drT] : Array.from({ length: maxDrT }, (_, i) => i + 1);
   let allResults = [];
   for (const t of tiersToSweep) {
     allResults = allResults.concat(computeConfigsForTier(t));
@@ -1029,7 +1030,7 @@ function runCycleOptimizer() {
   } else {
     // Multi-drone: greedy set cover across all drone tiers to maximize unique asteroids
     const allAccessibleNames = new Set();
-    for (let t = 1; t <= drT; t++) {
+    for (let t = 1; t <= maxDrT; t++) {
       for (const a of A) {
         if (t >= a.drMin && t <= a.drMax && modT >= a.mod) allAccessibleNames.add(a.n);
       }
@@ -1073,7 +1074,7 @@ function runCycleOptimizer() {
       });
     }
 
-    window._cycleOptData = { drones, modT, drT, currentNames: [...currentNames], isCycle, maxDrones, allCount: allAccessibleNames.size, coveredCount: covered.size };
+    window._cycleOptData = { drones, modT, drT, maxDrT, currentNames: [...currentNames], isCycle, maxDrones, allCount: allAccessibleNames.size, coveredCount: covered.size };
     renderMultiDroneTable();
   }
 }
@@ -1147,11 +1148,11 @@ function applyCycle(distance, range, droneTier) {
 }
 
 function renderMultiDroneTable() {
-  const { drones, modT, drT, allCount, coveredCount } = window._cycleOptData;
+  const { drones, modT, maxDrT, allCount, coveredCount } = window._cycleOptData;
   const totalOverlap = drones.reduce((s, d) => s + d.overlapCount, 0);
 
   let h = `<div class="opt-result">
-    <h3>Multi-drone coverage &mdash; MK-${['I','II','III'][modT-1]} / Drones I\u2013${ROMAN[drT]} &mdash; ${drones.length} drone${drones.length > 1 ? 's' : ''} cover ${coveredCount} / ${allCount} accessible asteroids</h3>
+    <h3>Multi-drone coverage &mdash; MK-${['I','II','III'][modT-1]} / Drones I\u2013${ROMAN[maxDrT]} &mdash; ${drones.length} drone${drones.length > 1 ? 's' : ''} cover ${coveredCount} / ${allCount} accessible asteroids</h3>
     <p style="color:var(--text2);margin:0 0 12px;font-size:0.9em">Total overlap: ${totalOverlap} asteroid${totalOverlap !== 1 ? 's' : ''} hit by multiple drones</p>
     <table><thead><tr>
       <th>Drone</th><th>Drone Tier</th><th>Distance</th><th>Range</th><th>Steps</th>
