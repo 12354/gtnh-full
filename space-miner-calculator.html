@@ -930,56 +930,55 @@ function runCycleOptimizer() {
     return;
   }
 
+  const center = +document.getElementById('distance').value;
   const results = [];
 
-  for (let center = 0; center <= 200; center++) {
-    for (let range = 0; range <= maxRange; range += (range < 10 ? 1 : 5)) {
-      const lo = Math.max(0, center - range);
-      const hi = Math.min(200, center + range);
-      const dists = [];
-      for (let d = lo; d <= hi; d += step) dists.push(d);
-      if (!dists.length) continue;
+  for (let range = 0; range <= maxRange; range++) {
+    const lo = Math.max(0, center - range);
+    const hi = Math.min(200, center + range);
+    const dists = [];
+    for (let d = lo; d <= hi; d += step) dists.push(d);
+    if (!dists.length) continue;
 
-      // Count unique asteroids hit across all distances
-      const hitSet = new Set();
-      let totalSPS = 0;
+    // Count unique asteroids hit across all distances
+    const hitSet = new Set();
+    let totalSPS = 0;
 
-      // Aggregate across distances (same logic as calculate())
-      const chanceMap = new Map();
-      let totalExpTime = 0;
-      for (const dist of dists) {
-        const eligible = accessible.filter(a => dist >= a.dMin && dist <= a.dMax);
-        if (!eligible.length) continue;
-        const tw = eligible.reduce((s, a) => s + a.wt, 0);
-        let expectedTime = 0;
-        for (const a of eligible) {
-          hitSet.add(a.n);
-          const p = a.wt / tw;
-          chanceMap.set(a.n, (chanceMap.get(a.n) || 0) + p);
-          const dScale = Math.sqrt(drT - a.drMin + 1);
-          const adjDur = Math.ceil(a.dur / dScale) * timeMult / 20;
-          expectedTime += p * adjDur;
-        }
-        totalExpTime += expectedTime;
+    // Aggregate across distances (same logic as calculate())
+    const chanceMap = new Map();
+    let totalExpTime = 0;
+    for (const dist of dists) {
+      const eligible = accessible.filter(a => dist >= a.dMin && dist <= a.dMax);
+      if (!eligible.length) continue;
+      const tw = eligible.reduce((s, a) => s + a.wt, 0);
+      let expectedTime = 0;
+      for (const a of eligible) {
+        hitSet.add(a.n);
+        const p = a.wt / tw;
+        chanceMap.set(a.n, (chanceMap.get(a.n) || 0) + p);
+        const dScale = Math.sqrt(drT - a.drMin + 1);
+        const adjDur = Math.ceil(a.dur / dScale) * timeMult / 20;
+        expectedTime += p * adjDur;
       }
-
-      const avgExpTime = totalExpTime / dists.length;
-      if (avgExpTime > 0) {
-        for (const a of accessible) {
-          const avgChance = (chanceMap.get(a.n) || 0) / dists.length;
-          if (avgChance <= 0) continue;
-          const size = adjSize(a, drT);
-          const avgSz = size.min + sizeBonus * (size.max - size.min);
-          const adjEut = Math.ceil(a.eut * Math.sqrt(drT - a.drMin + 1));
-          const maxP = Math.floor(MODULE_MAX_EU[modT] / adjEut);
-          const maxC = Math.floor(MODULE_MAX_COMP[modT] / a.comp);
-          const par = Math.max(1, Math.min(MODULE_MAX_PAR[modT], maxP, maxC));
-          totalSPS += avgChance * par * avgSz / avgExpTime;
-        }
-      }
-
-      results.push({ center, range, lo, hi, count: hitSet.size, sps: totalSPS, names: [...hitSet].sort() });
+      totalExpTime += expectedTime;
     }
+
+    const avgExpTime = totalExpTime / dists.length;
+    if (avgExpTime > 0) {
+      for (const a of accessible) {
+        const avgChance = (chanceMap.get(a.n) || 0) / dists.length;
+        if (avgChance <= 0) continue;
+        const size = adjSize(a, drT);
+        const avgSz = size.min + sizeBonus * (size.max - size.min);
+        const adjEut = Math.ceil(a.eut * Math.sqrt(drT - a.drMin + 1));
+        const maxP = Math.floor(MODULE_MAX_EU[modT] / adjEut);
+        const maxC = Math.floor(MODULE_MAX_COMP[modT] / a.comp);
+        const par = Math.max(1, Math.min(MODULE_MAX_PAR[modT], maxP, maxC));
+        totalSPS += avgChance * par * avgSz / avgExpTime;
+      }
+    }
+
+    results.push({ range, count: hitSet.size, sps: totalSPS, steps: dists.length, names: [...hitSet].sort() });
   }
 
   if (!results.length) {
@@ -994,12 +993,15 @@ function runCycleOptimizer() {
     results.sort((a, b) => b.sps - a.sps || b.count - a.count);
   }
 
-  // Deduplicate: keep best per unique (count, lo, hi) combo
+  // Deduplicate: keep best per unique asteroid set
   const seen = new Set();
   const top = [];
   for (const r of results) {
-    const key = `${r.count}|${r.lo}|${r.hi}`;
-    if (seen.has(key)) continue;
+    const key = r.names.join('|');
+    if (seen.has(key)) {
+      // Keep the one with smaller range (tighter)
+      continue;
+    }
     seen.add(key);
     top.push(r);
     if (top.length >= 20) break;
@@ -1009,7 +1011,7 @@ function runCycleOptimizer() {
   let h = `<div class="opt-result">
     <h3>Best cycle configs &mdash; MK-${['I','II','III'][modT-1]} / Drone ${ROMAN[drT]} &mdash; top: ${best.count} asteroids, ${fmt(best.sps*3600)} stacks/hr</h3>
     <table><thead><tr>
-      <th>Rank</th><th>Center</th><th>Range</th><th>Distance Span</th>
+      <th>Rank</th><th>Range</th><th>Steps</th>
       <th>Asteroids</th><th>Stacks/hr</th><th>Items/hr</th><th>Asteroid Names</th><th></th>
     </tr></thead><tbody>`;
 
@@ -1018,23 +1020,20 @@ function runCycleOptimizer() {
     const sph = r.sps * 3600;
     h += `<tr${i===0 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
       <td>${i+1}</td>
-      <td>${r.center}</td>
       <td>${r.range}</td>
-      <td>${r.lo}-${r.hi}</td>
+      <td>${r.steps}</td>
       <td style="font-weight:600">${r.count}</td>
       <td style="color:var(--green);font-weight:600">${fmt(sph)}</td>
       <td style="color:var(--green)">${fmt(sph*64)}</td>
       <td style="font-size:0.85em;max-width:400px">${r.names.join(', ')}</td>
-      <td><button class="apply-btn" onclick="applyCycle(${r.center},${r.range})">Apply</button></td>
+      <td><button class="apply-btn" onclick="applyCycle(${r.range})">Apply</button></td>
     </tr>`;
   }
   h += '</tbody></table></div>';
   document.getElementById('cycleOptResult').innerHTML = h;
 }
 
-function applyCycle(center, range) {
-  document.getElementById('distance').value = center;
-  document.getElementById('distDisplay').textContent = center;
+function applyCycle(range) {
   document.getElementById('range').value = range;
   document.getElementById('rangeDisplay').textContent = range;
   document.getElementById('mode').value = 'cycle';
