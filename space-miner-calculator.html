@@ -1049,53 +1049,94 @@ function runCycleOptimizer() {
     window._cycleOptData = { top, modT, drT, currentNames: [...currentNames], isCycle, maxDrones: 1 };
     renderCycleOptTable(false);
   } else {
-    // Multi-drone: greedy set cover across all drone tiers to maximize unique asteroids
+    // Multi-drone: improved greedy set cover with multi-start exploration
     const allAccessibleNames = new Set();
     for (let t = 1; t <= maxDrT; t++) {
       for (const a of A) {
         if (t >= a.drMin && t <= a.drMax && modT >= a.mod) allAccessibleNames.add(a.n);
       }
     }
-    const drones = [];
-    const covered = new Set();
 
-    for (let d = 0; d < maxDrones; d++) {
-      let bestConfig = null;
-      let bestNewCount = 0;
-      let bestOverlap = Infinity;
+    // Greedy set cover from a given starting config index
+    function greedyFrom(startIdx) {
+      const drones = [];
+      const covered = new Set();
 
-      for (const r of deduped) {
-        let newCount = 0;
-        let overlap = 0;
-        for (const n of r.names) {
-          if (covered.has(n)) overlap++;
-          else newCount++;
+      // Force first drone
+      const first = deduped[startIdx];
+      for (const n of first.names) covered.add(n);
+      drones.push({
+        ...first, droneIndex: 1,
+        newNames: [...first.names].sort(), overlapNames: [],
+        newCount: first.names.length, overlapCount: 0
+      });
+
+      for (let d = 1; d < maxDrones; d++) {
+        let bestConfig = null;
+        let bestNewCount = 0;
+        let bestSPS = 0;
+
+        for (const r of deduped) {
+          let newCount = 0;
+          for (const n of r.names) {
+            if (!covered.has(n)) newCount++;
+          }
+          // Primary: most new asteroids. Secondary: highest throughput
+          if (newCount > bestNewCount || (newCount === bestNewCount && r.sps > bestSPS)) {
+            bestConfig = r;
+            bestNewCount = newCount;
+            bestSPS = r.sps;
+          }
         }
-        if (newCount > bestNewCount || (newCount === bestNewCount && overlap < bestOverlap) ||
-            (newCount === bestNewCount && overlap === bestOverlap && bestConfig && r.count > bestConfig.count)) {
-          bestConfig = r;
-          bestNewCount = newCount;
-          bestOverlap = overlap;
-        }
+
+        if (!bestConfig || bestNewCount === 0) break;
+
+        const newNames = bestConfig.names.filter(n => !covered.has(n));
+        const overlapNames = bestConfig.names.filter(n => covered.has(n));
+        for (const n of bestConfig.names) covered.add(n);
+
+        drones.push({
+          ...bestConfig, droneIndex: d + 1,
+          newNames: newNames.sort(), overlapNames: overlapNames.sort(),
+          newCount: newNames.length, overlapCount: overlapNames.length
+        });
       }
 
-      if (!bestConfig || bestNewCount === 0) break;
-
-      const newNames = bestConfig.names.filter(n => !covered.has(n));
-      const overlapNames = bestConfig.names.filter(n => covered.has(n));
-      for (const n of bestConfig.names) covered.add(n);
-
-      drones.push({
-        ...bestConfig,
-        droneIndex: d + 1,
-        newNames: newNames.sort(),
-        overlapNames: overlapNames.sort(),
-        newCount: newNames.length,
-        overlapCount: overlapNames.length
-      });
+      const coveredCount = covered.size;
+      const totalSPS = drones.reduce((s, d) => s + d.sps, 0);
+      return { drones, coveredCount, totalSPS };
     }
 
-    window._cycleOptData = { drones, modT, drT, maxDrT, currentNames: [...currentNames], isCycle, maxDrones, allCount: allAccessibleNames.size, coveredCount: covered.size };
+    // Try multiple starting points: top N by count, plus top N by throughput
+    const byCount = [...deduped].sort((a, b) => b.count - a.count || b.sps - a.sps);
+    const bySPS = [...deduped].sort((a, b) => b.sps - a.sps || b.count - a.count);
+    const trySet = new Set();
+    const tryIndices = [];
+    const N = Math.min(30, deduped.length);
+    for (const list of [byCount, bySPS]) {
+      for (let i = 0; i < N && i < list.length; i++) {
+        const idx = deduped.indexOf(list[i]);
+        if (idx >= 0 && !trySet.has(idx)) {
+          trySet.add(idx);
+          tryIndices.push(idx);
+        }
+      }
+    }
+
+    let bestResult = null;
+    for (const idx of tryIndices) {
+      const result = greedyFrom(idx);
+      if (!bestResult ||
+          result.coveredCount > bestResult.coveredCount ||
+          (result.coveredCount === bestResult.coveredCount && result.totalSPS > bestResult.totalSPS)) {
+        bestResult = result;
+      }
+    }
+
+    // Re-number drone indices
+    bestResult.drones.forEach((d, i) => d.droneIndex = i + 1);
+
+    window._cycleOptData = { drones: bestResult.drones, modT, drT, maxDrT, currentNames: [...currentNames], isCycle, maxDrones, allCount: allAccessibleNames.size, coveredCount: bestResult.coveredCount, totalSPS: bestResult.totalSPS };
     renderMultiDroneTable();
   }
 }
@@ -1222,15 +1263,21 @@ function applyCycle(distance, range, droneTier) {
 }
 
 function renderMultiDroneTable() {
-  const { drones, modT, maxDrT, allCount, coveredCount } = window._cycleOptData;
+  const { drones, modT, maxDrT, allCount, coveredCount, totalSPS } = window._cycleOptData;
   const totalOverlap = drones.reduce((s, d) => s + d.overlapCount, 0);
+  const totalSPH = (totalSPS || drones.reduce((s, d) => s + d.sps, 0)) * 3600;
 
   let h = `<div class="opt-result">
     <h3>Multi-drone coverage &mdash; MK-${['I','II','III'][modT-1]} / Drones I\u2013${ROMAN[maxDrT]} &mdash; ${drones.length} drone${drones.length > 1 ? 's' : ''} cover ${coveredCount} / ${allCount} accessible asteroids</h3>
-    <p style="color:var(--text2);margin:0 0 12px;font-size:0.9em">Total overlap: ${totalOverlap} asteroid${totalOverlap !== 1 ? 's' : ''} hit by multiple drones</p>
+    <div class="opt-grid" style="margin-bottom:12px">
+      <div class="opt-stat">Combined throughput: <span>${fmt(totalSPH)} stacks/hr</span></div>
+      <div class="opt-stat">Items/hr: <span>${fmt(totalSPH * 64)}</span></div>
+      <div class="opt-stat">Overlap: <span style="color:${totalOverlap > 0 ? 'var(--accent)' : 'var(--green)'}">${totalOverlap} asteroid${totalOverlap !== 1 ? 's' : ''}</span></div>
+      <div class="opt-stat">Coverage: <span>${coveredCount} / ${allCount} (${(coveredCount/allCount*100).toFixed(0)}%)</span></div>
+    </div>
     <table><thead><tr>
       <th>Drone</th><th>Drone Tier</th><th>Distance</th><th>Range</th><th>Steps</th>
-      <th>Total</th><th>New</th><th>Overlap</th><th>Asteroid Names</th><th></th>
+      <th>Total</th><th>New</th><th>Overlap</th><th>Stacks/hr</th><th>Asteroid Names</th><th></th>
     </tr></thead><tbody>`;
 
   for (const d of drones) {
@@ -1242,6 +1289,7 @@ function renderMultiDroneTable() {
       if (overlapSet.has(n)) return oreTooltip(n, 'color:var(--text2);opacity:0.6', tipCtx);
       return oreTooltip(n, '', tipCtx);
     }).join(', ');
+    const dSPH = d.sps * 3600;
 
     h += `<tr${d.droneIndex === 1 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
       <td style="font-weight:700">${d.droneIndex}</td>
@@ -1252,10 +1300,20 @@ function renderMultiDroneTable() {
       <td>${d.count}</td>
       <td style="color:var(--green);font-weight:600">+${d.newCount}</td>
       <td style="color:${d.overlapCount > 0 ? 'var(--accent)' : 'var(--text2)'}">${d.overlapCount}</td>
+      <td style="color:var(--green);font-weight:600">${fmt(dSPH)}</td>
       <td style="font-size:0.85em;max-width:400px">${namesHtml}</td>
       <td><button class="apply-btn" onclick="applyCycle(${d.distance},${d.range},${d.droneTier})">Apply</button></td>
     </tr>`;
   }
+
+  h += `<tr class="total-row">
+    <td colspan="5" style="text-align:right">TOTAL</td>
+    <td>${coveredCount}</td>
+    <td style="color:var(--green)">+${coveredCount}</td>
+    <td style="color:${totalOverlap > 0 ? 'var(--accent)' : 'var(--text2)'}">${totalOverlap}</td>
+    <td style="color:var(--green);font-weight:700">${fmt(totalSPH)}</td>
+    <td colspan="2"></td>
+  </tr>`;
 
   h += `</tbody></table>
     <p style="color:var(--text2);margin:8px 0 0;font-size:0.85em">
