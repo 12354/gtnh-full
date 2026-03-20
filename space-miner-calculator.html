@@ -1008,10 +1008,39 @@ function runCycleOptimizer() {
     if (top.length >= 20) break;
   }
 
+  // Compute current cycle asteroids for diff highlighting
+  const isCycle = document.getElementById('mode').value === 'cycle';
+  let currentNames = new Set();
+  if (isCycle) {
+    const inp = getInputs();
+    const dists = getDistances(inp);
+    for (const dist of dists) {
+      for (const a of accessible) {
+        if (dist >= a.dMin && dist <= a.dMax) currentNames.add(a.n);
+      }
+    }
+  }
+
+  // Store top results for diff toggle re-rendering
+  window._cycleOptData = { top, modT, drT, currentNames: [...currentNames], isCycle };
+
+  renderCycleOptTable(false);
+}
+
+function renderCycleOptTable(showDiff) {
+  const { top, modT, drT, currentNames, isCycle } = window._cycleOptData;
+  const currentSet = new Set(currentNames);
+
   const best = top[0];
   let h = `<div class="opt-result">
-    <h3>Best cycle configs &mdash; MK-${['I','II','III'][modT-1]} / Drone ${ROMAN[drT]} &mdash; top: ${best.count} asteroids, ${fmt(best.sps*3600)} stacks/hr</h3>
-    <table><thead><tr>
+    <h3>Best cycle configs &mdash; MK-${['I','II','III'][modT-1]} / Drone ${ROMAN[drT]} &mdash; top: ${best.count} asteroids, ${fmt(best.sps*3600)} stacks/hr</h3>`;
+  if (isCycle) {
+    h += `<label style="display:inline-flex;align-items:center;gap:6px;margin-bottom:8px;cursor:pointer;font-size:0.9em;color:var(--text2)">
+      <input type="checkbox" id="cycleDiffToggle" onchange="renderCycleOptTable(this.checked)"${showDiff ? ' checked' : ''}>
+      Show lost asteroids <span style="color:var(--accent);font-size:0.85em">(red = in current config but not in this row)</span>
+    </label>`;
+  }
+  h += `<table><thead><tr>
       <th>Rank</th><th>Distance</th><th>Range</th><th>Steps</th>
       <th>Asteroids</th><th>Stacks/hr</th><th>Items/hr</th><th>Asteroid Names</th><th></th>
     </tr></thead><tbody>`;
@@ -1019,6 +1048,16 @@ function runCycleOptimizer() {
   for (let i = 0; i < top.length; i++) {
     const r = top[i];
     const sph = r.sps * 3600;
+    const rowNames = new Set(r.names);
+    let namesHtml;
+    if (showDiff && isCycle) {
+      // Show row's asteroids, then append lost ones in red
+      const kept = r.names.join(', ');
+      const lost = [...currentSet].filter(n => !rowNames.has(n)).sort();
+      namesHtml = kept + (lost.length ? ', ' + lost.map(n => `<span style="color:var(--accent);text-decoration:line-through">${n}</span>`).join(', ') : '');
+    } else {
+      namesHtml = r.names.join(', ');
+    }
     h += `<tr${i===0 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
       <td>${i+1}</td>
       <td>${r.distance}</td>
@@ -1027,7 +1066,7 @@ function runCycleOptimizer() {
       <td style="font-weight:600">${r.count}</td>
       <td style="color:var(--green);font-weight:600">${fmt(sph)}</td>
       <td style="color:var(--green)">${fmt(sph*64)}</td>
-      <td style="font-size:0.85em;max-width:400px">${r.names.join(', ')}</td>
+      <td style="font-size:0.85em;max-width:400px">${namesHtml}</td>
       <td><button class="apply-btn" onclick="applyCycle(${r.distance},${r.range})">Apply</button></td>
     </tr>`;
   }
