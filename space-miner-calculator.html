@@ -310,6 +310,13 @@
       </select>
     </div>
     <div class="control-group">
+      <label>Goal</label>
+      <select id="cycleGoal">
+        <option value="throughput" selected>Max Throughput</option>
+        <option value="balanced">Most Balanced</option>
+      </select>
+    </div>
+    <div class="control-group">
       <label>Max Drones</label>
       <select id="cycleMaxDrones">
         <option value="1" selected>1</option>
@@ -952,6 +959,7 @@ function runCycleOptimizer() {
   const plasma = PLASMA[pt];
   const maxRange = +document.getElementById('cycleMaxRange').value;
   const maxSteps = +document.getElementById('cycleMaxSteps').value;
+  const goal = document.getElementById('cycleGoal').value;
   const maxDrones = +document.getElementById('cycleMaxDrones').value;
   const step = Math.max(1, +document.getElementById('step').value);
 
@@ -997,6 +1005,7 @@ function runCycleOptimizer() {
         }
 
         let totalSPS = 0;
+        const perOre = {};
         const avgExpTime = totalExpTime / dists.length;
         if (avgExpTime > 0) {
           for (const a of accessible) {
@@ -1008,11 +1017,16 @@ function runCycleOptimizer() {
             const maxP = Math.floor(MODULE_MAX_EU[modT] / adjEut);
             const maxC = Math.floor(MODULE_MAX_COMP[modT] / a.comp);
             const par = Math.max(1, Math.min(MODULE_MAX_PAR[modT], maxP, maxC));
-            totalSPS += avgChance * par * avgSz / avgExpTime;
+            const astSPS = avgChance * par * avgSz / avgExpTime;
+            totalSPS += astSPS;
+            const tw = a.w.reduce((s, v) => s + v, 0);
+            for (let i = 0; i < a.m.length; i++) {
+              perOre[a.m[i]] = (perOre[a.m[i]] || 0) + astSPS * a.w[i] / tw;
+            }
           }
         }
 
-        configs.push({ distance: center, range, count: hitSet.size, sps: totalSPS, steps: dists.length, names: [...hitSet].sort(), nameSet: hitSet, droneTier: tierDrT });
+        configs.push({ distance: center, range, count: hitSet.size, sps: totalSPS, perOre, steps: dists.length, names: [...hitSet].sort(), nameSet: hitSet, droneTier: tierDrT });
       }
     }
     return configs;
@@ -1031,8 +1045,34 @@ function runCycleOptimizer() {
     return;
   }
 
-  // Sort by most asteroids, break ties by throughput then smaller range
-  allResults.sort((a, b) => b.count - a.count || b.sps - a.sps || a.range - b.range);
+  // Helper: compute balance metrics for a per-ore map
+  function balanceMetrics(perOre) {
+    const rates = Object.values(perOre);
+    if (rates.length === 0) return { minRate: 0, maxRate: 0, ratio: 1, cv: 0, oreCount: 0 };
+    const minRate = Math.min(...rates);
+    const maxRate = Math.max(...rates);
+    const mean = rates.reduce((s, v) => s + v, 0) / rates.length;
+    const variance = rates.reduce((s, v) => s + (v - mean) ** 2, 0) / rates.length;
+    const cv = mean > 0 ? Math.sqrt(variance) / mean : 0;
+    return { minRate, maxRate, ratio: maxRate > 0 ? minRate / maxRate : 1, cv, oreCount: rates.length };
+  }
+
+  // Helper: merge two perOre maps
+  function mergePerOre(a, b) {
+    const merged = { ...a };
+    for (const [ore, rate] of Object.entries(b)) merged[ore] = (merged[ore] || 0) + rate;
+    return merged;
+  }
+
+  // Sort: for balanced mode, prefer low CV then high SPS; for throughput, count then SPS
+  if (goal === 'balanced') {
+    allResults.sort((a, b) => {
+      const ba = balanceMetrics(a.perOre), bb = balanceMetrics(b.perOre);
+      return ba.cv - bb.cv || b.sps - a.sps || b.count - a.count || a.range - b.range;
+    });
+  } else {
+    allResults.sort((a, b) => b.count - a.count || b.sps - a.sps || a.range - b.range);
+  }
 
   // Deduplicate: keep best config per unique (drone tier + asteroid set)
   const seen = new Set();
@@ -1059,12 +1099,12 @@ function runCycleOptimizer() {
   }
 
   if (maxDrones === 1) {
-    // Single drone: show top 20 as before
+    // Single drone: show top 20
     const top = deduped.slice(0, 20);
-    window._cycleOptData = { top, modT, drT, currentNames: [...currentNames], isCycle, maxDrones: 1 };
+    window._cycleOptData = { top, modT, drT, currentNames: [...currentNames], isCycle, maxDrones: 1, goal };
     renderCycleOptTable(false);
   } else {
-    // Multi-drone: improved greedy set cover with multi-start exploration
+    // Multi-drone optimization with multi-start exploration
     const allAccessibleNames = new Set();
     for (let t = 1; t <= maxDrT; t++) {
       for (const a of A) {
@@ -1072,12 +1112,11 @@ function runCycleOptimizer() {
       }
     }
 
-    // Greedy set cover from a given starting config index
-    function greedyFrom(startIdx) {
+    // Max-throughput greedy: maximize unique asteroid count, tiebreak by SPS
+    function greedyThroughput(startIdx) {
       const drones = [];
       const covered = new Set();
 
-      // Force first drone
       const first = deduped[startIdx];
       for (const n of first.names) covered.add(n);
       drones.push({
@@ -1087,29 +1126,19 @@ function runCycleOptimizer() {
       });
 
       for (let d = 1; d < maxDrones; d++) {
-        let bestConfig = null;
-        let bestNewCount = 0;
-        let bestSPS = 0;
-
+        let bestConfig = null, bestNewCount = 0, bestSPS = 0;
         for (const r of deduped) {
           let newCount = 0;
-          for (const n of r.names) {
-            if (!covered.has(n)) newCount++;
-          }
-          // Primary: most new asteroids. Secondary: highest throughput
+          for (const n of r.names) { if (!covered.has(n)) newCount++; }
           if (newCount > bestNewCount || (newCount === bestNewCount && r.sps > bestSPS)) {
-            bestConfig = r;
-            bestNewCount = newCount;
-            bestSPS = r.sps;
+            bestConfig = r; bestNewCount = newCount; bestSPS = r.sps;
           }
         }
-
         if (!bestConfig || bestNewCount === 0) break;
 
         const newNames = bestConfig.names.filter(n => !covered.has(n));
         const overlapNames = bestConfig.names.filter(n => covered.has(n));
         for (const n of bestConfig.names) covered.add(n);
-
         drones.push({
           ...bestConfig, droneIndex: d + 1,
           newNames: newNames.sort(), overlapNames: overlapNames.sort(),
@@ -1122,13 +1151,63 @@ function runCycleOptimizer() {
       return { drones, coveredCount, totalSPS };
     }
 
-    // Try multiple starting points: top N by count, plus top N by throughput
+    // Balanced greedy: maximize min per-ore rate across combined output
+    function greedyBalanced(startIdx) {
+      const drones = [];
+      const covered = new Set();
+      let combinedPerOre = {};
+
+      const first = deduped[startIdx];
+      for (const n of first.names) covered.add(n);
+      combinedPerOre = { ...first.perOre };
+      drones.push({
+        ...first, droneIndex: 1,
+        newNames: [...first.names].sort(), overlapNames: [],
+        newCount: first.names.length, overlapCount: 0
+      });
+
+      for (let d = 1; d < maxDrones; d++) {
+        let bestConfig = null, bestMinRate = -1, bestSPS = 0;
+        for (const r of deduped) {
+          const merged = mergePerOre(combinedPerOre, r.perOre);
+          const minRate = Math.min(...Object.values(merged));
+          const totalSPS = Object.values(merged).reduce((s, v) => s + v, 0);
+          if (minRate > bestMinRate || (minRate === bestMinRate && totalSPS > bestSPS)) {
+            bestConfig = r; bestMinRate = minRate; bestSPS = totalSPS;
+          }
+        }
+        if (!bestConfig) break;
+
+        const newNames = bestConfig.names.filter(n => !covered.has(n));
+        const overlapNames = bestConfig.names.filter(n => covered.has(n));
+        for (const n of bestConfig.names) covered.add(n);
+        combinedPerOre = mergePerOre(combinedPerOre, bestConfig.perOre);
+        drones.push({
+          ...bestConfig, droneIndex: d + 1,
+          newNames: newNames.sort(), overlapNames: overlapNames.sort(),
+          newCount: newNames.length, overlapCount: overlapNames.length
+        });
+      }
+
+      const coveredCount = covered.size;
+      const totalSPS = drones.reduce((s, d) => s + d.sps, 0);
+      const bm = balanceMetrics(combinedPerOre);
+      return { drones, coveredCount, totalSPS, combinedPerOre, balance: bm };
+    }
+
+    const greedyFn = goal === 'balanced' ? greedyBalanced : greedyThroughput;
+
+    // Try multiple starting points: top N by count, by SPS, and by balance
     const byCount = [...deduped].sort((a, b) => b.count - a.count || b.sps - a.sps);
     const bySPS = [...deduped].sort((a, b) => b.sps - a.sps || b.count - a.count);
+    const byBalance = [...deduped].sort((a, b) => {
+      const ba = balanceMetrics(a.perOre), bb = balanceMetrics(b.perOre);
+      return ba.cv - bb.cv || b.sps - a.sps;
+    });
     const trySet = new Set();
     const tryIndices = [];
     const N = Math.min(30, deduped.length);
-    for (const list of [byCount, bySPS]) {
+    for (const list of [byCount, bySPS, byBalance]) {
       for (let i = 0; i < N && i < list.length; i++) {
         const idx = deduped.indexOf(list[i]);
         if (idx >= 0 && !trySet.has(idx)) {
@@ -1140,18 +1219,37 @@ function runCycleOptimizer() {
 
     let bestResult = null;
     for (const idx of tryIndices) {
-      const result = greedyFrom(idx);
-      if (!bestResult ||
-          result.coveredCount > bestResult.coveredCount ||
-          (result.coveredCount === bestResult.coveredCount && result.totalSPS > bestResult.totalSPS)) {
-        bestResult = result;
+      const result = greedyFn(idx);
+      if (!bestResult) { bestResult = result; continue; }
+      if (goal === 'balanced') {
+        // Prefer lower CV, tiebreak by coverage then throughput
+        const rc = result.balance || balanceMetrics(result.combinedPerOre || {});
+        const bc = bestResult.balance || balanceMetrics(bestResult.combinedPerOre || {});
+        if (rc.cv < bc.cv || (rc.cv === bc.cv && result.coveredCount > bestResult.coveredCount) ||
+            (rc.cv === bc.cv && result.coveredCount === bestResult.coveredCount && result.totalSPS > bestResult.totalSPS)) {
+          bestResult = result;
+        }
+      } else {
+        if (result.coveredCount > bestResult.coveredCount ||
+            (result.coveredCount === bestResult.coveredCount && result.totalSPS > bestResult.totalSPS)) {
+          bestResult = result;
+        }
       }
     }
 
     // Re-number drone indices
     bestResult.drones.forEach((d, i) => d.droneIndex = i + 1);
 
-    window._cycleOptData = { drones: bestResult.drones, modT, drT, maxDrT, currentNames: [...currentNames], isCycle, maxDrones, allCount: allAccessibleNames.size, coveredCount: bestResult.coveredCount, totalSPS: bestResult.totalSPS };
+    // Compute combined per-ore if not already present (throughput mode)
+    if (!bestResult.combinedPerOre) {
+      bestResult.combinedPerOre = {};
+      for (const d of bestResult.drones) {
+        bestResult.combinedPerOre = mergePerOre(bestResult.combinedPerOre, d.perOre);
+      }
+    }
+    if (!bestResult.balance) bestResult.balance = balanceMetrics(bestResult.combinedPerOre);
+
+    window._cycleOptData = { drones: bestResult.drones, modT, drT, maxDrT, currentNames: [...currentNames], isCycle, maxDrones, goal, allCount: allAccessibleNames.size, coveredCount: bestResult.coveredCount, totalSPS: bestResult.totalSPS, combinedPerOre: bestResult.combinedPerOre, balance: bestResult.balance };
     renderMultiDroneTable();
   }
 }
@@ -1216,13 +1314,15 @@ function oreTooltip(name, extraStyle, tipCtx) {
 }
 
 function renderCycleOptTable(showDiff) {
-  const { top, modT, drT, currentNames, isCycle } = window._cycleOptData;
+  const { top, modT, drT, currentNames, isCycle, goal } = window._cycleOptData;
   const currentSet = new Set(currentNames);
   const tipCtx = { droneTier: drT, modT };
+  const isBalanced = goal === 'balanced';
 
   const best = top[0];
+  const goalLabel = isBalanced ? 'Most Balanced' : 'Max Throughput';
   let h = `<div class="opt-result">
-    <h3>Best cycle configs &mdash; MK-${['I','II','III'][modT-1]} / Drone ${ROMAN[drT]} &mdash; top: ${best.count} asteroids, ${fmt(best.sps*3600)} stacks/hr</h3>`;
+    <h3>Best cycle configs (${goalLabel}) &mdash; MK-${['I','II','III'][modT-1]} / Drone ${ROMAN[drT]} &mdash; top: ${best.count} asteroids, ${fmt(best.sps*3600)} stacks/hr</h3>`;
   if (isCycle) {
     h += `<label style="display:inline-flex;align-items:center;gap:6px;margin-bottom:8px;cursor:pointer;font-size:0.9em;color:var(--text2)">
       <input type="checkbox" id="cycleDiffToggle" onchange="renderCycleOptTable(this.checked)"${showDiff ? ' checked' : ''}>
@@ -1231,7 +1331,7 @@ function renderCycleOptTable(showDiff) {
   }
   h += `<table><thead><tr>
       <th>Rank</th><th>Distance</th><th>Range</th><th>Steps</th>
-      <th>Asteroids</th><th>Stacks/hr</th><th>Items/hr</th><th>Asteroid Names</th><th></th>
+      <th>Asteroids</th><th>Stacks/hr</th><th>Items/hr</th>${isBalanced ? '<th>Balance</th>' : ''}<th>Asteroid Names</th><th></th>
     </tr></thead><tbody>`;
 
   for (let i = 0; i < top.length; i++) {
@@ -1248,6 +1348,15 @@ function renderCycleOptTable(showDiff) {
     } else {
       namesHtml = r.names.map(n => oreTooltip(n, '', tipCtx)).join(', ');
     }
+    let balanceCell = '';
+    if (isBalanced && r.perOre) {
+      const rates = Object.values(r.perOre);
+      const mn = Math.min(...rates), mx = Math.max(...rates);
+      const mean = rates.reduce((s, v) => s + v, 0) / rates.length;
+      const cv = mean > 0 ? Math.sqrt(rates.reduce((s, v) => s + (v - mean) ** 2, 0) / rates.length) / mean : 0;
+      const ratio = mx > 0 ? (mn / mx * 100).toFixed(0) : 0;
+      balanceCell = `<td style="white-space:nowrap"><span style="color:var(--green)">${ratio}%</span> <span style="color:var(--text2);font-size:0.8em">CV ${cv.toFixed(2)}</span></td>`;
+    }
     h += `<tr${i===0 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
       <td>${i+1}</td>
       <td>${r.distance}</td>
@@ -1256,6 +1365,7 @@ function renderCycleOptTable(showDiff) {
       <td style="font-weight:600">${r.count}</td>
       <td style="color:var(--green);font-weight:600">${fmt(sph)}</td>
       <td style="color:var(--green)">${fmt(sph*64)}</td>
+      ${balanceCell}
       <td style="font-size:0.85em;max-width:400px">${namesHtml}</td>
       <td><button class="apply-btn" onclick="applyCycle(${r.distance},${r.range})">Apply</button></td>
     </tr>`;
@@ -1278,19 +1388,46 @@ function applyCycle(distance, range, droneTier) {
 }
 
 function renderMultiDroneTable() {
-  const { drones, modT, maxDrT, allCount, coveredCount, totalSPS } = window._cycleOptData;
+  const { drones, modT, maxDrT, allCount, coveredCount, totalSPS, goal, combinedPerOre, balance } = window._cycleOptData;
   const totalOverlap = drones.reduce((s, d) => s + d.overlapCount, 0);
   const totalSPH = (totalSPS || drones.reduce((s, d) => s + d.sps, 0)) * 3600;
+  const isBalanced = goal === 'balanced';
+  const goalLabel = isBalanced ? 'Most Balanced' : 'Max Throughput';
 
   let h = `<div class="opt-result">
-    <h3>Multi-drone coverage &mdash; MK-${['I','II','III'][modT-1]} / Drones I\u2013${ROMAN[maxDrT]} &mdash; ${drones.length} drone${drones.length > 1 ? 's' : ''} cover ${coveredCount} / ${allCount} accessible asteroids</h3>
+    <h3>Multi-drone coverage (${goalLabel}) &mdash; MK-${['I','II','III'][modT-1]} / Drones I\u2013${ROMAN[maxDrT]} &mdash; ${drones.length} drone${drones.length > 1 ? 's' : ''} cover ${coveredCount} / ${allCount} accessible asteroids</h3>
     <div class="opt-grid" style="margin-bottom:12px">
       <div class="opt-stat">Combined throughput: <span>${fmt(totalSPH)} stacks/hr</span></div>
       <div class="opt-stat">Items/hr: <span>${fmt(totalSPH * 64)}</span></div>
       <div class="opt-stat">Overlap: <span style="color:${totalOverlap > 0 ? 'var(--accent)' : 'var(--green)'}">${totalOverlap} asteroid${totalOverlap !== 1 ? 's' : ''}</span></div>
-      <div class="opt-stat">Coverage: <span>${coveredCount} / ${allCount} (${(coveredCount/allCount*100).toFixed(0)}%)</span></div>
-    </div>
-    <table><thead><tr>
+      <div class="opt-stat">Coverage: <span>${coveredCount} / ${allCount} (${(coveredCount/allCount*100).toFixed(0)}%)</span></div>`;
+  if (balance) {
+    const ratio = balance.maxRate > 0 ? (balance.minRate / balance.maxRate * 100).toFixed(1) : 0;
+    h += `<div class="opt-stat">Balance: <span style="color:var(--gold)">${ratio}% min/max</span> <span style="color:var(--text2);font-size:0.85em">(CV ${balance.cv.toFixed(2)})</span></div>
+      <div class="opt-stat">Min ore: <span>${fmt(balance.minRate * 3600)} stk/hr</span></div>
+      <div class="opt-stat">Max ore: <span>${fmt(balance.maxRate * 3600)} stk/hr</span></div>`;
+  }
+  h += `</div>`;
+
+  // Per-ore rate breakdown for balanced mode
+  if (isBalanced && combinedPerOre) {
+    const sorted = Object.entries(combinedPerOre).sort((a, b) => a[1] - b[1]);
+    h += `<details style="margin-bottom:12px"><summary style="cursor:pointer;color:var(--text2);font-size:0.9em">Per-ore rate breakdown (${sorted.length} ores)</summary>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:2px 16px;margin-top:8px;font-size:0.82em">`;
+    const maxRate = sorted.length > 0 ? sorted[sorted.length - 1][1] : 1;
+    for (const [ore, rate] of sorted) {
+      const barW = maxRate > 0 ? Math.max(2, rate / maxRate * 100) : 0;
+      const sph = rate * 3600;
+      h += `<div style="display:flex;align-items:center;gap:6px">
+        <span style="min-width:140px;color:var(--text)">${ore}</span>
+        <span style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><span style="display:block;width:${barW}%;height:100%;background:var(--green);border-radius:2px"></span></span>
+        <span style="min-width:70px;text-align:right;color:var(--green)">${fmt(sph)}/hr</span>
+      </div>`;
+    }
+    h += `</div></details>`;
+  }
+
+  h += `<table><thead><tr>
       <th>Drone</th><th>Drone Tier</th><th>Distance</th><th>Range</th><th>Steps</th>
       <th>Total</th><th>New</th><th>Overlap</th><th>Stacks/hr</th><th>Asteroid Names</th><th></th>
     </tr></thead><tbody>`;
