@@ -1231,14 +1231,13 @@ function _runCycleOptimizerInner() {
       const drones = [];
       const covered = new Set();
       let combinedPerOre = {};
-      const usedKeys = new Set();
+      const usedNameSets = new Set(); // track by asteroid-set to avoid redundant drones
 
       // Phase 1: first drone — maximize coverage, tiebreak by balance
       const first = deduped[startIdx];
       for (const n of first.names) covered.add(n);
       combinedPerOre = { ...first.perOre };
-      const firstKey = first.droneTier + ':' + first.distance + ':' + first.range;
-      usedKeys.add(firstKey);
+      usedNameSets.add(first.names.join('|'));
       drones.push({
         ...first, droneIndex: 1,
         newNames: [...first.names].sort(), overlapNames: [],
@@ -1254,8 +1253,8 @@ function _runCycleOptimizerInner() {
 
         let bestConfig = null, bestWeakBoost = -1, bestNewCount = -1, bestMinRate = -Infinity;
         for (const r of deduped) {
-          const rKey = r.droneTier + ':' + r.distance + ':' + r.range;
-          if (usedKeys.has(rKey)) continue; // don't reuse same config
+          const nameKey = r.names.join('|');
+          if (usedNameSets.has(nameKey)) continue; // don't reuse same asteroid set
 
           // How much does this config boost the weak ores?
           let weakBoost = 0;
@@ -1278,11 +1277,12 @@ function _runCycleOptimizerInner() {
           }
         }
 
-        // If no config boosts weak ores at all, fall back to best coverage
+        // If no config boosts weak ores at all, fall back to best new coverage
         if (!bestConfig || bestWeakBoost <= 0) {
+          bestConfig = null; bestNewCount = -1;
           for (const r of deduped) {
-            const rKey = r.droneTier + ':' + r.distance + ':' + r.range;
-            if (usedKeys.has(rKey)) continue;
+            const nameKey = r.names.join('|');
+            if (usedNameSets.has(nameKey)) continue;
             let newCount = 0;
             for (const n of r.names) { if (!covered.has(n)) newCount++; }
             if (newCount > bestNewCount || (newCount === bestNewCount && r.sps > (bestConfig ? bestConfig.sps : 0))) {
@@ -1292,8 +1292,7 @@ function _runCycleOptimizerInner() {
         }
         if (!bestConfig) break;
 
-        const rKey = bestConfig.droneTier + ':' + bestConfig.distance + ':' + bestConfig.range;
-        usedKeys.add(rKey);
+        usedNameSets.add(bestConfig.names.join('|'));
         const newNames = bestConfig.names.filter(n => !covered.has(n));
         const overlapNames = bestConfig.names.filter(n => covered.has(n));
         for (const n of bestConfig.names) covered.add(n);
