@@ -1151,7 +1151,7 @@ function runCycleOptimizer() {
       return { drones, coveredCount, totalSPS };
     }
 
-    // Balanced greedy: maximize min per-ore rate across combined output
+    // Balanced greedy: maximize unique asteroid coverage, tiebreak by best balance (lowest CV)
     function greedyBalanced(startIdx) {
       const drones = [];
       const covered = new Set();
@@ -1167,16 +1167,21 @@ function runCycleOptimizer() {
       });
 
       for (let d = 1; d < maxDrones; d++) {
-        let bestConfig = null, bestMinRate = -1, bestSPS = 0;
+        let bestConfig = null, bestNewCount = -1, bestCV = Infinity, bestSPS = 0;
         for (const r of deduped) {
+          let newCount = 0;
+          for (const n of r.names) { if (!covered.has(n)) newCount++; }
           const merged = mergePerOre(combinedPerOre, r.perOre);
-          const minRate = Math.min(...Object.values(merged));
+          const cv = balanceMetrics(merged).cv;
           const totalSPS = Object.values(merged).reduce((s, v) => s + v, 0);
-          if (minRate > bestMinRate || (minRate === bestMinRate && totalSPS > bestSPS)) {
-            bestConfig = r; bestMinRate = minRate; bestSPS = totalSPS;
+          // Primary: most new asteroids; secondary: lowest CV; tertiary: highest throughput
+          if (newCount > bestNewCount ||
+              (newCount === bestNewCount && cv < bestCV) ||
+              (newCount === bestNewCount && cv === bestCV && totalSPS > bestSPS)) {
+            bestConfig = r; bestNewCount = newCount; bestCV = cv; bestSPS = totalSPS;
           }
         }
-        if (!bestConfig) break;
+        if (!bestConfig || bestNewCount === 0) break;
 
         const newNames = bestConfig.names.filter(n => !covered.has(n));
         const overlapNames = bestConfig.names.filter(n => covered.has(n));
