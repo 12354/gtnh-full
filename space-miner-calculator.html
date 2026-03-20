@@ -262,7 +262,7 @@
 
 <details class="optimizer">
   <summary><h2 style="display:inline">Cycle Mode Optimizer</h2></summary>
-  <p style="color:var(--text2);margin:4px 0 12px">Finds the best distance, range &amp; step to hit the most asteroids. Uses your current module tier, max drone tier, step, and plasma settings.</p>
+  <p style="color:var(--text2);margin:4px 0 12px">Finds the best distance, range &amp; step to hit the most unique asteroids. With multiple drones, uses greedy set cover to maximize unique asteroid coverage while minimizing overlap.</p>
   <div class="optimizer-row">
     <div class="control-group">
       <label>Max Range</label>
@@ -276,10 +276,13 @@
       </select>
     </div>
     <div class="control-group">
-      <label>Optimize For</label>
-      <select id="cycleOptGoal">
-        <option value="asteroids">Most asteroids</option>
-        <option value="throughput">Highest throughput (stacks/hr)</option>
+      <label>Max Drones</label>
+      <select id="cycleMaxDrones">
+        <option value="1" selected>1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
       </select>
     </div>
     <button class="opt-btn" onclick="runCycleOptimizer()">Optimize Cycle</button>
@@ -913,7 +916,7 @@ function runCycleOptimizer() {
   const pt = +document.getElementById('plasmaTier').value;
   const plasma = PLASMA[pt];
   const maxRange = +document.getElementById('cycleMaxRange').value;
-  const goal = document.getElementById('cycleOptGoal').value;
+  const maxDrones = +document.getElementById('cycleMaxDrones').value;
   const step = Math.max(1, +document.getElementById('step').value);
 
   const maxODLim = Math.min(2.0, 2.0 * plasma.discount);
@@ -935,7 +938,6 @@ function runCycleOptimizer() {
   // Sweep all effective (lo, hi) combinations; pick tightest distance+range per pair
   for (let lo = 0; lo <= 200; lo++) {
     for (let hi = lo; hi <= Math.min(200, lo + maxRange * 2); hi++) {
-      // Find tightest center+range: center at midpoint, range = half-span (rounded up)
       const center = Math.round((lo + hi) / 2);
       const range = Math.max(center - lo, hi - center);
       if (range > maxRange) continue;
@@ -943,11 +945,7 @@ function runCycleOptimizer() {
       for (let d = lo; d <= hi; d += step) dists.push(d);
       if (!dists.length) continue;
 
-      // Count unique asteroids hit across all distances
       const hitSet = new Set();
-      let totalSPS = 0;
-
-      // Aggregate across distances (same logic as calculate())
       const chanceMap = new Map();
       let totalExpTime = 0;
       for (const dist of dists) {
@@ -966,6 +964,7 @@ function runCycleOptimizer() {
         totalExpTime += expectedTime;
       }
 
+      let totalSPS = 0;
       const avgExpTime = totalExpTime / dists.length;
       if (avgExpTime > 0) {
         for (const a of accessible) {
@@ -981,7 +980,7 @@ function runCycleOptimizer() {
         }
       }
 
-      results.push({ distance: center, range, count: hitSet.size, sps: totalSPS, steps: dists.length, names: [...hitSet].sort() });
+      results.push({ distance: center, range, count: hitSet.size, sps: totalSPS, steps: dists.length, names: [...hitSet].sort(), nameSet: hitSet });
     }
   }
 
@@ -990,22 +989,17 @@ function runCycleOptimizer() {
     return;
   }
 
-  // Sort by goal
-  if (goal === 'asteroids') {
-    results.sort((a, b) => b.count - a.count || b.sps - a.sps || a.range - b.range);
-  } else {
-    results.sort((a, b) => b.sps - a.sps || b.count - a.count);
-  }
+  // Sort by most asteroids, break ties by throughput then smaller range
+  results.sort((a, b) => b.count - a.count || b.sps - a.sps || a.range - b.range);
 
-  // Deduplicate: keep best per unique asteroid set
+  // Deduplicate: keep best config per unique asteroid set
   const seen = new Set();
-  const top = [];
+  const deduped = [];
   for (const r of results) {
     const key = r.names.join('|');
     if (seen.has(key)) continue;
     seen.add(key);
-    top.push(r);
-    if (top.length >= 20) break;
+    deduped.push(r);
   }
 
   // Compute current cycle asteroids for diff highlighting
@@ -1021,10 +1015,57 @@ function runCycleOptimizer() {
     }
   }
 
-  // Store top results for diff toggle re-rendering
-  window._cycleOptData = { top, modT, drT, currentNames: [...currentNames], isCycle };
+  if (maxDrones === 1) {
+    // Single drone: show top 20 as before
+    const top = deduped.slice(0, 20);
+    window._cycleOptData = { top, modT, drT, currentNames: [...currentNames], isCycle, maxDrones: 1 };
+    renderCycleOptTable(false);
+  } else {
+    // Multi-drone: greedy set cover to maximize unique asteroids, minimize drones & overlap
+    const allAccessibleNames = new Set(accessible.map(a => a.n));
+    const drones = [];
+    const covered = new Set();
 
-  renderCycleOptTable(false);
+    for (let d = 0; d < maxDrones; d++) {
+      let bestConfig = null;
+      let bestNewCount = 0;
+      let bestOverlap = Infinity;
+
+      for (const r of deduped) {
+        let newCount = 0;
+        let overlap = 0;
+        for (const n of r.names) {
+          if (covered.has(n)) overlap++;
+          else newCount++;
+        }
+        // Pick config that adds the most new asteroids; break ties by least overlap, then most total
+        if (newCount > bestNewCount || (newCount === bestNewCount && overlap < bestOverlap) ||
+            (newCount === bestNewCount && overlap === bestOverlap && bestConfig && r.count > bestConfig.count)) {
+          bestConfig = r;
+          bestNewCount = newCount;
+          bestOverlap = overlap;
+        }
+      }
+
+      if (!bestConfig || bestNewCount === 0) break; // No more unique asteroids to add
+
+      const newNames = bestConfig.names.filter(n => !covered.has(n));
+      const overlapNames = bestConfig.names.filter(n => covered.has(n));
+      for (const n of bestConfig.names) covered.add(n);
+
+      drones.push({
+        ...bestConfig,
+        droneIndex: d + 1,
+        newNames: newNames.sort(),
+        overlapNames: overlapNames.sort(),
+        newCount: newNames.length,
+        overlapCount: overlapNames.length
+      });
+    }
+
+    window._cycleOptData = { drones, modT, drT, currentNames: [...currentNames], isCycle, maxDrones, allCount: allAccessibleNames.size, coveredCount: covered.size };
+    renderMultiDroneTable();
+  }
 }
 
 function oreTooltip(name, extraStyle) {
@@ -1092,6 +1133,49 @@ function applyCycle(distance, range) {
   document.getElementById('stepGroup').style.display = '';
   calculate();
   document.getElementById('infoCards').scrollIntoView({ behavior: 'smooth' });
+}
+
+function renderMultiDroneTable() {
+  const { drones, modT, drT, allCount, coveredCount } = window._cycleOptData;
+  const totalOverlap = drones.reduce((s, d) => s + d.overlapCount, 0);
+
+  let h = `<div class="opt-result">
+    <h3>Multi-drone coverage &mdash; MK-${['I','II','III'][modT-1]} / Drone ${ROMAN[drT]} &mdash; ${drones.length} drone${drones.length > 1 ? 's' : ''} cover ${coveredCount} / ${allCount} accessible asteroids</h3>
+    <p style="color:var(--text2);margin:0 0 12px;font-size:0.9em">Total overlap: ${totalOverlap} asteroid${totalOverlap !== 1 ? 's' : ''} hit by multiple drones</p>
+    <table><thead><tr>
+      <th>Drone</th><th>Distance</th><th>Range</th><th>Steps</th>
+      <th>Total</th><th>New</th><th>Overlap</th><th>Asteroid Names</th><th></th>
+    </tr></thead><tbody>`;
+
+  for (const d of drones) {
+    const newSet = new Set(d.newNames);
+    const overlapSet = new Set(d.overlapNames);
+    const namesHtml = d.names.map(n => {
+      if (newSet.has(n)) return oreTooltip(n, 'color:var(--green)');
+      if (overlapSet.has(n)) return oreTooltip(n, 'color:var(--text2);opacity:0.6');
+      return oreTooltip(n);
+    }).join(', ');
+
+    h += `<tr${d.droneIndex === 1 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
+      <td style="font-weight:700">${d.droneIndex}</td>
+      <td>${d.distance}</td>
+      <td>${d.range}</td>
+      <td>${d.steps}</td>
+      <td>${d.count}</td>
+      <td style="color:var(--green);font-weight:600">+${d.newCount}</td>
+      <td style="color:${d.overlapCount > 0 ? 'var(--accent)' : 'var(--text2)'}">${d.overlapCount}</td>
+      <td style="font-size:0.85em;max-width:400px">${namesHtml}</td>
+      <td><button class="apply-btn" onclick="applyCycle(${d.distance},${d.range})">Apply</button></td>
+    </tr>`;
+  }
+
+  h += `</tbody></table>
+    <p style="color:var(--text2);margin:8px 0 0;font-size:0.85em">
+      <span style="color:var(--green)">Green</span> = unique to this drone &bull;
+      <span style="opacity:0.6">Dim</span> = already covered by a previous drone
+    </p></div>`;
+
+  document.getElementById('cycleOptResult').innerHTML = h;
 }
 
 function applyOptimal(dist, od, modT, drT) {
