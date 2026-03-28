@@ -148,13 +148,11 @@ public class EntityDoppleganger extends EntityCreature implements IBotaniaBossWi
 
 	public static boolean spawn(EntityPlayer player, ItemStack par1ItemStack, World par3World, int par4, int par5, int par6, boolean hard) {
 		if(par3World.getTileEntity(par4, par5, par6) instanceof TileEntityBeacon && isTruePlayer(player)) {
-			// GTNH Peaceful Mode Workaround: Allow Gaia Guardian to spawn in Peaceful difficulty
-			// The mob wave phase mobs will despawn immediately, effectively skipping that phase
-			// if(par3World.difficultySetting == EnumDifficulty.PEACEFUL) {
-			// 	if(!par3World.isRemote)
-			// 		player.addChatMessage(new ChatComponentTranslation("botaniamisc.peacefulNoob").setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)));
-			// 	return false;
-			// }
+			if(par3World.difficultySetting == EnumDifficulty.PEACEFUL) {
+				if(!par3World.isRemote)
+					player.addChatMessage(new ChatComponentTranslation("botaniamisc.peacefulNoob").setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)));
+				return false;
+			}
 
 			for(int[] coords : PYLON_LOCATIONS) {
 				int x = par4 + coords[0];
@@ -524,10 +522,9 @@ public class EntityDoppleganger extends EntityCreature implements IBotaniaBossWi
 			ridingEntity = null;
 		}
 
-		// GTNH Peaceful Mode Workaround: Don't kill Gaia Guardian if world is Peaceful
-		// boolean peaceful = worldObj.difficultySetting == EnumDifficulty.PEACEFUL;
-		// if(!worldObj.isRemote && peaceful)
-		// 	setDead();
+		boolean peaceful = worldObj.difficultySetting == EnumDifficulty.PEACEFUL;
+		if(!worldObj.isRemote && peaceful)
+			setDead();
 
 		if(!worldObj.isRemote) {
 			int radius = 1;
