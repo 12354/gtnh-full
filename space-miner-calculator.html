@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTNH Space Miner Calculator</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --bg2: #16213e;
+    --bg3: #0f3460;
+    --accent: #e94560;
+    --text: #eee;
+    --text2: #aab;
+    --green: #4ecca3;
+    --gold: #f0c040;
+    --border: #2a2a4e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  h1 { text-align: center; margin-bottom: 8px; color: var(--gold); font-size: 1.8em; }
+  .subtitle { text-align: center; color: var(--text2); margin-bottom: 24px; font-size: 0.9em; }
+  .subtitle a { color: var(--accent); text-decoration: none; }
+  .subtitle a:hover { text-decoration: underline; }
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    max-width: 1400px;
+    margin: 0 auto 24px;
+    background: var(--bg2);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .control-group { display: flex; flex-direction: column; gap: 4px; }
+  .control-group label { font-size: 0.85em; color: var(--text2); font-weight: 600; }
+  .control-group input, .control-group select {
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    padding: 8px 12px; border-radius: 6px; font-size: 0.95em;
+  }
+  .control-group input:focus, .control-group select:focus { outline: none; border-color: var(--accent); }
+  .control-group .value-display { font-size: 0.8em; color: var(--green); min-height: 1.2em; }
+  .info-cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px; max-width: 1400px; margin: 0 auto 24px;
+  }
+  .info-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px; text-align: center;
+  }
+  .info-card .card-label { font-size: 0.8em; color: var(--text2); margin-bottom: 4px; }
+  .info-card .card-value { font-size: 1.3em; font-weight: 700; color: var(--green); }
+  .info-card .card-sub { font-size: 0.75em; color: var(--text2); margin-top: 2px; }
+  .results { max-width: 1400px; margin: 0 auto; }
+  .results h2 { color: var(--gold); margin-bottom: 12px; font-size: 1.2em; }
+  table {
+    width: 100%; border-collapse: collapse; background: var(--bg2);
+    border-radius: 10px; overflow: hidden; margin-bottom: 24px;
+  }
+  th {
+    background: var(--bg3); padding: 10px 8px; text-align: left;
+    font-size: 0.8em; color: var(--text2); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  th:hover { color: var(--gold); }
+  th.sorted-asc::after { content: ' \u25B2'; color: var(--accent); }
+  th.sorted-desc::after { content: ' \u25BC'; color: var(--accent); }
+  td { padding: 8px; border-top: 1px solid var(--border); font-size: 0.88em; vertical-align: top; }
+  tr:hover td { background: rgba(233, 69, 96, 0.05); }
+  .chance-bar {
+    display: inline-block; height: 6px; background: var(--accent);
+    border-radius: 3px; min-width: 2px; margin-right: 6px; vertical-align: middle;
+  }
+  .ore-breakdown { display: flex; flex-direction: column; gap: 2px; }
+  .ore-line { display: flex; justify-content: space-between; gap: 8px; font-size: 0.85em; }
+  .ore-name { color: var(--text); }
+  .ore-pct { color: var(--text2); white-space: nowrap; }
+  .module-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; font-weight: 700; }
+  .module-1 { background: #2d5a27; color: #8fde84; }
+  .module-2 { background: #5a4a27; color: #decc84; }
+  .module-3 { background: #5a2727; color: #de8484; }
+  .not-available { opacity: 0.35; }
+  .plasma-info {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; max-width: 1400px; margin: 0 auto 24px;
+  }
+  .plasma-info h3 { color: var(--gold); margin-bottom: 8px; font-size: 1em; }
+  .plasma-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+  .plasma-stat { font-size: 0.85em; }
+  .plasma-stat span { color: var(--green); font-weight: 600; }
+  .filter-row {
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    max-width: 1400px; margin: 0 auto 16px;
+  }
+  .filter-row input[type="text"] {
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 6px; flex: 1; min-width: 200px;
+  }
+  .filter-row label { font-size: 0.85em; color: var(--text2); cursor: pointer; }
+  .filter-row input[type="checkbox"] { accent-color: var(--accent); }
+  .total-row td {
+    font-weight: 700; background: rgba(78, 204, 163, 0.08);
+    border-top: 2px solid var(--green);
+  }
+  .optimizer {
+    max-width: 1400px; margin: 0 auto 24px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .optimizer h2 { color: var(--gold); margin-bottom: 12px; font-size: 1.2em; }
+  .optimizer summary { cursor: pointer; padding: 4px 0; list-style: revert; }
+  .optimizer summary:hover h2 { filter: brightness(1.2); }
+  .optimizer-row {
+    display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .optimizer-row .control-group { min-width: 140px; }
+  .opt-btn {
+    background: var(--accent); color: #fff; border: none; padding: 9px 20px;
+    border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.95em;
+    white-space: nowrap;
+  }
+  .opt-btn:hover { filter: brightness(1.15); }
+  .opt-btn:disabled { opacity: 0.6; cursor: default; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .opt-loading { display: flex; align-items: center; gap: 10px; padding: 16px; color: var(--text2); }
+  .opt-loading::before { content: ''; width: 18px; height: 18px; border: 2.5px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  .opt-result {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; margin-top: 12px;
+  }
+  .ore-tip-wrap {
+    position: relative; display: inline;
+  }
+  #oreTipPopup {
+    display: none;
+    position: fixed;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px; min-width: 280px; max-width: 400px;
+    max-height: 70vh; overflow-y: auto;
+    z-index: 10000; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    pointer-events: none; white-space: normal; text-align: left;
+  }
+  .ore-tip .tip-name { font-weight: 700; color: var(--gold); font-size: 0.95em; margin-bottom: 6px; }
+  .ore-tip .tip-row { display: flex; justify-content: space-between; gap: 8px; font-size: 0.82em; padding: 1px 0; }
+  .ore-tip .tip-label { color: var(--text2); }
+  .ore-tip .tip-val { color: var(--text); font-weight: 600; text-align: right; }
+  .ore-tip .tip-val.green { color: var(--green); }
+  .ore-tip .tip-sep { border-top: 1px solid var(--border); margin: 5px 0; }
+  .ore-tip .tip-mats { margin-top: 4px; }
+  .ore-tip .tip-mat { display: flex; justify-content: space-between; gap: 6px; font-size: 0.8em; padding: 1px 0; }
+  .ore-tip .tip-mat-name { color: var(--text); }
+  .ore-tip .tip-mat-pct { color: var(--text2); }
+  .opt-result h3 { color: var(--green); margin-bottom: 8px; font-size: 1em; }
+  .opt-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px; margin-bottom: 12px;
+  }
+  .opt-stat { font-size: 0.88em; }
+  .opt-stat span { color: var(--green); font-weight: 600; }
+  .apply-btn {
+    background: var(--green); color: var(--bg); border: none; padding: 8px 18px;
+    border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.9em;
+    margin-top: 8px;
+  }
+  .apply-btn:hover { filter: brightness(1.1); }
+  @media (max-width: 768px) {
+    .controls { grid-template-columns: 1fr 1fr; padding: 14px; }
+    table { font-size: 0.82em; }
+    td, th { padding: 6px 4px; }
+    .info-cards { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>GTNH Space Miner Calculator</h1>
+<p class="subtitle">
+  Space Elevator Mining Module output calculator &mdash;
+  <a href="https://gtnh.miraheze.org/wiki/Space_Elevator" target="_blank">Wiki</a> |
+  <a href="https://docs.google.com/spreadsheets/d/1xRApa3HnQiJDstr8I5csIi24Mx4mJNsalRJh8PVa52M/" target="_blank">Spreadsheet</a>
+</p>
+
+<div class="controls">
+  <div class="control-group">
+    <label>Mining Module Tier</label>
+    <select id="moduleTier">
+      <option value="1">MK-I (2 parallels, 245,760 EU/t max)</option>
+      <option value="2">MK-II (4 parallels, 4,815,896 EU/t max)</option>
+      <option value="3" selected>MK-III (8 parallels, 7,864,320 EU/t max)</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label>Drone Tier</label>
+    <select id="droneTier">
+      <option value="1">LV - Mining Drone-I</option>
+      <option value="2">MV - Mining Drone-II</option>
+      <option value="3">HV - Mining Drone-III</option>
+      <option value="4">EV - Mining Drone-IV</option>
+      <option value="5">IV - Mining Drone-V</option>
+      <option value="6">LuV - Mining Drone-VI</option>
+      <option value="7">ZPM - Mining Drone-VII</option>
+      <option value="8" selected>UV - Mining Drone-VIII</option>
+      <option value="9">UHV - Mining Drone-IX</option>
+      <option value="10">UEV - Mining Drone-X</option>
+      <option value="11">UIV - Mining Drone-XI</option>
+      <option value="12">UMV - Mining Drone-XII</option>
+      <option value="13">UXV - Mining Drone-XIII</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label>Max Drone Tier</label>
+    <select id="maxDroneTier">
+      <option value="1">LV - Mining Drone-I</option>
+      <option value="2">MV - Mining Drone-II</option>
+      <option value="3">HV - Mining Drone-III</option>
+      <option value="4">EV - Mining Drone-IV</option>
+      <option value="5">IV - Mining Drone-V</option>
+      <option value="6">LuV - Mining Drone-VI</option>
+      <option value="7">ZPM - Mining Drone-VII</option>
+      <option value="8">UV - Mining Drone-VIII</option>
+      <option value="9">UHV - Mining Drone-IX</option>
+      <option value="10">UEV - Mining Drone-X</option>
+      <option value="11">UIV - Mining Drone-XI</option>
+      <option value="12">UMV - Mining Drone-XII</option>
+      <option value="13" selected>UXV - Mining Drone-XIII</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label>Distance (0-200)</label>
+    <input type="range" id="distance" min="0" max="200" value="95">
+    <div class="value-display" id="distDisplay">95</div>
+  </div>
+  <div class="control-group">
+    <label>Plasma Tier</label>
+    <select id="plasmaTier">
+      <option value="1">T1 - Helium (825L, no time discount)</option>
+      <option value="2">T2 - Bismuth (550L, 10% time disc.)</option>
+      <option value="3">T3 - Radon (375L, 20% time disc.)</option>
+      <option value="4">T4 - Technetium (250L, 30% time disc.)</option>
+      <option value="5">T5 - Plutonium-241 (150L, 40% time disc.)</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label>Overdrive (0.01 - 2.00)</label>
+    <input type="range" id="overdrive" min="1" max="200" value="100" step="1">
+    <div class="value-display" id="odDisplay">1.00</div>
+  </div>
+  <div class="control-group">
+    <label>Mode</label>
+    <select id="mode">
+      <option value="static">Static (fixed distance)</option>
+      <option value="cycle">Cycle (distance range)</option>
+    </select>
+  </div>
+  <div class="control-group" id="rangeGroup" style="display:none">
+    <label>Range (0-150)</label>
+    <input type="range" id="range" min="0" max="150" value="50">
+    <div class="value-display" id="rangeDisplay">50</div>
+  </div>
+  <div class="control-group" id="stepGroup" style="display:none">
+    <label>Step (1-20)</label>
+    <input type="number" id="step" min="1" max="20" value="10">
+  </div>
+</div>
+
+<div class="info-cards" id="infoCards"></div>
+<div class="plasma-info" id="plasmaInfo"></div>
+
+<details class="optimizer">
+  <summary><h2 style="display:inline">Target Ore Optimizer</h2></summary>
+  <div class="optimizer-row">
+    <div class="control-group">
+      <label>Target Ore</label>
+      <select id="targetOre"><option value="">-- Select an ore --</option></select>
+    </div>
+    <button class="opt-btn" onclick="runOptimizer()">Find Best Config</button>
+  </div>
+  <div id="optResult"></div>
+</details>
+
+<details class="optimizer">
+  <summary><h2 style="display:inline">Cycle Mode Optimizer</h2></summary>
+  <p style="color:var(--text2);margin:4px 0 12px">Finds the best distance, range &amp; step to hit the most unique asteroids. With multiple drones, uses greedy set cover to maximize coverage. Boost Weakest intentionally overlaps drones on asteroids that produce the scarcest ores.</p>
+  <div class="optimizer-row">
+    <div class="control-group">
+      <label>Max Range</label>
+      <select id="cycleMaxRange">
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50" selected>50</option>
+        <option value="75">75</option>
+        <option value="100">100</option>
+        <option value="200">200</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Max Steps</label>
+      <select id="cycleMaxSteps">
+        <option value="0">No limit</option>
+        <option value="3">3</option>
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="15">15</option>
+        <option value="20" selected>20</option>
+        <option value="30">30</option>
+        <option value="50">50</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Goal</label>
+      <select id="cycleGoal">
+        <option value="throughput" selected>Max Throughput</option>
+        <option value="balanced">Most Balanced</option>
+        <option value="boostweak">Boost Weakest</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Max Drones</label>
+      <select id="cycleMaxDrones">
+        <option value="1" selected>1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+      </select>
+    </div>
+    <button class="opt-btn" onclick="runCycleOptimizer()">Optimize Cycle</button>
+  </div>
+  <div id="cycleOptResult"></div>
+</details>
+
+<div class="filter-row">
+  <input type="text" id="oreFilter" placeholder="Filter by ore or asteroid name...">
+  <label><input type="checkbox" id="hideUnavailable" checked> Hide unavailable</label>
+  <label><input type="checkbox" id="showPerItem"> Show per-ore rates</label>
+</div>
+
+<div class="results" id="results"></div>
+
+<script>
+const TIERS = ['','LV','MV','HV','EV','IV','LuV','ZPM','UV','UHV','UEV','UIV','UMV','UXV'];
+const ROMAN = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII'];
+const TIER_EU = { EV: 1920, IV: 7680, LuV: 30720, ZPM: 122880, UV: 491520, UEV: 1966080 };
+const MODULE_MAX_EU = { 1: 245760, 2: 4815896, 3: 7864320 };
+const MODULE_MAX_PAR = { 1: 2, 2: 4, 3: 8 };
+const MODULE_MAX_COMP = { 1: 600, 2: 1280, 3: 2880 };
+const SECONDS = 20;
+
+// Actual formulas from source code (TileEntityModuleMiner.java):
+//   time = baseTime * max((1 - 0.1*(plasmaTier-1)) / overdrive, 0.5)
+//   sizeBonus = min((plasmaTier/6)^3 * (2.0 - overdrive), 0.75)
+// discount = 1 - 0.1*(tier-1), lambda = (tier/6)^3
+const PLASMA = [
+  null,
+  { name: 'Helium', consumed: 825, discount: 1.0, lambda: 0.00463 },
+  { name: 'Bismuth', consumed: 550, discount: 0.9, lambda: 0.03704 },
+  { name: 'Radon', consumed: 375, discount: 0.8, lambda: 0.125 },
+  { name: 'Technetium', consumed: 250, discount: 0.7, lambda: 0.29630 },
+  { name: 'Plutonium-241', consumed: 150, discount: 0.6, lambda: 0.57870 }
+];
+
+const A = [
+  { n:"Coal", m:["Coal","Lignite","Graphite"], w:[7000,1000,2000],
+    sMin:30,sMax:120,dMin:1,dMax:40, comp:20,mod:1,dur:10*SECONDS,
+    eut:TIER_EU.EV, drMin:1,drMax:7, wt:200 },
+  { n:"Salt", m:["Salt","Rock Salt","Saltpeter"], w:[4000,2000,4000],
+    sMin:30,sMax:120,dMin:1,dMax:250, comp:20,mod:1,dur:10*SECONDS,
+    eut:TIER_EU.EV, drMin:1,drMax:5, wt:300 },
+  { n:"Iron", m:["Iron","Gold","Magnetite","Pyrite","Basaltic Mineral Sand","Granitic Mineral Sand"],
+    w:[4000,2000,1000,1000,500,500],
+    sMin:30,sMax:150,dMin:1,dMax:180, comp:10,mod:1,dur:10*SECONDS,
+    eut:TIER_EU.EV, drMin:1,drMax:7, wt:600 },
+  { n:"Copper", m:["Copper","Chalcopyrite","Malachite"], w:[5000,3000,2000],
+    sMin:30,sMax:150,dMin:3,dMax:12, comp:10,mod:1,dur:10*SECONDS,
+    eut:TIER_EU.EV, drMin:1,drMax:6, wt:500 },
+  { n:"Tin", m:["Cassiterite","Cassiterite Sand","Tin","Asbestos"], w:[2000,1500,6000,500],
+    sMin:50,sMax:200,dMin:2,dMax:100, comp:10,mod:1,dur:50,
+    eut:TIER_EU.IV, drMin:1,drMax:5, wt:400 },
+  { n:"Aluminium", m:["Aluminium","Bauxite","Rutile"], w:[5000,3500,1500],
+    sMin:10,sMax:20,dMin:5,dMax:20, comp:20,mod:1,dur:50,
+    eut:TIER_EU.IV, drMin:2,drMax:4, wt:120 },
+  { n:"Nickel", m:["Nickel","Pentlandite","Garnierite"], w:[4000,3000,3000],
+    sMin:20,sMax:40,dMin:5,dMax:20, comp:20,mod:1,dur:50,
+    eut:TIER_EU.IV, drMin:1,drMax:5, wt:170 },
+  { n:"Chrome", m:["Chrome","Ruby","Chromite"], w:[5000,3000,2000],
+    sMin:16,sMax:32,dMin:10,dMax:20, comp:40,mod:1,dur:50,
+    eut:TIER_EU.LuV, drMin:2,drMax:6, wt:100 },
+  { n:"PlatLine Ore", m:["Platinum","Palladium","Iridium","Osmium"], w:[6000,2000,1500,500],
+    sMin:20,sMax:40,dMin:10,dMax:50, comp:60,mod:1,dur:50,
+    eut:TIER_EU.LuV, drMin:3,drMax:7, wt:130 },
+  { n:"Gem Ores", m:["Ruby","Emerald","Sapphire","Green Sapphire","Diamond","Opal","Amethyst","Topaz","Blue Topaz","Bauxite","Vinteum","Nether Star"],
+    w:[1500,1500,1500,1500,750,750,750,1000,500,500,400,100],
+    sMin:30,sMax:160,dMin:17,dMax:40, comp:60,mod:1,dur:100,
+    eut:TIER_EU.LuV, drMin:1,drMax:6, wt:180 },
+  { n:"Thaumium Dust", m:["Thaumium","Void Metal"], w:[6000,4000],
+    sMin:20,sMax:50,dMin:10,dMax:70, comp:120,mod:1,dur:30*SECONDS,
+    eut:TIER_EU.LuV, drMin:3,drMax:6, wt:150 },
+  { n:"Basic Magic", m:["Infused Gold","Shadow Metal","Infused Air","Infused Earth","Infused Fire","Infused Water","Infused Entropy","Infused Order"],
+    w:[3500,3500,500,500,500,500,500,500],
+    sMin:24,sMax:60,dMin:8,dMax:24, comp:120,mod:1,dur:100,
+    eut:TIER_EU.LuV, drMin:3,drMax:6, wt:200 },
+  { n:"Niobium", m:["Niobium","Quantium","Ytterbium","Yttrium"], w:[3000,2000,1500,3500],
+    sMin:30,sMax:120,dMin:30,dMax:160, comp:120,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:5,drMax:9, wt:160 },
+  { n:"Quartz", m:["Quartzite","Certus Quartz","Nether Quartz","Vanadium"], w:[3000,2250,2250,2500],
+    sMin:20,sMax:80,dMin:20,dMax:120, comp:50,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.IV, drMin:2,drMax:7, wt:230 },
+  { n:"Lutetium", m:["Tellurium","Thulium","Tantalum","Lutetium","Redstone"], w:[1500,1000,1500,500,5500],
+    sMin:20,sMax:80,dMin:40,dMax:240, comp:90,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:5,drMax:9, wt:100 },
+  { n:"Phosphate", m:["Phosphate","Tricalcium Phosphate","Sulfur"], w:[4500,2500,3000],
+    sMin:20,sMax:150,dMin:60,dMax:250, comp:60,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:5,drMax:11, wt:150 },
+  { n:"Lead", m:["Lead","Arsenic","Barium","Lepidolite"], w:[3000,2500,2500,2000],
+    sMin:30,sMax:100,dMin:5,dMax:150, comp:20,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.EV, drMin:1,drMax:8, wt:220 },
+  { n:"Adamantium", m:["Adamantium","Bismuth","Antimony","Gallium","Lithium"], w:[2500,2000,2000,2000,1500],
+    sMin:30,sMax:120,dMin:5,dMax:120, comp:20,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.EV, drMin:4,drMax:7, wt:300 },
+  { n:"Tungsten-Titanium", m:["Tungsten","Titanium","Neodymium","Molybdenum","Tungstate"], w:[3000,3000,2000,1500,500],
+    sMin:30,sMax:70,dMin:60,dMax:200, comp:120,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:1,drMax:6, wt:100 },
+  { n:"Blue", m:["Lapis","Calcite","Lazurite","Sodalite"], w:[6000,2000,1000,1000],
+    sMin:10,sMax:50,dMin:20,dMax:200, comp:60,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.IV, drMin:3,drMax:8, wt:250 },
+  { n:"Aluminium-LanthLine", m:["Aluminium","Bauxite","Monazite","Bastnasite"], w:[3500,1500,2500,2500],
+    sMin:10,sMax:80,dMin:40,dMax:120, comp:60,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.IV, drMin:2,drMax:7, wt:250 },
+  { n:"Everglades", m:["Koboldite","Crocroite","Gadolinite-Y","Lepersonnite","Zircon","Lautarite","Honeaite","Alburnite","Rare Earth (Low)","Rare Earth (Mid)","Rare Earth (High)"],
+    w:[600,400,1500,1500,1000,400,1000,600,1000,1000,1000],
+    sMin:10,sMax:20,dMin:110,dMax:230, comp:200,mod:1,dur:25*SECONDS,
+    eut:TIER_EU.IV, drMin:7,drMax:9, wt:100 },
+  { n:"Ardite/Cobalt", m:["Cobalt","Ardite","Manyullyn"], w:[3750,3750,2500],
+    sMin:20,sMax:90,dMin:30,dMax:100, comp:180,mod:1,dur:50*SECONDS,
+    eut:TIER_EU.IV, drMin:4,drMax:9, wt:150 },
+  { n:"Clay", m:["Clay Block"], w:[10000],
+    sMin:30,sMax:60,dMin:20,dMax:100, comp:30,mod:1,dur:40*SECONDS,
+    eut:TIER_EU.IV, drMin:1,drMax:6, wt:200 },
+  { n:"Uranium-Plutonium", m:["Uranium","Uranium-235","Plutonium","Plutonium-241","Thorianite"], w:[3000,2450,2450,2000,100],
+    sMin:40,sMax:180,dMin:30,dMax:70, comp:120,mod:1,dur:20*SECONDS,
+    eut:TIER_EU.LuV, drMin:3,drMax:7, wt:150 },
+  { n:"Magnesium", m:["Magnesium","Manganese","Fluorspar"], w:[4000,3000,3000],
+    sMin:10,sMax:80,dMin:10,dMax:200, comp:60,mod:1,dur:20*SECONDS,
+    eut:TIER_EU.IV, drMin:4,drMax:9, wt:250 },
+  { n:"Naquadah", m:["Naquadah Oxide Mixture","Enriched Naquadah Oxide Mixture","Naquadria Oxide Mixture"], w:[4000,3500,2500],
+    sMin:20,sMax:80,dMin:50,dMax:150, comp:240,mod:1,dur:50*SECONDS,
+    eut:TIER_EU.LuV, drMin:5,drMax:8, wt:200 },
+  { n:"Mysterious Crystal", m:["Mysterious Crystal","Mytryl","Oriharukon","HEE Endium","End Powder Ore"], w:[7400,2000,500,98,2],
+    sMin:30,sMax:60,dMin:65,dMax:120, comp:300,mod:1,dur:500,
+    eut:TIER_EU.ZPM, drMin:5,drMax:13, wt:220 },
+  // Module Tier 2
+  { n:"Indium", m:["Indium","Sphalerite","Zinc","Cadmium"], w:[6000,2000,1000,1000],
+    sMin:30,sMax:120,dMin:50,dMax:90, comp:120,mod:2,dur:500,
+    eut:TIER_EU.LuV, drMin:5,drMax:10, wt:170 },
+  { n:"Silicon", m:["Mica","Silicon","Silicon SG"], w:[2000,4500,2500],
+    sMin:20,sMax:80,dMin:50,dMax:250, comp:60,mod:2,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:3,drMax:6, wt:200 },
+  { n:"Draconic", m:["Draconium","Draconium Awakened","Electrum Flux"], w:[6500,2500,1000],
+    sMin:15,sMax:60,dMin:60,dMax:200, comp:360,mod:2,dur:30*SECONDS,
+    eut:TIER_EU.LuV, drMin:6,drMax:9, wt:190 },
+  { n:"Cheese", m:["Cheese"], w:[10000],
+    sMin:1,sMax:30,dMin:90,dMax:200, comp:240,mod:2,dur:50*SECONDS,
+    eut:TIER_EU.ZPM, drMin:5,drMax:13, wt:10 },
+  { n:"Europium", m:["Ledox","Callisto Ice","Borax","Europium"], w:[4000,4000,1500,500],
+    sMin:40,sMax:120,dMin:40,dMax:60, comp:240,mod:2,dur:50*SECONDS,
+    eut:TIER_EU.ZPM, drMin:7,drMax:13, wt:150 },
+  { n:"Cosmic", m:["Cosmic Neutronium","Neutronium","Black Plutonium","Bedrockium"], w:[2500,2500,2500,2500],
+    sMin:10,sMax:70,dMin:60,dMax:100, comp:240,mod:2,dur:500,
+    eut:TIER_EU.UV, drMin:7,drMax:13, wt:170 },
+  { n:"Infinity Catalyst", m:["Infinity Catalyst","Cosmic Neutronium","Neutronium"], w:[5000,3000,2000],
+    sMin:30,sMax:120,dMin:70,dMax:100, comp:320,mod:2,dur:1000,
+    eut:TIER_EU.UV, drMin:8,drMax:13, wt:150 },
+  { n:"Holmium/Samarium", m:["Holmium","Samarium","Tiberium","Strontium"], w:[2000,3000,3000,2000],
+    sMin:15,sMax:50,dMin:40,dMax:80, comp:260,mod:2,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:8,drMax:13, wt:75 },
+  { n:"Lanthanum", m:["Trinium","Lanthanum","Orundum","Silver"], w:[1500,2000,3000,3500],
+    sMin:30,sMax:120,dMin:30,dMax:230, comp:120,mod:2,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:5,drMax:11, wt:150 },
+  // Module Tier 3
+  { n:"Ichorium", m:["Shadow Iron","Meteoric Iron","Ichorium","Desh","Americium"], w:[4500,3000,1500,500,500],
+    sMin:30,sMax:120,dMin:70,dMax:100, comp:320,mod:3,dur:1000,
+    eut:TIER_EU.UV, drMin:10,drMax:13, wt:150 },
+  { n:"PlatLine Dust", m:["Platinum","Palladium","Iridium","Osmium","Ruthenium","Rhodium"], w:[3800,2000,1500,500,1200,1000],
+    sMin:10,sMax:30,dMin:25,dMax:200, comp:360,mod:3,dur:500,
+    eut:TIER_EU.ZPM, drMin:7,drMax:10, wt:60 },
+  { n:"Tengam", m:["Dilithium","Orundum","Vanadium","Ytterbium","Tengam (Raw)"], w:[100,1650,3500,2250,2500],
+    sMin:5,sMax:100,dMin:20,dMax:100, comp:120,mod:3,dur:25*SECONDS,
+    eut:TIER_EU.LuV, drMin:10,drMax:13, wt:50 },
+  { n:"Draconic Core Ruin", m:["DEFC Draconic Schematic","Draconic Core","ZPM Battery"], w:[100,100,9800],
+    sMin:1,sMax:1,dMin:50,dMax:200, comp:1000,mod:3,dur:100*SECONDS,
+    eut:TIER_EU.UEV, drMin:9,drMax:11, wt:1 }
+];
+
+let sortCol = null, sortDir = 1;
+
+function getInputs() {
+  const moduleTier = +document.getElementById('moduleTier').value;
+  const droneTier = +document.getElementById('droneTier').value;
+  const distance = +document.getElementById('distance').value;
+  const plasmaTier = +document.getElementById('plasmaTier').value;
+  const od = +document.getElementById('overdrive').value / 100;
+  const parallels = MODULE_MAX_PAR[moduleTier];
+  const mode = document.getElementById('mode').value;
+  const range = +document.getElementById('range').value;
+  const step = Math.max(1, +document.getElementById('step').value);
+  const maxDroneTier = +document.getElementById('maxDroneTier').value;
+  return { moduleTier, droneTier: Math.min(droneTier, maxDroneTier), maxDroneTier, distance, plasmaTier, od, parallels, mode, range, step };
+}
+
+function getDistances(inp) {
+  if (inp.mode === 'static') return [inp.distance];
+  const lo = Math.max(0, inp.distance - inp.range);
+  const hi = Math.min(200, inp.distance + inp.range);
+  const dists = [];
+  for (let d = lo; d <= hi; d += inp.step) dists.push(d);
+  if (!dists.length) dists.push(inp.distance);
+  return dists;
+}
+
+function isAvail(a, inp) {
+  return inp.droneTier >= a.drMin && inp.droneTier <= a.drMax && inp.moduleTier >= a.mod;
+}
+
+function adjSize(a, droneTier) {
+  const N = droneTier - a.drMin;
+  const b = N > 0 ? Math.pow(2, N) - 1 : 0;
+  return { min: a.sMin + b, max: a.sMax + b };
+}
+
+function calculate() {
+  if (typeof saveState === 'function') saveState();
+  const inp = getInputs();
+  const plasma = PLASMA[inp.plasmaTier];
+
+  // max OD: time modifier can't go below 0.5 → discount/OD >= 0.5 → OD <= 2*discount
+  const maxOD = Math.min(2.0, 2.0 * plasma.discount);
+  // min OD: size bonus can't exceed 0.75 → lambda*(2-OD) <= 0.75 → OD >= 2 - 0.75/lambda
+  const minOD = plasma.lambda > 0 ? Math.max(0.01, 2.0 - 0.75 / plasma.lambda) : 0.01;
+  const od = Math.max(minOD, Math.min(maxOD, inp.od));
+
+  // time = baseTime * max(discount / OD, 0.5)
+  const timeMult = Math.max(plasma.discount / od, 0.5);
+  const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
+
+  const distances = getDistances(inp);
+
+  // Pre-compute per-asteroid static properties (independent of distance)
+  const astInfo = A.map(ast => {
+    const avail = isAvail(ast, inp);
+    const size = adjSize(ast, inp.droneTier);
+    const avgSize = size.min + sizeBonus * (size.max - size.min);
+    const droneDurScale = Math.sqrt(inp.droneTier - ast.drMin + 1);
+    const adjBaseDur = Math.ceil(ast.dur / droneDurScale);
+    const adjEut = Math.ceil(ast.eut * droneDurScale);
+    const adjDur = adjBaseDur * timeMult;
+    const cycleSec = adjDur / 20;
+    const tw = ast.w.reduce((s, v) => s + v, 0);
+    const matPcts = ast.w.map(v => v / tw);
+    const maxParPow = Math.floor(MODULE_MAX_EU[inp.moduleTier] / adjEut);
+    const maxParComp = Math.floor(MODULE_MAX_COMP[inp.moduleTier] / ast.comp);
+    const par = Math.max(1, Math.min(MODULE_MAX_PAR[inp.moduleTier], maxParPow, maxParComp));
+    return { ast, avail, size, avgSize, adjDur, adjEut, cycleSec, matPcts, par };
+  });
+
+  // Per-distance: accumulate selection chances and weighted expected cycle time
+  const chanceMap = new Map();
+  let totalExpectedTime = 0;
+  for (const dist of distances) {
+    const eligible = astInfo.filter(d => d.avail && dist >= d.ast.dMin && dist <= d.ast.dMax);
+    const tw = eligible.reduce((s, d) => s + d.ast.wt, 0);
+    let expectedTime = 0;
+    for (const d of eligible) {
+      const p = tw > 0 ? d.ast.wt / tw : 0;
+      chanceMap.set(d.ast.n, (chanceMap.get(d.ast.n) || 0) + p);
+      expectedTime += p * d.cycleSec;
+    }
+    totalExpectedTime += expectedTime;
+  }
+  // Average expected cycle time per scan step (accounts for time spent on all asteroids)
+  const avgExpCycleTime = totalExpectedTime / distances.length;
+
+  const output = astInfo.map(d => {
+    const avgChance = (chanceMap.get(d.ast.n) || 0) / distances.length;
+    // Correct rate: use expected cycle time as denominator, not each asteroid's own time
+    // The machine picks ONE asteroid per cycle; slow asteroids delay everything
+    const sps = (avgChance > 0 && avgExpCycleTime > 0) ? avgChance * d.par * d.avgSize / avgExpCycleTime : 0;
+    const plasmaPS = (avgChance > 0 && avgExpCycleTime > 0) ? avgChance * PLASMA[inp.plasmaTier].consumed * d.par / avgExpCycleTime : 0;
+
+    return {
+      ast: d.ast, avail: d.avail, inRange: avgChance > 0, chance: avgChance,
+      size: d.size, avgSize: d.avgSize, adjDur: d.adjDur, matPcts: d.matPcts, par: d.par,
+      cycleSec: d.cycleSec, sps, spt: sps/20, sph: sps*3600,
+      plasmaPS, eutTotal: d.adjEut * d.par
+    };
+  });
+
+  renderCards(inp, plasma, od, timeMult, sizeBonus, minOD, maxOD, output, distances);
+  renderPlasma(plasma, od, timeMult, sizeBonus, minOD, maxOD, inp);
+  renderTable(output, inp);
+}
+
+function renderCards(inp, plasma, od, tm, sb, minOD, maxOD, output, dists) {
+  const el = output.filter(o => o.avail && o.inRange);
+  const tss = el.reduce((s, o) => s + o.sps, 0);
+  const tsh = el.reduce((s, o) => s + o.sph, 0);
+  const tp = el.reduce((s, o) => s + o.plasmaPS, 0);
+  const we = el.reduce((s, o) => s + o.chance * o.eutTotal, 0);
+  const dl = inp.mode === 'cycle' ?
+    `${Math.max(0,inp.distance-inp.range)}-${Math.min(200,inp.distance+inp.range)} (${dists.length} steps)` : inp.distance;
+  const timeReduction = ((1 - tm) * 100).toFixed(1);
+
+  document.getElementById('infoCards').innerHTML = `
+    <div class="info-card"><div class="card-label">Total Stacks/sec</div>
+      <div class="card-value">${tss.toFixed(2)}</div>
+      <div class="card-sub">${fmt(tss*64)} items/sec</div></div>
+    <div class="info-card"><div class="card-label">Total Stacks/hour</div>
+      <div class="card-value">${fmt(tsh)}</div>
+      <div class="card-sub">${fmt(tsh*64)} items/hour</div></div>
+    <div class="info-card"><div class="card-label">Eligible Asteroids</div>
+      <div class="card-value">${el.length}</div>
+      <div class="card-sub">at distance ${dl}</div></div>
+    <div class="info-card"><div class="card-label">Plasma Usage</div>
+      <div class="card-value">${tp.toFixed(1)} L/s</div>
+      <div class="card-sub">${plasma.name} Plasma</div></div>
+    <div class="info-card"><div class="card-label">Avg EU/t</div>
+      <div class="card-value">${fmt(we)}</div>
+      <div class="card-sub">weighted by probability</div></div>
+    <div class="info-card"><div class="card-label">Size Bonus (B)</div>
+      <div class="card-value">${(sb*100).toFixed(1)}%</div>
+      <div class="card-sub">Time multiplier: ${tm.toFixed(2)}x (${timeReduction}% faster)</div></div>`;
+}
+
+function renderPlasma(plasma, od, tm, sb, minOD, maxOD, inp) {
+  document.getElementById('plasmaInfo').innerHTML = `
+    <h3>Plasma & Overdrive</h3>
+    <div class="plasma-grid">
+      <div class="plasma-stat">Plasma: <span>${plasma.name}</span></div>
+      <div class="plasma-stat">Consumed: <span>${plasma.consumed} L/cycle/parallel</span></div>
+      <div class="plasma-stat">Overdrive: <span>${od.toFixed(2)}</span> (${minOD.toFixed(2)} - ${maxOD.toFixed(2)})</div>
+      <div class="plasma-stat">Time: <span>discount ${plasma.discount.toFixed(1)} / OD ${od.toFixed(2)} = ${tm.toFixed(2)}x</span></div>
+      <div class="plasma-stat">Size Bonus: <span>&lambda; ${(plasma.lambda*100).toFixed(2)}% &times; (2-${od.toFixed(2)}) = ${(sb*100).toFixed(1)}%</span></div>
+      <div class="plasma-stat">Module: <span>MK-${['I','II','III'][inp.moduleTier-1]}</span> | Drone: <span>${TIERS[inp.droneTier]}</span></div>
+    </div>`;
+}
+
+function renderTable(output, inp) {
+  const filter = document.getElementById('oreFilter').value.toLowerCase();
+  const hideU = document.getElementById('hideUnavailable').checked;
+  const showPI = document.getElementById('showPerItem').checked;
+
+  let f = output;
+  if (hideU) f = f.filter(o => o.avail && o.inRange);
+  if (filter) f = f.filter(o =>
+    o.ast.n.toLowerCase().includes(filter) ||
+    o.ast.m.some(m => m.toLowerCase().includes(filter))
+  );
+
+  if (sortCol) {
+    f.sort((a, b) => {
+      let va, vb;
+      switch(sortCol) {
+        case 'name': return sortDir * a.ast.n.localeCompare(b.ast.n);
+        case 'chance': va=a.chance; vb=b.chance; break;
+        case 'module': va=a.ast.mod; vb=b.ast.mod; break;
+        case 'size': va=a.avgSize; vb=b.avgSize; break;
+        case 'time': va=a.cycleSec; vb=b.cycleSec; break;
+        case 'sps': va=a.sps; vb=b.sps; break;
+        case 'sph': va=a.sph; vb=b.sph; break;
+        case 'eut': va=a.eutTotal; vb=b.eutTotal; break;
+        case 'weight': va=a.ast.wt; vb=b.ast.wt; break;
+        case 'dist': va=a.ast.dMin; vb=b.ast.dMin; break;
+        default: va=0; vb=0;
+      }
+      return sortDir * (va - vb);
+    });
+  }
+
+  const el = f.filter(o => o.avail && o.inRange);
+  const tss = el.reduce((s, o) => s + o.sps, 0);
+  const tsh = el.reduce((s, o) => s + o.sph, 0);
+  const cls = c => sortCol===c ? (sortDir===1?'sorted-asc':'sorted-desc') : '';
+
+  let h = `<h2>Asteroid Breakdown (${el.length} eligible)</h2><table>
+    <thead><tr>
+      <th class="${cls('name')}" onclick="doSort('name')">Asteroid</th>
+      <th class="${cls('chance')}" onclick="doSort('chance')">Chance</th>
+      <th class="${cls('module')}" onclick="doSort('module')">Module</th>
+      <th class="${cls('weight')}" onclick="doSort('weight')">Weight</th>
+      <th class="${cls('dist')}" onclick="doSort('dist')">Distance</th>
+      <th class="${cls('size')}" onclick="doSort('size')">Avg Size</th>
+      <th class="${cls('time')}" onclick="doSort('time')">Cycle</th>
+      <th class="${cls('eut')}" onclick="doSort('eut')">EU/t</th>
+      <th class="${cls('sps')}" onclick="doSort('sps')">Stacks/s</th>
+      <th class="${cls('sph')}" onclick="doSort('sph')">Stacks/hr</th>
+      <th>Materials</th>
+    </tr></thead><tbody>`;
+
+  for (const o of f) {
+    const rc = (!o.avail || !o.inRange) ? 'not-available' : '';
+    const tc = `module-${o.ast.mod}`;
+    const bw = Math.max(2, o.chance * 300);
+    const tw = o.ast.w.reduce((s, v) => s + v, 0);
+
+    let mh = '<div class="ore-breakdown">';
+    for (let i = 0; i < o.ast.m.length; i++) {
+      const pct = (o.ast.w[i] / tw * 100).toFixed(1);
+      const rate = showPI ? ` - ${(o.sps * o.ast.w[i] / tw).toFixed(3)}/s` : '';
+      mh += `<div class="ore-line"><span class="ore-name">${o.ast.m[i]}</span><span class="ore-pct">${pct}%${rate}</span></div>`;
+    }
+    mh += '</div>';
+
+    const reason = !o.avail ?
+      (inp.moduleTier < o.ast.mod ? `Needs MK-${['I','II','III'][o.ast.mod-1]}` :
+       `Drone: ${TIERS[o.ast.drMin]}-${TIERS[o.ast.drMax]}`) :
+      (!o.inRange ? 'Out of range' : '');
+
+    h += `<tr class="${rc}">
+      <td><strong>${o.ast.n}</strong>${reason ? `<br><small style="color:var(--accent)">${reason}</small>` : ''}</td>
+      <td><span class="chance-bar" style="width:${bw}px"></span>${(o.chance*100).toFixed(2)}%</td>
+      <td><span class="module-tag ${tc}">MK-${['I','II','III'][o.ast.mod-1]}</span></td>
+      <td>${o.ast.wt}</td>
+      <td>${o.ast.dMin}-${o.ast.dMax}</td>
+      <td>${o.size.min}-${o.size.max} (${o.avgSize.toFixed(1)})</td>
+      <td>${o.cycleSec.toFixed(1)}s<br><small style="color:var(--text2)">${Math.round(o.adjDur)}t</small></td>
+      <td>${fmt(o.eutTotal)} (${o.par}p)</td>
+      <td style="color:var(--green);font-weight:600">${o.sps.toFixed(3)}</td>
+      <td style="color:var(--green);font-weight:600">${fmt(o.sph)}</td>
+      <td>${mh}</td>
+    </tr>`;
+  }
+
+  h += `<tr class="total-row">
+    <td colspan="8" style="text-align:right">TOTAL</td>
+    <td style="color:var(--green)">${tss.toFixed(3)}</td>
+    <td style="color:var(--green)">${fmt(tsh)}</td><td></td></tr>`;
+  h += '</tbody></table>';
+
+  if (showPI && el.length > 0) h += oreSum(el);
+  document.getElementById('results').innerHTML = h;
+}
+
+function oreSum(data) {
+  const r = {};
+  for (const o of data) {
+    const tw = o.ast.w.reduce((s, v) => s + v, 0);
+    for (let i = 0; i < o.ast.m.length; i++) {
+      const n = o.ast.m[i];
+      r[n] = (r[n] || 0) + o.sps * o.ast.w[i] / tw;
+    }
+  }
+  const sorted = Object.entries(r).sort((a, b) => b[1] - a[1]);
+  let h = '<h2>Per-Ore Rate Summary</h2><table><thead><tr><th>Ore</th><th>Stacks/sec</th><th>Stacks/hour</th><th>Items/hour</th></tr></thead><tbody>';
+  for (const [n, rate] of sorted) {
+    if (rate < 0.00001) continue;
+    h += `<tr><td>${n}</td>
+      <td style="color:var(--green)">${rate.toFixed(4)}</td>
+      <td style="color:var(--green)">${fmt(rate*3600)}</td>
+      <td style="color:var(--green)">${fmt(rate*3600*64)}</td></tr>`;
+  }
+  return h + '</tbody></table>';
+}
+
+function fmt(n) {
+  if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if (Math.abs(n) >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return n.toFixed(1);
+}
+
+function doSort(col) {
+  if (sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = col === 'name' ? 1 : -1; }
+  calculate();
+}
+
+// Wire up events
+document.querySelectorAll('.controls input, .controls select').forEach(el => {
+  el.addEventListener('input', calculate);
+  el.addEventListener('change', calculate);
+});
+document.getElementById('distance').addEventListener('input', function() {
+  document.getElementById('distDisplay').textContent = this.value;
+});
+document.getElementById('overdrive').addEventListener('input', function() {
+  document.getElementById('odDisplay').textContent = (this.value/100).toFixed(2);
+});
+document.getElementById('range').addEventListener('input', function() {
+  document.getElementById('rangeDisplay').textContent = this.value;
+});
+document.getElementById('oreFilter').addEventListener('input', calculate);
+document.getElementById('hideUnavailable').addEventListener('change', calculate);
+document.getElementById('showPerItem').addEventListener('change', calculate);
+document.getElementById('mode').addEventListener('change', function() {
+  const c = this.value === 'cycle';
+  document.getElementById('rangeGroup').style.display = c ? '' : 'none';
+  document.getElementById('stepGroup').style.display = c ? '' : 'none';
+});
+
+// Populate target ore dropdown with all unique ore names
+(function() {
+  const ores = new Set();
+  for (const a of A) for (const m of a.m) ores.add(m);
+  const sel = document.getElementById('targetOre');
+  for (const name of [...ores].sort()) {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    sel.appendChild(opt);
+  }
+})();
+
+// Optimizer: use selected plasma, brute-force module/drone/overdrive/distance
+function runOptimizer() {
+  const targetOre = document.getElementById('targetOre').value;
+  if (!targetOre) return;
+  const btn = document.querySelector('#optResult').closest('.optimizer').querySelector('.opt-btn');
+  btn.disabled = true;
+  document.getElementById('optResult').innerHTML = '<div class="opt-loading">Optimizing\u2026</div>';
+  setTimeout(() => { try { _runOptimizerInner(targetOre); } finally { btn.disabled = false; } }, 20);
+}
+function _runOptimizerInner(targetOre) {
+
+  const pt = +document.getElementById('plasmaTier').value;
+  const plasma = PLASMA[pt];
+  const maxODLim = Math.min(2.0, 2.0 * plasma.discount);
+  const minODLim = plasma.lambda > 0 ? Math.max(0.01, 2.0 - 0.75 / plasma.lambda) : 0.01;
+
+  // Pre-compute: which asteroids contain this ore
+  const targetAsts = [];
+  for (const ast of A) {
+    const tw = ast.w.reduce((s, v) => s + v, 0);
+    let oreFrac = 0;
+    for (let i = 0; i < ast.m.length; i++) {
+      if (ast.m[i] === targetOre) oreFrac += ast.w[i] / tw;
+    }
+    if (oreFrac > 0) targetAsts.push({ ast, oreFrac });
+  }
+
+  if (!targetAsts.length) {
+    document.getElementById('optResult').innerHTML = `<div class="opt-result"><h3>No configuration found</h3>
+      <p style="color:var(--text2)">"${targetOre}" does not exist in any asteroid.</p></div>`;
+    return;
+  }
+
+  const maxDrT = +document.getElementById('maxDroneTier').value;
+  const results = [];
+
+  for (let modT = 1; modT <= 3; modT++) {
+    for (let drT = 1; drT <= maxDrT; drT++) {
+      const accessible = targetAsts.filter(t =>
+        drT >= t.ast.drMin && drT <= t.ast.drMax && modT >= t.ast.mod
+      );
+      if (!accessible.length) continue;
+
+      const parMap = new Map();
+      const durScaleMap = new Map();
+      for (const t of accessible) {
+        const dScale = Math.sqrt(drT - t.ast.drMin + 1);
+        durScaleMap.set(t.ast, dScale);
+        const adjEut = Math.ceil(t.ast.eut * dScale);
+        const maxP = Math.floor(MODULE_MAX_EU[modT] / adjEut);
+        const maxC = Math.floor(MODULE_MAX_COMP[modT] / t.ast.comp);
+        parMap.set(t.ast, Math.max(1, Math.min(MODULE_MAX_PAR[modT], maxP, maxC)));
+      }
+
+      let distLo = 200, distHi = 0;
+      for (const t of accessible) {
+        distLo = Math.min(distLo, t.ast.dMin);
+        distHi = Math.max(distHi, t.ast.dMax);
+      }
+      distHi = Math.min(distHi, 200);
+
+      let best = null;
+
+      for (let odStep = 0; odStep <= 20; odStep++) {
+        const od = minODLim + (maxODLim - minODLim) * odStep / 20;
+        const timeMult = Math.max(plasma.discount / od, 0.5);
+        const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
+
+        for (let dist = distLo; dist <= distHi; dist++) {
+          const eligible = A.filter(a =>
+            drT >= a.drMin && drT <= a.drMax &&
+            modT >= a.mod &&
+            dist >= a.dMin && dist <= a.dMax
+          );
+          if (!eligible.length) continue;
+          const totalWt = eligible.reduce((s, a) => s + a.wt, 0);
+
+          // Compute expected cycle time across all eligible asteroids at this distance
+          let expectedCycleTime = 0;
+          for (const a of eligible) {
+            const p = a.wt / totalWt;
+            const dScale = Math.sqrt(drT - a.drMin + 1);
+            const adjDur = Math.ceil(a.dur / dScale) * timeMult / 20;
+            expectedCycleTime += p * adjDur;
+          }
+
+          let targetSPS = 0;
+          for (const t of accessible) {
+            if (dist < t.ast.dMin || dist > t.ast.dMax) continue;
+            const chance = t.ast.wt / totalWt;
+            const size = adjSize(t.ast, drT);
+            const avgSize = size.min + sizeBonus * (size.max - size.min);
+            const par = parMap.get(t.ast);
+            targetSPS += chance * par * avgSize * t.oreFrac / expectedCycleTime;
+          }
+
+          if (targetSPS > 0 && (!best || targetSPS > best.sps)) {
+            best = { dist, od, sps: targetSPS, timeMult, sizeBonus, modT, drT };
+          }
+        }
+      }
+
+      if (best) results.push(best);
+    }
+  }
+
+  const container = document.getElementById('optResult');
+  if (!results.length) {
+    const astNames = targetAsts.map(t => t.ast.n).join(', ');
+    container.innerHTML = `<div class="opt-result"><h3>No configuration found</h3>
+      <p style="color:var(--text2)">"${targetOre}" exists in [${astNames}] but no module/drone/distance combo yields output.</p></div>`;
+    return;
+  }
+
+  results.sort((a, b) => b.sps - a.sps);
+  const bestR = results[0];
+  const bestSPH = bestR.sps * 3600;
+
+  let h = `<div class="opt-result">
+    <h3>Best configurations for "${targetOre}" with T${pt} ${plasma.name} Plasma &mdash; top: ${fmt(bestSPH)} stacks/hr (${fmt(bestSPH*64)} items/hr)</h3>
+    <table><thead><tr>
+      <th>Rank</th><th>Module</th><th>Drone</th><th>Distance</th>
+      <th>Overdrive</th><th>Time Mult</th><th>Size Bonus</th>
+      <th>Stacks/sec</th><th>Stacks/hr</th><th>Items/hr</th><th></th>
+    </tr></thead><tbody>`;
+
+  for (let i = 0; i < results.length; i++) {
+    const r = results[i];
+    const sph = r.sps * 3600;
+    h += `<tr${i===0 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
+      <td>${i+1}</td>
+      <td><span class="module-tag module-${r.modT}">MK-${['I','II','III'][r.modT-1]}</span></td>
+      <td>${ROMAN[r.drT]}</td>
+      <td>${r.dist}</td>
+      <td>${r.od.toFixed(2)}</td>
+      <td>${r.timeMult.toFixed(2)}x</td>
+      <td>${(r.sizeBonus*100).toFixed(1)}%</td>
+      <td style="color:var(--green);font-weight:600">${r.sps.toFixed(4)}</td>
+      <td style="color:var(--green);font-weight:600">${fmt(sph)}</td>
+      <td style="color:var(--green)">${fmt(sph*64)}</td>
+      <td><button class="apply-btn" onclick="applyOptimal(${r.dist},${r.od},${r.modT},${r.drT})">Apply</button></td>
+    </tr>`;
+  }
+  h += '</tbody></table></div>';
+  container.innerHTML = h;
+}
+
+// Cycle Optimizer: find best distance+range+step to maximize asteroid count or throughput
+function runCycleOptimizer() {
+  const btn = document.querySelector('#cycleOptResult').closest('.optimizer').querySelector('.opt-btn');
+  btn.disabled = true;
+  document.getElementById('cycleOptResult').innerHTML = '<div class="opt-loading">Optimizing\u2026</div>';
+  setTimeout(_runCycleOptimizerSync, 20);
+}
+function _runCycleOptimizerSync() {
+  const btn = document.querySelector('#cycleOptResult').closest('.optimizer').querySelector('.opt-btn');
+  try { _runCycleOptimizerInner(); } finally { btn.disabled = false; }
+}
+function _runCycleOptimizerInner() {
+  const modT = +document.getElementById('moduleTier').value;
+  const drT = Math.min(+document.getElementById('droneTier').value, +document.getElementById('maxDroneTier').value);
+  const maxDrT = +document.getElementById('maxDroneTier').value;
+  const pt = +document.getElementById('plasmaTier').value;
+  const plasma = PLASMA[pt];
+  const maxRange = +document.getElementById('cycleMaxRange').value;
+  const maxSteps = +document.getElementById('cycleMaxSteps').value;
+  const goal = document.getElementById('cycleGoal').value;
+  const maxDrones = +document.getElementById('cycleMaxDrones').value;
+  const step = Math.max(1, +document.getElementById('step').value);
+
+  const maxODLim = Math.min(2.0, 2.0 * plasma.discount);
+  const minODLim = plasma.lambda > 0 ? Math.max(0.01, 2.0 - 0.75 / plasma.lambda) : 0.01;
+  const od = Math.max(minODLim, Math.min(maxODLim, +document.getElementById('overdrive').value / 100));
+  const timeMult = Math.max(plasma.discount / od, 0.5);
+  const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
+
+  // Helper: compute all configs for a given drone tier
+  function computeConfigsForTier(tierDrT) {
+    const accessible = A.filter(a => tierDrT >= a.drMin && tierDrT <= a.drMax && modT >= a.mod);
+    if (!accessible.length) return [];
+    const configs = [];
+
+    for (let lo = 0; lo <= 200; lo++) {
+      for (let hi = lo; hi <= Math.min(200, lo + maxRange * 2); hi++) {
+        const center = Math.round((lo + hi) / 2);
+        const range = Math.max(center - lo, hi - center);
+        if (range > maxRange) continue;
+        const dists = [];
+        for (let d = lo; d <= hi; d += step) dists.push(d);
+        if (!dists.length) continue;
+        if (maxSteps > 0 && dists.length > maxSteps) continue;
+
+        const hitSet = new Set();
+        const chanceMap = new Map();
+        let totalExpTime = 0;
+        for (const dist of dists) {
+          const eligible = accessible.filter(a => dist >= a.dMin && dist <= a.dMax);
+          if (!eligible.length) continue;
+          const tw = eligible.reduce((s, a) => s + a.wt, 0);
+          let expectedTime = 0;
+          for (const a of eligible) {
+            hitSet.add(a.n);
+            const p = a.wt / tw;
+            chanceMap.set(a.n, (chanceMap.get(a.n) || 0) + p);
+            const dScale = Math.sqrt(tierDrT - a.drMin + 1);
+            const adjDur = Math.ceil(a.dur / dScale) * timeMult / 20;
+            expectedTime += p * adjDur;
+          }
+          totalExpTime += expectedTime;
+        }
+
+        let totalSPS = 0;
+        const perOre = {};
+        const avgExpTime = totalExpTime / dists.length;
+        if (avgExpTime > 0) {
+          for (const a of accessible) {
+            const avgChance = (chanceMap.get(a.n) || 0) / dists.length;
+            if (avgChance <= 0) continue;
+            const size = adjSize(a, tierDrT);
+            const avgSz = size.min + sizeBonus * (size.max - size.min);
+            const adjEut = Math.ceil(a.eut * Math.sqrt(tierDrT - a.drMin + 1));
+            const maxP = Math.floor(MODULE_MAX_EU[modT] / adjEut);
+            const maxC = Math.floor(MODULE_MAX_COMP[modT] / a.comp);
+            const par = Math.max(1, Math.min(MODULE_MAX_PAR[modT], maxP, maxC));
+            const astSPS = avgChance * par * avgSz / avgExpTime;
+            totalSPS += astSPS;
+            const tw = a.w.reduce((s, v) => s + v, 0);
+            for (let i = 0; i < a.m.length; i++) {
+              perOre[a.m[i]] = (perOre[a.m[i]] || 0) + astSPS * a.w[i] / tw;
+            }
+          }
+        }
+
+        configs.push({ distance: center, range, count: hitSet.size, sps: totalSPS, perOre, steps: dists.length, names: [...hitSet].sort(), nameSet: hitSet, droneTier: tierDrT });
+      }
+    }
+    return configs;
+  }
+
+  // Single drone: optimize for currently selected drone tier. Multi-drone: sweep all tiers 1..maxDrT
+  const tiersToSweep = maxDrones === 1 ? [drT] : Array.from({ length: maxDrT }, (_, i) => i + 1);
+  let allResults = [];
+  for (const t of tiersToSweep) {
+    allResults = allResults.concat(computeConfigsForTier(t));
+  }
+
+  if (!allResults.length) {
+    document.getElementById('cycleOptResult').innerHTML = `<div class="opt-result"><h3>No accessible asteroids</h3>
+      <p style="color:var(--text2)">No asteroids are accessible with the current module and drone tier.</p></div>`;
+    return;
+  }
+
+  // Helper: compute balance metrics for a per-ore map
+  function balanceMetrics(perOre) {
+    const rates = Object.values(perOre).sort((a, b) => a - b);
+    const n = rates.length;
+    if (n === 0) return { minRate: 0, maxRate: 0, p10: 0, p90: 0, ratio: 1, cv: 0, oreCount: 0 };
+    const minRate = rates[0];
+    const maxRate = rates[n - 1];
+    const p10 = rates[Math.floor(n * 0.1)];
+    const p90 = rates[Math.min(n - 1, Math.ceil(n * 0.9) - 1)];
+    const mean = rates.reduce((s, v) => s + v, 0) / n;
+    const variance = rates.reduce((s, v) => s + (v - mean) ** 2, 0) / n;
+    const cv = mean > 0 ? Math.sqrt(variance) / mean : 0;
+    return { minRate, maxRate, p10, p90, ratio: p90 > 0 ? p10 / p90 : 1, cv, oreCount: n };
+  }
+
+  // Helper: merge two perOre maps
+  function mergePerOre(a, b) {
+    const merged = { ...a };
+    for (const [ore, rate] of Object.entries(b)) merged[ore] = (merged[ore] || 0) + rate;
+    return merged;
+  }
+
+  // Sort: for balanced/boostweak modes, prefer many asteroids then low CV; for throughput, count then SPS
+  if (goal === 'balanced' || goal === 'boostweak') {
+    allResults.sort((a, b) => {
+      const ba = balanceMetrics(a.perOre), bb = balanceMetrics(b.perOre);
+      return b.count - a.count || ba.cv - bb.cv || b.sps - a.sps || a.range - b.range;
+    });
+  } else {
+    allResults.sort((a, b) => b.count - a.count || b.sps - a.sps || a.range - b.range);
+  }
+
+  // Deduplicate: keep best config per unique (drone tier + asteroid set)
+  const seen = new Set();
+  const deduped = [];
+  for (const r of allResults) {
+    const key = r.droneTier + ':' + r.names.join('|');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(r);
+  }
+
+  // Compute current cycle asteroids for diff highlighting
+  const accessible = A.filter(a => drT >= a.drMin && drT <= a.drMax && modT >= a.mod);
+  const isCycle = document.getElementById('mode').value === 'cycle';
+  let currentNames = new Set();
+  if (isCycle) {
+    const inp = getInputs();
+    const dists = getDistances(inp);
+    for (const dist of dists) {
+      for (const a of accessible) {
+        if (dist >= a.dMin && dist <= a.dMax) currentNames.add(a.n);
+      }
+    }
+  }
+
+  if (maxDrones === 1) {
+    // Single drone: show top 20
+    const top = deduped.slice(0, 20);
+    window._cycleOptData = { top, modT, drT, currentNames: [...currentNames], isCycle, maxDrones: 1, goal };
+    renderCycleOptTable(false);
+  } else {
+    // Multi-drone optimization with multi-start exploration
+    const allAccessibleNames = new Set();
+    for (let t = 1; t <= maxDrT; t++) {
+      for (const a of A) {
+        if (t >= a.drMin && t <= a.drMax && modT >= a.mod) allAccessibleNames.add(a.n);
+      }
+    }
+
+    // Max-throughput greedy: maximize unique asteroid count, tiebreak by SPS
+    function greedyThroughput(startIdx) {
+      const drones = [];
+      const covered = new Set();
+
+      const first = deduped[startIdx];
+      for (const n of first.names) covered.add(n);
+      drones.push({
+        ...first, droneIndex: 1,
+        newNames: [...first.names].sort(), overlapNames: [],
+        newCount: first.names.length, overlapCount: 0
+      });
+
+      for (let d = 1; d < maxDrones; d++) {
+        let bestConfig = null, bestNewCount = 0, bestSPS = 0;
+        for (const r of deduped) {
+          let newCount = 0;
+          for (const n of r.names) { if (!covered.has(n)) newCount++; }
+          if (newCount > bestNewCount || (newCount === bestNewCount && r.sps > bestSPS)) {
+            bestConfig = r; bestNewCount = newCount; bestSPS = r.sps;
+          }
+        }
+        if (!bestConfig || bestNewCount === 0) break;
+
+        const newNames = bestConfig.names.filter(n => !covered.has(n));
+        const overlapNames = bestConfig.names.filter(n => covered.has(n));
+        for (const n of bestConfig.names) covered.add(n);
+        drones.push({
+          ...bestConfig, droneIndex: d + 1,
+          newNames: newNames.sort(), overlapNames: overlapNames.sort(),
+          newCount: newNames.length, overlapCount: overlapNames.length
+        });
+      }
+
+      const coveredCount = covered.size;
+      const totalSPS = drones.reduce((s, d) => s + d.sps, 0);
+      return { drones, coveredCount, totalSPS };
+    }
+
+    // Balanced greedy: maximize unique asteroid coverage, tiebreak by best balance (lowest CV)
+    function greedyBalanced(startIdx) {
+      const drones = [];
+      const covered = new Set();
+      let combinedPerOre = {};
+
+      const first = deduped[startIdx];
+      for (const n of first.names) covered.add(n);
+      combinedPerOre = { ...first.perOre };
+      drones.push({
+        ...first, droneIndex: 1,
+        newNames: [...first.names].sort(), overlapNames: [],
+        newCount: first.names.length, overlapCount: 0
+      });
+
+      for (let d = 1; d < maxDrones; d++) {
+        let bestConfig = null, bestNewCount = -1, bestCV = Infinity, bestSPS = 0;
+        for (const r of deduped) {
+          let newCount = 0;
+          for (const n of r.names) { if (!covered.has(n)) newCount++; }
+          const merged = mergePerOre(combinedPerOre, r.perOre);
+          const cv = balanceMetrics(merged).cv;
+          const totalSPS = Object.values(merged).reduce((s, v) => s + v, 0);
+          // Primary: most new asteroids; secondary: lowest CV; tertiary: highest throughput
+          if (newCount > bestNewCount ||
+              (newCount === bestNewCount && cv < bestCV) ||
+              (newCount === bestNewCount && cv === bestCV && totalSPS > bestSPS)) {
+            bestConfig = r; bestNewCount = newCount; bestCV = cv; bestSPS = totalSPS;
+          }
+        }
+        if (!bestConfig || bestNewCount === 0) break;
+
+        const newNames = bestConfig.names.filter(n => !covered.has(n));
+        const overlapNames = bestConfig.names.filter(n => covered.has(n));
+        for (const n of bestConfig.names) covered.add(n);
+        combinedPerOre = mergePerOre(combinedPerOre, bestConfig.perOre);
+        drones.push({
+          ...bestConfig, droneIndex: d + 1,
+          newNames: newNames.sort(), overlapNames: overlapNames.sort(),
+          newCount: newNames.length, overlapCount: overlapNames.length
+        });
+      }
+
+      const coveredCount = covered.size;
+      const totalSPS = drones.reduce((s, d) => s + d.sps, 0);
+      const bm = balanceMetrics(combinedPerOre);
+      return { drones, coveredCount, totalSPS, combinedPerOre, balance: bm };
+    }
+
+    // Boost Weakest greedy: first drone maximizes coverage (like balanced),
+    // subsequent drones target configs that boost the weakest ores — overlap is welcome.
+    function greedyBoostWeak(startIdx) {
+      const drones = [];
+      const covered = new Set();
+      let combinedPerOre = {};
+      const usedNameSets = new Set(); // track by asteroid-set to avoid redundant drones
+
+      // Phase 1: first drone — maximize coverage, tiebreak by balance
+      const first = deduped[startIdx];
+      for (const n of first.names) covered.add(n);
+      combinedPerOre = { ...first.perOre };
+      usedNameSets.add(first.names.join('|'));
+      drones.push({
+        ...first, droneIndex: 1,
+        newNames: [...first.names].sort(), overlapNames: [],
+        newCount: first.names.length, overlapCount: 0
+      });
+
+      // Phase 2: subsequent drones — boost the weakest ores
+      for (let d = 1; d < maxDrones; d++) {
+        // Find the bottom 25% of ores by rate
+        const oreRates = Object.entries(combinedPerOre).sort((a, b) => a[1] - b[1]);
+        const weakCount = Math.max(1, Math.ceil(oreRates.length * 0.25));
+        const weakOres = new Set(oreRates.slice(0, weakCount).map(e => e[0]));
+
+        let bestConfig = null, bestWeakBoost = -1, bestNewCount = -1, bestMinRate = -Infinity;
+        for (const r of deduped) {
+          const nameKey = r.names.join('|');
+          if (usedNameSets.has(nameKey)) continue; // don't reuse same asteroid set
+
+          // How much does this config boost the weak ores?
+          let weakBoost = 0;
+          for (const [ore, rate] of Object.entries(r.perOre)) {
+            if (weakOres.has(ore)) weakBoost += rate;
+          }
+
+          // Also count new asteroids as a secondary benefit
+          let newCount = 0;
+          for (const n of r.names) { if (!covered.has(n)) newCount++; }
+
+          const merged = mergePerOre(combinedPerOre, r.perOre);
+          const minRate = Math.min(...Object.values(merged));
+
+          // Primary: highest boost to weak ores; secondary: highest min rate; tertiary: most new asteroids
+          if (weakBoost > bestWeakBoost ||
+              (weakBoost === bestWeakBoost && minRate > bestMinRate) ||
+              (weakBoost === bestWeakBoost && minRate === bestMinRate && newCount > bestNewCount)) {
+            bestConfig = r; bestWeakBoost = weakBoost; bestMinRate = minRate; bestNewCount = newCount;
+          }
+        }
+
+        // If no config boosts weak ores at all, fall back to best new coverage
+        if (!bestConfig || bestWeakBoost <= 0) {
+          bestConfig = null; bestNewCount = -1;
+          for (const r of deduped) {
+            const nameKey = r.names.join('|');
+            if (usedNameSets.has(nameKey)) continue;
+            let newCount = 0;
+            for (const n of r.names) { if (!covered.has(n)) newCount++; }
+            if (newCount > bestNewCount || (newCount === bestNewCount && r.sps > (bestConfig ? bestConfig.sps : 0))) {
+              bestConfig = r; bestNewCount = newCount;
+            }
+          }
+        }
+        if (!bestConfig) break;
+
+        usedNameSets.add(bestConfig.names.join('|'));
+        const newNames = bestConfig.names.filter(n => !covered.has(n));
+        const overlapNames = bestConfig.names.filter(n => covered.has(n));
+        for (const n of bestConfig.names) covered.add(n);
+        combinedPerOre = mergePerOre(combinedPerOre, bestConfig.perOre);
+        drones.push({
+          ...bestConfig, droneIndex: d + 1,
+          newNames: newNames.sort(), overlapNames: overlapNames.sort(),
+          newCount: newNames.length, overlapCount: overlapNames.length
+        });
+      }
+
+      const coveredCount = covered.size;
+      const totalSPS = drones.reduce((s, d) => s + d.sps, 0);
+      const bm = balanceMetrics(combinedPerOre);
+      return { drones, coveredCount, totalSPS, combinedPerOre, balance: bm };
+    }
+
+    const greedyFn = goal === 'balanced' ? greedyBalanced : goal === 'boostweak' ? greedyBoostWeak : greedyThroughput;
+
+    // Try multiple starting points: top N by count, by SPS, and by balance
+    const byCount = [...deduped].sort((a, b) => b.count - a.count || b.sps - a.sps);
+    const bySPS = [...deduped].sort((a, b) => b.sps - a.sps || b.count - a.count);
+    const byBalance = [...deduped].sort((a, b) => {
+      const ba = balanceMetrics(a.perOre), bb = balanceMetrics(b.perOre);
+      return b.count - a.count || ba.cv - bb.cv || b.sps - a.sps;
+    });
+    const trySet = new Set();
+    const tryIndices = [];
+    const N = Math.min(30, deduped.length);
+    for (const list of [byCount, bySPS, byBalance]) {
+      for (let i = 0; i < N && i < list.length; i++) {
+        const idx = deduped.indexOf(list[i]);
+        if (idx >= 0 && !trySet.has(idx)) {
+          trySet.add(idx);
+          tryIndices.push(idx);
+        }
+      }
+    }
+
+    let bestResult = null;
+    for (const idx of tryIndices) {
+      const result = greedyFn(idx);
+      if (!bestResult) { bestResult = result; continue; }
+      if (goal === 'balanced') {
+        // Prefer more coverage first, then lower CV, then higher throughput
+        const rc = result.balance || balanceMetrics(result.combinedPerOre || {});
+        const bc = bestResult.balance || balanceMetrics(bestResult.combinedPerOre || {});
+        if (result.coveredCount > bestResult.coveredCount ||
+            (result.coveredCount === bestResult.coveredCount && rc.cv < bc.cv) ||
+            (result.coveredCount === bestResult.coveredCount && rc.cv === bc.cv && result.totalSPS > bestResult.totalSPS)) {
+          bestResult = result;
+        }
+      } else if (goal === 'boostweak') {
+        // Prefer more coverage first, then lower CV (which reflects boosted weak ores)
+        const rc = result.balance || balanceMetrics(result.combinedPerOre || {});
+        const bc = bestResult.balance || balanceMetrics(bestResult.combinedPerOre || {});
+        if (result.coveredCount > bestResult.coveredCount ||
+            (result.coveredCount === bestResult.coveredCount && rc.cv < bc.cv) ||
+            (result.coveredCount === bestResult.coveredCount && rc.cv === bc.cv && result.totalSPS > bestResult.totalSPS)) {
+          bestResult = result;
+        }
+      } else {
+        if (result.coveredCount > bestResult.coveredCount ||
+            (result.coveredCount === bestResult.coveredCount && result.totalSPS > bestResult.totalSPS)) {
+          bestResult = result;
+        }
+      }
+    }
+
+    // Re-number drone indices
+    bestResult.drones.forEach((d, i) => d.droneIndex = i + 1);
+
+    // Compute combined per-ore if not already present (throughput mode)
+    if (!bestResult.combinedPerOre) {
+      bestResult.combinedPerOre = {};
+      for (const d of bestResult.drones) {
+        bestResult.combinedPerOre = mergePerOre(bestResult.combinedPerOre, d.perOre);
+      }
+    }
+    if (!bestResult.balance) bestResult.balance = balanceMetrics(bestResult.combinedPerOre);
+
+    window._cycleOptData = { drones: bestResult.drones, modT, drT, maxDrT, currentNames: [...currentNames], isCycle, maxDrones, goal, allCount: allAccessibleNames.size, allAccessibleNames: [...allAccessibleNames], coveredCount: bestResult.coveredCount, totalSPS: bestResult.totalSPS, combinedPerOre: bestResult.combinedPerOre, balance: bestResult.balance };
+    renderMultiDroneTable();
+  }
+}
+
+function oreTooltip(name, extraStyle, tipCtx) {
+  const ast = A.find(a => a.n === name);
+  if (!ast) return `<span style="${extraStyle||''}">${name}</span>`;
+  const s = extraStyle || '';
+  const ctx = tipCtx || window._tipCtx || {};
+  const drTip = ctx.droneTier || +document.getElementById('droneTier').value;
+  const modTip = ctx.modT || +document.getElementById('moduleTier').value;
+  const ptTip = ctx.plasmaTier || +document.getElementById('plasmaTier').value;
+  const plasma = PLASMA[ptTip];
+  const maxOD = Math.min(2.0, 2.0 * plasma.discount);
+  const minOD = plasma.lambda > 0 ? Math.max(0.01, 2.0 - 0.75 / plasma.lambda) : 0.01;
+  const od = ctx.od || Math.max(minOD, Math.min(maxOD, +document.getElementById('overdrive').value / 100));
+  const timeMult = Math.max(plasma.discount / od, 0.5);
+  const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
+
+  const avail = drTip >= ast.drMin && drTip <= ast.drMax && modTip >= ast.mod;
+  const size = adjSize(ast, drTip);
+  const avgSz = size.min + sizeBonus * (size.max - size.min);
+  const dScale = Math.sqrt(drTip - ast.drMin + 1);
+  const adjDur = Math.ceil(ast.dur / dScale);
+  const cycleSec = adjDur * timeMult / 20;
+  const adjEut = Math.ceil(ast.eut * dScale);
+  const maxP = Math.floor(MODULE_MAX_EU[modTip] / adjEut);
+  const maxC = Math.floor(MODULE_MAX_COMP[modTip] / ast.comp);
+  const par = Math.max(1, Math.min(MODULE_MAX_PAR[modTip], maxP, maxC));
+  const sps = cycleSec > 0 ? par * avgSz / cycleSec : 0;
+  const sph = sps * 3600;
+
+  const tw = ast.w.reduce((s, v) => s + v, 0);
+  let matsHtml = '';
+  for (let i = 0; i < ast.m.length; i++) {
+    const pct = (ast.w[i] / tw * 100).toFixed(1);
+    const mSps = sps * ast.w[i] / tw;
+    matsHtml += `<div class="tip-mat"><span class="tip-mat-name">${ast.m[i]}</span><span class="tip-mat-pct">${pct}% &middot; ${mSps.toFixed(3)}/s</span></div>`;
+  }
+
+  const tipHtml = `<div class="ore-tip">
+    <div class="tip-name">${ast.n}</div>
+    <div class="tip-row"><span class="tip-label">Drone</span><span class="tip-val">${ROMAN[drTip]} ${avail ? '' : '(N/A: ' + ROMAN[ast.drMin] + '-' + ROMAN[ast.drMax] + ')'}</span></div>
+    <div class="tip-row"><span class="tip-label">Distance</span><span class="tip-val">${ast.dMin}\u2013${ast.dMax}</span></div>
+    <div class="tip-row"><span class="tip-label">Module</span><span class="tip-val">MK-${['I','II','III'][ast.mod-1]}</span></div>
+    <div class="tip-row"><span class="tip-label">Weight</span><span class="tip-val">${ast.wt}</span></div>
+    <div class="tip-sep"></div>
+    <div class="tip-row"><span class="tip-label">Size</span><span class="tip-val">${size.min}\u2013${size.max} (avg ${avgSz.toFixed(1)})</span></div>
+    <div class="tip-row"><span class="tip-label">Cycle</span><span class="tip-val">${cycleSec.toFixed(1)}s (${adjDur}t \u00d7 ${timeMult.toFixed(2)})</span></div>
+    <div class="tip-row"><span class="tip-label">EU/t</span><span class="tip-val">${fmt(adjEut)} (${par}p = ${fmt(adjEut*par)})</span></div>
+    <div class="tip-sep"></div>
+    <div class="tip-row"><span class="tip-label">Stacks/s</span><span class="tip-val green">${sps.toFixed(3)}</span></div>
+    <div class="tip-row"><span class="tip-label">Stacks/hr</span><span class="tip-val green">${fmt(sph)}</span></div>
+    <div class="tip-row"><span class="tip-label">Items/hr</span><span class="tip-val green">${fmt(sph*64)}</span></div>
+    <div class="tip-sep"></div>
+    <div class="tip-mats">${matsHtml}</div>
+  </div>`;
+
+  // Store tip HTML as a data attribute (HTML-escaped for attribute embedding)
+  const escaped = tipHtml.replace(/"/g, '&quot;');
+  return `<span class="ore-tip-wrap" data-oretip="${escaped}" style="cursor:help;border-bottom:1px dotted var(--text2)${s ? ';' + s : ''}">${name}</span>`;
+}
+
+function renderCycleOptTable(showDiff) {
+  const { top, modT, drT, currentNames, isCycle, goal } = window._cycleOptData;
+  const currentSet = new Set(currentNames);
+  const tipCtx = { droneTier: drT, modT };
+  const isBalanced = goal === 'balanced';
+
+  const best = top[0];
+  const goalLabel = isBalanced ? 'Most Balanced' : 'Max Throughput';
+  let h = `<div class="opt-result">
+    <h3>Best cycle configs (${goalLabel}) &mdash; MK-${['I','II','III'][modT-1]} / Drone ${ROMAN[drT]} &mdash; top: ${best.count} asteroids, ${fmt(best.sps*3600)} stacks/hr</h3>`;
+  if (isCycle) {
+    h += `<label style="display:inline-flex;align-items:center;gap:6px;margin-bottom:8px;cursor:pointer;font-size:0.9em;color:var(--text2)">
+      <input type="checkbox" id="cycleDiffToggle" onchange="renderCycleOptTable(this.checked)"${showDiff ? ' checked' : ''}>
+      Show asteroid differences <span style="font-size:0.85em">(<span style="color:var(--green)">green</span> = gained, <span style="color:var(--accent)">red</span> = lost)</span>
+    </label>`;
+  }
+  h += `<table><thead><tr>
+      <th>Rank</th><th>Distance</th><th>Range</th><th>Steps</th>
+      <th>Asteroids</th><th>Stacks/hr</th><th>Items/hr</th>${isBalanced ? '<th>Balance</th>' : ''}<th>Asteroid Names</th><th></th>
+    </tr></thead><tbody>`;
+
+  for (let i = 0; i < top.length; i++) {
+    const r = top[i];
+    const sph = r.sps * 3600;
+    const rowNames = new Set(r.names);
+    let namesHtml;
+    if (showDiff && isCycle) {
+      const gained = r.names.filter(n => !currentSet.has(n));
+      const gainedSet = new Set(gained);
+      const kept = r.names.map(n => gainedSet.has(n) ? oreTooltip(n, 'color:var(--green)', tipCtx) : oreTooltip(n, '', tipCtx)).join(', ');
+      const lost = [...currentSet].filter(n => !rowNames.has(n)).sort();
+      namesHtml = kept + (lost.length ? ', ' + lost.map(n => oreTooltip(n, 'color:var(--accent);text-decoration:line-through', tipCtx)).join(', ') : '');
+    } else {
+      namesHtml = r.names.map(n => oreTooltip(n, '', tipCtx)).join(', ');
+    }
+    let balanceCell = '';
+    if (isBalanced && r.perOre) {
+      const rates = Object.values(r.perOre);
+      const mn = Math.min(...rates), mx = Math.max(...rates);
+      const mean = rates.reduce((s, v) => s + v, 0) / rates.length;
+      const cv = mean > 0 ? Math.sqrt(rates.reduce((s, v) => s + (v - mean) ** 2, 0) / rates.length) / mean : 0;
+      const ratio = mx > 0 ? (mn / mx * 100).toFixed(0) : 0;
+      balanceCell = `<td style="white-space:nowrap"><span style="color:var(--green)">${ratio}%</span> <span style="color:var(--text2);font-size:0.8em">CV ${cv.toFixed(2)}</span></td>`;
+    }
+    h += `<tr${i===0 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
+      <td>${i+1}</td>
+      <td>${r.distance}</td>
+      <td>${r.range}</td>
+      <td>${r.steps}</td>
+      <td style="font-weight:600">${r.count}</td>
+      <td style="color:var(--green);font-weight:600">${fmt(sph)}</td>
+      <td style="color:var(--green)">${fmt(sph*64)}</td>
+      ${balanceCell}
+      <td style="font-size:0.85em;max-width:400px">${namesHtml}</td>
+      <td><button class="apply-btn" onclick="applyCycle(${r.distance},${r.range})">Apply</button></td>
+    </tr>`;
+  }
+  h += '</tbody></table></div>';
+  document.getElementById('cycleOptResult').innerHTML = h;
+}
+
+function applyCycle(distance, range, droneTier) {
+  document.getElementById('distance').value = distance;
+  document.getElementById('distDisplay').textContent = distance;
+  document.getElementById('range').value = range;
+  document.getElementById('rangeDisplay').textContent = range;
+  if (droneTier) document.getElementById('droneTier').value = droneTier;
+  document.getElementById('mode').value = 'cycle';
+  document.getElementById('rangeGroup').style.display = '';
+  document.getElementById('stepGroup').style.display = '';
+  calculate();
+  document.getElementById('infoCards').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Build a rich tooltip listing asteroids with their production rates
+function asteroidListTip(title, names, tipCtx, color, showRates) {
+  if (showRates === undefined) showRates = true;
+  if (!names.length) return '';
+  const ptTip = tipCtx.plasmaTier || +document.getElementById('plasmaTier').value;
+  const plasma = PLASMA[ptTip];
+  const maxOD = Math.min(2.0, 2.0 * plasma.discount);
+  const minOD = plasma.lambda > 0 ? Math.max(0.01, 2.0 - 0.75 / plasma.lambda) : 0.01;
+  const od = tipCtx.od || Math.max(minOD, Math.min(maxOD, +document.getElementById('overdrive').value / 100));
+  const timeMult = Math.max(plasma.discount / od, 0.5);
+  const sizeBonus = Math.min(0.75, plasma.lambda * (2.0 - od));
+  const rows = [];
+  for (const name of names.sort()) {
+    const ast = A.find(a => a.n === name);
+    if (!ast) { rows.push({ name, sph: 0 }); continue; }
+    const drT = Math.max(tipCtx.droneTier || 1, ast.drMin);
+    const modT = tipCtx.modT || 1;
+    const size = adjSize(ast, drT);
+    const avgSz = size.min + sizeBonus * (size.max - size.min);
+    const dScale = Math.sqrt(drT - ast.drMin + 1);
+    const adjDur = Math.ceil(ast.dur / dScale);
+    const cycleSec = adjDur * timeMult / 20;
+    const adjEut = Math.ceil(ast.eut * dScale);
+    const maxP = Math.floor(MODULE_MAX_EU[modT] / adjEut);
+    const maxC = Math.floor(MODULE_MAX_COMP[modT] / ast.comp);
+    const par = Math.max(1, Math.min(MODULE_MAX_PAR[modT], maxP, maxC));
+    const sps = cycleSec > 0 ? par * avgSz / cycleSec : 0;
+    rows.push({ name, sph: sps * 3600 });
+  }
+  rows.sort((a, b) => a.sph - b.sph);
+  let h = `<div class="ore-tip"><div class="tip-name" style="color:${color || 'var(--gold)'}">${title}</div>`;
+  h += `<div class="tip-row" style="margin-bottom:4px"><span class="tip-label">${rows.length} asteroid${rows.length !== 1 ? 's' : ''}</span></div>`;
+  h += '<div class="tip-sep"></div>';
+  for (const r of rows) {
+    h += `<div class="tip-row"><span class="tip-label">${r.name}</span>${showRates ? `<span class="tip-val green">${fmt(r.sph)}/hr</span>` : ''}</div>`;
+  }
+  h += '</div>';
+  return h.replace(/"/g, '&quot;');
+}
+
+function renderMultiDroneTable() {
+  const { drones, modT, maxDrT, allCount, allAccessibleNames, coveredCount, totalSPS, goal, combinedPerOre, balance } = window._cycleOptData;
+  const totalOverlap = drones.reduce((s, d) => s + d.overlapCount, 0);
+  const totalSPH = (totalSPS || drones.reduce((s, d) => s + d.sps, 0)) * 3600;
+  const isBalanced = goal === 'balanced' || goal === 'boostweak';
+  const goalLabel = goal === 'balanced' ? 'Most Balanced' : goal === 'boostweak' ? 'Boost Weakest' : 'Max Throughput';
+
+  // Compute missing and all-overlap asteroids for tooltips
+  const coveredSet = new Set();
+  for (const d of drones) for (const n of d.names) coveredSet.add(n);
+  const missingNames = (allAccessibleNames || []).filter(n => !coveredSet.has(n)).sort();
+  const allOverlapNames = [...new Set(drones.flatMap(d => d.overlapNames))].sort();
+  // Use a generic tipCtx — for missing asteroids use best-fit drone tier
+  const summaryTipCtx = { modT, droneTier: maxDrT, plasmaTier: +document.getElementById('plasmaTier').value };
+
+  const missingTip = missingNames.length > 0 ? asteroidListTip(`Missing Asteroids (${missingNames.length})`, missingNames, summaryTipCtx, 'var(--accent)', false) : '';
+  const overlapTip = allOverlapNames.length > 0 ? asteroidListTip(`Overlapping Asteroids (${allOverlapNames.length})`, allOverlapNames, summaryTipCtx, 'var(--accent)') : '';
+
+  let h = `<div class="opt-result">
+    <h3>Multi-drone coverage (${goalLabel}) &mdash; MK-${['I','II','III'][modT-1]} / Drones I\u2013${ROMAN[maxDrT]} &mdash; ${drones.length} drone${drones.length > 1 ? 's' : ''} cover ${coveredCount} / ${allCount} accessible asteroids</h3>
+    <div class="opt-grid" style="margin-bottom:12px">
+      <div class="opt-stat">Combined throughput: <span>${fmt(totalSPH)} stacks/hr</span></div>
+      <div class="opt-stat">Items/hr: <span>${fmt(totalSPH * 64)}</span></div>
+      <div class="opt-stat"${overlapTip ? ` data-richtip="${overlapTip}" style="cursor:help"` : ''}>Overlap: <span style="color:${totalOverlap > 0 ? 'var(--accent)' : 'var(--green)'}${overlapTip ? ';border-bottom:1px dotted var(--text2)' : ''}">${totalOverlap} asteroid${totalOverlap !== 1 ? 's' : ''}${overlapTip ? ' \u24d8' : ''}</span></div>
+      <div class="opt-stat"${missingTip ? ` data-richtip="${missingTip}" style="cursor:help"` : ''}>Coverage: <span style="${missingTip ? 'border-bottom:1px dotted var(--text2)' : ''}">${coveredCount} / ${allCount} (${(coveredCount/allCount*100).toFixed(0)}%)${missingTip ? ' \u24d8' : ''}</span></div>`;
+  if (balance) {
+    const ratio = balance.maxRate > 0 ? (balance.minRate / balance.maxRate * 100).toFixed(1) : 0;
+    const p10p90 = balance.p90 > 0 ? (balance.p10 / balance.p90 * 100).toFixed(1) : 0;
+    h += `<div class="opt-stat" title="P10/P90: ratio of 10th to 90th percentile ore rate — ignores extreme outliers. 100% = very even distribution. CV: std dev / mean, lower = more balanced.">Balance: <span style="color:var(--gold)">${p10p90}% P10/P90</span> <span style="color:var(--text2);font-size:0.85em">(CV ${balance.cv.toFixed(2)})</span></div>
+      <div class="opt-stat" title="10th percentile ore rate — 90% of ores produce at least this much">P10 ore: <span>${fmt(balance.p10 * 3600)} stk/hr</span></div>
+      <div class="opt-stat" title="90th percentile ore rate — only 10% of ores produce more than this">P90 ore: <span>${fmt(balance.p90 * 3600)} stk/hr</span></div>`;
+  }
+  h += `</div>`;
+
+  // Per-ore rate breakdown for balanced mode
+  if (isBalanced && combinedPerOre) {
+    const sorted = Object.entries(combinedPerOre).sort((a, b) => a[1] - b[1]);
+    h += `<details style="margin-bottom:12px"><summary style="cursor:pointer;color:var(--text2);font-size:0.9em">Per-ore rate breakdown (${sorted.length} ores)</summary>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:2px 16px;margin-top:8px;font-size:0.82em">`;
+    const maxRate = sorted.length > 0 ? sorted[sorted.length - 1][1] : 1;
+    for (const [ore, rate] of sorted) {
+      const barW = maxRate > 0 ? Math.max(2, rate / maxRate * 100) : 0;
+      const sph = rate * 3600;
+      h += `<div style="display:flex;align-items:center;gap:6px">
+        <span style="min-width:140px;color:var(--text)">${ore}</span>
+        <span style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><span style="display:block;width:${barW}%;height:100%;background:var(--green);border-radius:2px"></span></span>
+        <span style="min-width:70px;text-align:right;color:var(--green)">${fmt(sph)}/hr</span>
+      </div>`;
+    }
+    h += `</div></details>`;
+  }
+
+  h += `<table><thead><tr>
+      <th>Drone</th><th>Drone Tier</th><th>Distance</th><th>Range</th><th>Steps</th>
+      <th>Total</th><th>New</th><th>Overlap</th><th>Stacks/hr</th><th>Asteroid Names</th><th></th>
+    </tr></thead><tbody>`;
+
+  for (const d of drones) {
+    const newSet = new Set(d.newNames);
+    const overlapSet = new Set(d.overlapNames);
+    const tipCtx = { droneTier: d.droneTier, modT };
+    const namesHtml = d.names.map(n => {
+      if (newSet.has(n)) return oreTooltip(n, 'color:var(--green)', tipCtx);
+      if (overlapSet.has(n)) return oreTooltip(n, 'color:var(--text2);opacity:0.6', tipCtx);
+      return oreTooltip(n, '', tipCtx);
+    }).join(', ');
+    const dSPH = d.sps * 3600;
+
+    // Per-drone overlap/new tooltips
+    const droneOverlapTip = d.overlapCount > 0 ? asteroidListTip(`Drone ${d.droneIndex} Overlap (${d.overlapCount})`, d.overlapNames, tipCtx, 'var(--accent)') : '';
+    const droneNewTip = d.newCount > 0 ? asteroidListTip(`Drone ${d.droneIndex} New (${d.newCount})`, d.newNames, tipCtx, 'var(--green)') : '';
+
+    h += `<tr${d.droneIndex === 1 ? ' style="background:rgba(78,204,163,0.1)"' : ''}>
+      <td style="font-weight:700">${d.droneIndex}</td>
+      <td>${ROMAN[d.droneTier]}</td>
+      <td>${d.distance}</td>
+      <td>${d.range}</td>
+      <td>${d.steps}</td>
+      <td>${d.count}</td>
+      <td${droneNewTip ? ` data-richtip="${droneNewTip}" style="cursor:help;color:var(--green);font-weight:600"` : ' style="color:var(--green);font-weight:600"'}>+${d.newCount}</td>
+      <td${droneOverlapTip ? ` data-richtip="${droneOverlapTip}" style="cursor:help;color:var(--accent)"` : ` style="color:${d.overlapCount > 0 ? 'var(--accent)' : 'var(--text2)'}"`}>${d.overlapCount}</td>
+      <td style="color:var(--green);font-weight:600">${fmt(dSPH)}</td>
+      <td style="font-size:0.85em;max-width:400px">${namesHtml}</td>
+      <td><button class="apply-btn" onclick="applyCycle(${d.distance},${d.range},${d.droneTier})">Apply</button></td>
+    </tr>`;
+  }
+
+  const totalOverlapTip = allOverlapNames.length > 0 ? asteroidListTip(`All Overlapping (${allOverlapNames.length})`, allOverlapNames, summaryTipCtx, 'var(--accent)') : '';
+  const totalMissingTip = missingNames.length > 0 ? asteroidListTip(`Missing (${missingNames.length})`, missingNames, summaryTipCtx, 'var(--accent)', false) : '';
+  h += `<tr class="total-row">
+    <td colspan="5" style="text-align:right">TOTAL</td>
+    <td${totalMissingTip ? ` data-richtip="${totalMissingTip}" style="cursor:help"` : ''}>${coveredCount}${missingNames.length > 0 ? ' / ' + allCount : ''}</td>
+    <td style="color:var(--green)">+${coveredCount}</td>
+    <td${totalOverlapTip ? ` data-richtip="${totalOverlapTip}" style="cursor:help;color:var(--accent)"` : ` style="color:${totalOverlap > 0 ? 'var(--accent)' : 'var(--text2)'}"`}>${totalOverlap}</td>
+    <td style="color:var(--green);font-weight:700">${fmt(totalSPH)}</td>
+    <td colspan="2"></td>
+  </tr>`;
+
+  h += `</tbody></table>
+    <p style="color:var(--text2);margin:8px 0 0;font-size:0.85em">
+      <span style="color:var(--green)">Green</span> = unique to this drone &bull;
+      <span style="opacity:0.6">Dim</span> = already covered by a previous drone
+    </p></div>`;
+
+  document.getElementById('cycleOptResult').innerHTML = h;
+}
+
+function applyOptimal(dist, od, modT, drT) {
+  document.getElementById('moduleTier').value = modT;
+  document.getElementById('droneTier').value = drT;
+  document.getElementById('distance').value = dist;
+  document.getElementById('distDisplay').textContent = dist;
+  document.getElementById('overdrive').value = Math.round(od * 100);
+  document.getElementById('odDisplay').textContent = od.toFixed(2);
+  document.getElementById('mode').value = 'static';
+  document.getElementById('rangeGroup').style.display = 'none';
+  document.getElementById('stepGroup').style.display = 'none';
+  calculate();
+  document.getElementById('infoCards').scrollIntoView({ behavior: 'smooth' });
+}
+
+// URL state: save settings to hash, restore on load
+const STATE_KEYS = ['moduleTier','droneTier','maxDroneTier','distance','plasmaTier','overdrive','mode','range','step'];
+const CHECK_KEYS = ['hideUnavailable','showPerItem'];
+
+function saveState() {
+  const p = new URLSearchParams();
+  for (const k of STATE_KEYS) p.set(k, document.getElementById(k).value);
+  for (const k of CHECK_KEYS) p.set(k, document.getElementById(k).checked ? '1' : '0');
+  const f = document.getElementById('oreFilter').value;
+  if (f) p.set('filter', f);
+  history.replaceState(null, '', '#' + p.toString());
+}
+
+function loadState() {
+  if (!location.hash || location.hash.length < 2) return;
+  const p = new URLSearchParams(location.hash.slice(1));
+  for (const k of STATE_KEYS) {
+    const v = p.get(k);
+    if (v !== null) document.getElementById(k).value = v;
+  }
+  for (const k of CHECK_KEYS) {
+    const v = p.get(k);
+    if (v !== null) document.getElementById(k).checked = v === '1';
+  }
+  const f = p.get('filter');
+  if (f !== null) document.getElementById('oreFilter').value = f;
+  // Sync displays
+  document.getElementById('distDisplay').textContent = document.getElementById('distance').value;
+  document.getElementById('odDisplay').textContent = (+document.getElementById('overdrive').value / 100).toFixed(2);
+  document.getElementById('rangeDisplay').textContent = document.getElementById('range').value;
+  const c = document.getElementById('mode').value === 'cycle';
+  document.getElementById('rangeGroup').style.display = c ? '' : 'none';
+  document.getElementById('stepGroup').style.display = c ? '' : 'none';
+}
+
+loadState();
+calculate();
+
+// Floating tooltip for ore-tip-wrap elements
+(function() {
+  const popup = document.createElement('div');
+  popup.id = 'oreTipPopup';
+  document.body.appendChild(popup);
+
+  function showPopup(el, attr) {
+    popup.innerHTML = el.getAttribute(attr);
+    popup.style.display = 'block';
+    const rect = el.getBoundingClientRect();
+    const pw = popup.offsetWidth;
+    const ph = popup.offsetHeight;
+    let left = rect.left + rect.width / 2 - pw / 2;
+    let top = rect.top - ph - 8;
+    if (left < 4) left = 4;
+    if (left + pw > window.innerWidth - 4) left = window.innerWidth - pw - 4;
+    if (top < 4) { top = rect.bottom + 8; }
+    popup.style.left = left + 'px';
+    popup.style.top = top + 'px';
+  }
+
+  let tipEl = null;
+  document.addEventListener('mouseover', function(e) {
+    const ore = e.target.closest('.ore-tip-wrap[data-oretip]');
+    if (ore) { tipEl = ore; showPopup(ore, 'data-oretip'); return; }
+    const rich = e.target.closest('[data-richtip]');
+    if (rich) { tipEl = rich; showPopup(rich, 'data-richtip'); return; }
+    if (tipEl && !tipEl.contains(e.target)) { popup.style.display = 'none'; tipEl = null; }
+  });
+  document.addEventListener('mouseout', function(e) {
+    if (!tipEl) return;
+    if (!tipEl.contains(e.relatedTarget)) { popup.style.display = 'none'; tipEl = null; }
+  });
+})();
+</script>
+</body>
+</html>
